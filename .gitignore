@@ -1,3 +1,5 @@
 .DS_Store
 *.log
 session-logs/
+playwright-report/
+test-results/

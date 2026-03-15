@@ -5,6 +5,12 @@
     "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50",
     "PORT": "3000"
   },
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@anthropic-ai/mcp-playwright"]
+    }
+  },
   "permissions": {
     "allow": [
       "Bash(*)",

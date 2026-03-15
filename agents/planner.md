@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Agent
 model: opus
 ---
 
-너는 SkillTest 프로젝트의 기획 전문가다.
+너는 프로젝트의 기획 전문가다.
 
 ## 역할
 
@@ -48,4 +48,4 @@ model: opus
 
 - 프로젝트 구조: `src/` 하위
 - Server Action 패턴: `useActionState` + zod + `revalidatePath`
-- 5개 이상 파일 변경 시 반드시 계획 수립 필요 (HARD-GATE)
+- 20개 이상 파일 변경 시 반드시 계획 수립 필요 (HARD-GATE)

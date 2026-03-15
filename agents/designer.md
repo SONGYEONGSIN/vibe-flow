@@ -5,7 +5,7 @@ tools: Read, Grep, Glob
 model: opus
 ---
 
-너는 SkillTest 프로젝트의 UI/UX 설계 전문가다.
+너는 프로젝트의 UI/UX 설계 전문가다.
 
 ## 역할
 
@@ -55,7 +55,7 @@ model: opus
 - 데이터 밀도: 간격 작게 (`gap-2`, `p-3`, `text-xs`~`text-sm`)
 - 페이지네이션: `flex items-center justify-between`
 
-#### 서비스 앱 ← 현재 SkillTest
+#### 서비스 앱
 
 - 레이아웃: 콘텐츠 중앙 (`mx-auto max-w-lg px-4 py-8`)
 - 인증 페이지: `flex min-h-screen items-center justify-center bg-gray-50 px-4` + `w-full max-w-sm space-y-6`

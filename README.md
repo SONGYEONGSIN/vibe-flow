@@ -299,14 +299,21 @@ ao spawn my-app ISSUE-42    # 이슈에 에이전트 할당
 
 자세한 내용은 [`orchestrators/README.md`](orchestrators/README.md) 참조.
 
-## 기술 스택 호환성
+## 기본 기술 스택
 
-현재 Next.js + TypeScript + Tailwind CSS 기반으로 최적화되어 있으나,
-hooks와 rules를 수정하면 다른 스택에도 적용 가능:
+claude-builds는 아래 기술 스택이 **확정**되어 있다. 프로젝트 생성 시 별도 선택 없이 바로 적용된다.
 
-- **hooks**: Prettier/ESLint/TypeScript 경로만 수정
-- **rules**: 프레임워크별 conventions 수정
-- **agents**: 범용적으로 설계됨
+| 항목 | 기술 |
+|------|------|
+| Framework | Next.js (App Router) + TypeScript |
+| Styling | Tailwind CSS 4 |
+| Database / Auth | Supabase (@supabase/ssr) |
+| Validation | zod |
+| Testing | Vitest (unit) + Playwright (E2E) |
+| Linting | ESLint + Prettier |
+
+> **고급 사용자**: 다른 스택을 사용하려면 hooks와 rules를 직접 수정해야 한다.
+> hooks의 Prettier/ESLint/TypeScript 경로, rules의 conventions를 프레임워크에 맞게 변경.
 
 ## 라이선스
 

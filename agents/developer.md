@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Bash, Edit, Write
 model: opus
 ---
 
-너는 SkillTest 프로젝트의 코드 구현 전문가다.
+너는 프로젝트의 코드 구현 전문가다.
 
 ## 역할
 

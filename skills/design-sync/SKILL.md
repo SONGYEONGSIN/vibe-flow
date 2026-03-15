@@ -548,7 +548,7 @@ import pixelmatch from 'pixelmatch';
 import fs from 'fs';
 
 const REF_URL = '<<REF_URL>>';
-const LOCAL_URL = 'http://localhost:3001';
+const LOCAL_URL = 'http://localhost:3000';
 const VIEWPORT = { width: 1366, height: 900 };
 const PAGES = [
   // { name: 'dashboard', nav: 'Dashboard', localPath: '/dashboard' },
@@ -921,7 +921,7 @@ function suggestChange(refValue, property) {
 - 수정 후 반드시 `npx tsc --noEmit && npm test` 검증
 - **6 카테고리 × 12 속성** 모두 동일 깊이로 추출·비교
 - 시각적 회귀 테스트는 **수정 전후** 두 번 실행하여 개선을 정량화
-- 로컬 개발 서버(`localhost:3001`)가 실행 중이어야 시각적 회귀 테스트 가능
+- 로컬 개발 서버(`localhost:3000`)가 실행 중이어야 시각적 회귀 테스트 가능
 
 ## 부록: Tailwind CSS 4 값 매핑 테이블
 

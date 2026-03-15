@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Bash, Edit, Write, mcp__playwright__browser_navigate, m
 model: opus
 ---
 
-너는 SkillTest 프로젝트의 QA 전문가다.
+너는 프로젝트의 QA 전문가다.
 
 ## 역할
 

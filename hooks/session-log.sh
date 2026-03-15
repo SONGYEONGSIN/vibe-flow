@@ -1,9 +1,14 @@
 #!/bin/bash
 # Stop hook: 세션 종료 시 작업 기록 저장
 
-cd "/Users/yss/개발/AdminOps" || exit 0
+PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$PROJECT_ROOT" ]; then
+  exit 0
+fi
 
-LOG_DIR="/Users/yss/개발/AdminOps/.claude/session-logs"
+cd "$PROJECT_ROOT" || exit 0
+
+LOG_DIR="${PROJECT_ROOT}/.claude/session-logs"
 mkdir -p "$LOG_DIR"
 
 TIMESTAMP=$(date '+%Y-%m-%d_%H%M%S')

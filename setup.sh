@@ -71,15 +71,23 @@ else
 fi
 
 # CLAUDE.md 템플릿 복사 (기존 파일이 없을 때만)
-echo "[6/$TOTAL_STEPS] CLAUDE.md..."
+echo "[6/$TOTAL_STEPS] CLAUDE.md + Playwright config..."
 if [ ! -f "$PROJECT_DIR/CLAUDE.md" ]; then
   sed "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
     "$SCRIPT_DIR/templates/CLAUDE.md.template" \
     > "$PROJECT_DIR/CLAUDE.md"
   echo "  Created CLAUDE.md ({{PROJECT_NAME}} → $PROJECT_NAME)"
-  echo "  나머지 {{}} 플레이스홀더를 수동으로 채워주세요"
+  echo "  {{PROJECT_DESCRIPTION}} 플레이스홀더를 수동으로 채워주세요"
 else
   echo "  CLAUDE.md already exists, skipped"
+fi
+
+# Playwright config 복사 (기존 파일이 없을 때만)
+if [ ! -f "$PROJECT_DIR/playwright.config.ts" ]; then
+  cp "$SCRIPT_DIR/templates/playwright.config.ts" "$PROJECT_DIR/playwright.config.ts"
+  echo "  Created playwright.config.ts (HTML 리포트 활성화)"
+else
+  echo "  playwright.config.ts already exists, skipped"
 fi
 
 # Orchestrator 설정 (선택)
@@ -127,6 +135,7 @@ echo "  - Agents:  $(ls "$PROJECT_DIR/.claude/agents/" | wc -l | tr -d ' ')개"
 echo "  - Hooks:   $(ls "$PROJECT_DIR/.claude/hooks/" | wc -l | tr -d ' ')개"
 echo "  - Skills:  $(ls "$PROJECT_DIR/.claude/skills/" | wc -l | tr -d ' ')개"
 echo "  - Rules:   $(ls "$PROJECT_DIR/.claude/rules/" | wc -l | tr -d ' ')개"
+[ -f "$PROJECT_DIR/playwright.config.ts" ] && echo "  - Playwright: playwright.config.ts (HTML 리포트)"
 if [ "$WITH_ORCHESTRATORS" = true ]; then
   echo "  - Orchestrators:"
   [ -f "$HOME/.claude-squad/config.json" ] && echo "    - Claude Squad: ~/.claude-squad/config.json"

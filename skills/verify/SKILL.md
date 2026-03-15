@@ -33,6 +33,14 @@ npm test
 npm run e2e
 ```
 
+E2E 실행 후 HTML 리포트가 `playwright-report/` 에 자동 생성된다 (`playwright.config.ts`의 `reporter: [["html"]]` 설정).
+
+실패한 테스트가 있으면:
+```bash
+npx playwright show-report
+```
+로 브라우저에서 상세 리포트를 확인할 수 있다.
+
 ### 5. 브라우저 콘솔 에러 점검
 
 1. 개발 서버 시작 (백그라운드):
@@ -45,8 +53,9 @@ npm run e2e
 
 2. Playwright MCP 도구로 주요 페이지별 콘솔 에러 확인:
    - 각 페이지마다 `mcp__playwright__browser_navigate` → `mcp__playwright__browser_console_messages` 순서로 호출
-   - 점검 대상 페이지: `/`, `/auth/login`, `/auth/signup`
-   - 보호된 경로(`/dashboard`, `/employees`, `/tasks`, `/reports`, `/settings`)는 미인증 리다이렉트되므로 공개 페이지만 점검
+   - 점검 대상: 프로젝트의 공개 접근 가능한 페이지 (인증 불필요한 페이지)
+   - 기본 점검 페이지: `/` (루트). 프로젝트에 공개 페이지가 더 있으면 추가 점검
+   - 보호된 경로는 미인증 리다이렉트되므로 제외
 
 3. `mcp__playwright__browser_close`로 브라우저 종료
 
@@ -71,6 +80,8 @@ npm run e2e
 | 콘솔 에러      | PASS/WARN | 에러 수             |
 
 ### 전체: PASS / FAIL
+
+- E2E 리포트: `playwright-report/index.html`
 ```
 
 실패한 항목이 있으면 상세 에러 메시지를 함께 출력한다.

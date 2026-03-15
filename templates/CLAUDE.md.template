@@ -4,11 +4,12 @@
 
 ## Tech Stack
 
-- **Framework**: {{FRAMEWORK}}
-- **Styling**: {{STYLING}}
-- **Database**: {{DATABASE}}
-- **Testing**: {{TESTING}}
-- **Linting**: {{LINTING}}
+- **Framework**: Next.js (App Router) + TypeScript
+- **Styling**: Tailwind CSS 4
+- **Database / Auth**: Supabase (@supabase/ssr)
+- **Validation**: zod
+- **Testing**: Vitest (unit) + Playwright (E2E)
+- **Linting**: ESLint + Prettier
 
 ## Project Structure
 
@@ -21,10 +22,10 @@
 │   ├── hooks/
 │   └── skills/
 ├── src/
-│   ├── app/
-│   ├── components/
-│   ├── features/
-│   └── lib/
+│   ├── app/            # Next.js App Router 페이지
+│   ├── components/     # React 컴포넌트 (도메인별 폴더)
+│   ├── features/       # 도메인 로직 (schemas, actions, types)
+│   └── lib/            # 유틸리티, Supabase 클라이언트
 ├── CLAUDE.md
 └── package.json
 ```
@@ -45,5 +46,5 @@ npx tsc --noEmit     # 타입 체크
 프로젝트 규칙은 `.claude/rules/`에 분리 관리:
 
 - `conventions.md` — 코드 스타일, 파일/폴더, Server Action 패턴
-- `git.md` — Conventional Commits
+- `git.md` — Conventional Commits, 브랜치 네이밍
 - `donts.md` — 금지 사항
