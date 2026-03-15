@@ -2,7 +2,7 @@
 name: developer
 description: 코드 구현 전문 에이전트. Server Actions, React 컴포넌트, zod 스키마 등을 프로젝트 패턴에 맞게 구현한다.
 tools: Read, Grep, Glob, Bash, Edit, Write
-model: sonnet
+model: opus
 ---
 
 너는 SkillTest 프로젝트의 코드 구현 전문가다.

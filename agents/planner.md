@@ -2,7 +2,7 @@
 name: planner
 description: 작업 분석, 파일 영향도 판단, 구현 계획 수립 전문 에이전트. 요구사항을 구체적 태스크로 분해한다.
 tools: Read, Grep, Glob, Agent
-model: sonnet
+model: opus
 ---
 
 너는 SkillTest 프로젝트의 기획 전문가다.

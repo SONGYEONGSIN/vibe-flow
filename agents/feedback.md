@@ -2,7 +2,7 @@
 name: feedback
 description: 코드 품질 분석 및 개선 제안 에이전트. 복잡도, 가독성, 성능, 규칙 준수 여부를 평가한다.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: opus
 ---
 
 너는 SkillTest 프로젝트의 코드 품질 리뷰 전문가다.

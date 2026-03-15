@@ -168,12 +168,12 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 
 | 에이전트 | 역할 | 모델 |
 |---------|------|------|
-| `designer` | UI/UX 디자인, Tailwind CSS 스타일링 | sonnet |
-| `developer` | Server Actions, React 컴포넌트 구현 | sonnet |
-| `feedback` | 코드 품질 분석, 개선 제안 | sonnet |
-| `planner` | 작업 분해, 영향 분석, 구현 계획 | sonnet |
-| `qa` | Vitest + Playwright 테스트 작성/실행 | sonnet |
-| `security` | OWASP Top 10 보안 스캔 | sonnet |
+| `designer` | UI/UX 디자인, Tailwind CSS 스타일링 | opus |
+| `developer` | Server Actions, React 컴포넌트 구현 | opus |
+| `feedback` | 코드 품질 분석, 개선 제안 | opus |
+| `planner` | 작업 분해, 영향 분석, 구현 계획 | opus |
+| `qa` | Vitest + Playwright 테스트 작성/실행 | opus |
+| `security` | OWASP Top 10 보안 스캔 | opus |
 
 ### Skills (9개)
 
