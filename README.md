@@ -171,7 +171,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 
 ## 구성 요소
 
-### Agents (6개)
+### Agents (7개)
 
 | 에이전트 | 역할 | 모델 |
 |---------|------|------|
@@ -180,15 +180,19 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `feedback` | 코드 품질 분석, 개선 제안 | opus |
 | `planner` | 작업 분해, 영향 분석, 구현 계획 | opus |
 | `qa` | Vitest + Playwright 테스트 작성/실행 | opus |
+| `retrospective` | 메트릭 분석 → 에이전트/스킬/규칙 개선안 도출 | opus |
 | `security` | OWASP Top 10 보안 스캔 | opus |
 
-### Skills (9개)
+### Skills (12개)
 
 | 스킬 | 호출 | 설명 |
 |------|------|------|
 | `commit` | `/commit` | Conventional Commit 자동 생성 |
 | `design-sync` | `/design-sync <URL\|이미지>` | 디자인 URL/캡처 이미지에서 CSS 추출 → 코드 싱크 ([상세](#design-sync-상세)) |
 | `feedback` | `/feedback` | 최근 변경사항 품질 분석 |
+| `learn` | `/learn [save\|show]` | 프로젝트 메모리 관리 — 패턴/에러 해결법 저장·조회 |
+| `metrics` | `/metrics [today\|week\|all]` | 메트릭 대시보드 — 빌드 성공률, 에러 빈도, 핫스팟 |
+| `retrospective` | `/retrospective` | 종합 회고 — 메트릭 분석 → 에이전트/스킬/규칙 개선안 도출 |
 | `review-pr` | `/review-pr [N]` | GitHub PR 코드 리뷰 |
 | `scaffold` | `/scaffold [domain]` | 새 도메인 보일러플레이트 생성 |
 | `security` | `/security` | 전체 코드 보안 스캔 |
@@ -196,7 +200,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `test` | `/test [file]` | 단위 테스트 자동 생성 |
 | `verify` | `/verify` | lint → typecheck → test → e2e 검증 |
 
-### Hooks (7개)
+### Hooks (8개)
 
 | 훅 | 트리거 | 역할 |
 |----|--------|------|
@@ -205,8 +209,9 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `eslint-fix.sh` | PostToolUse (Write/Edit) | 린트 자동 수정 |
 | `typecheck.sh` | PostToolUse (Write/Edit) | TypeScript 타입 체크 |
 | `test-runner.sh` | PostToolUse (Write/Edit) | 관련 테스트 실행 |
+| `metrics-collector.sh` | PostToolUse (Write/Edit) | 메트릭 자동 수집 |
 | `uncommitted-warn.sh` | Stop | 미커밋 변경 경고 |
-| `session-log.sh` | Stop | 세션 로그 저장 |
+| `session-log.sh` | Stop | 세션 로그 + 메트릭 요약 저장 |
 
 ### Rules (3개 공통 + 템플릿)
 
@@ -434,6 +439,47 @@ ao spawn my-app ISSUE-42    # 이슈에 에이전트 할당
 ```
 
 자세한 내용은 [`orchestrators/README.md`](orchestrators/README.md) 참조.
+
+## 학습 시스템
+
+코드 수정 시 메트릭이 자동 수집되고, 프로젝트 경험이 `.claude/memory/`에 축적된다.
+
+### 데이터 흐름
+
+```
+[코드 수정] → metrics-collector.sh → .claude/metrics/daily-*.json
+[세션 종료] → session-log.sh → .claude/session-logs/ (메트릭 요약 포함)
+[사용자 호출] → /retrospective → 종합 분석 → .claude/memory/ 업데이트
+```
+
+### 메트릭 자동 수집
+
+`metrics-collector.sh` 훅이 매 파일 수정 시 기존 훅(prettier, eslint, typecheck, test)의 결과를 수집하여 일별 JSON에 기록한다. 비침습적으로 동작하며, 실패해도 기존 워크플로우를 차단하지 않는다.
+
+### 스킬
+
+| 스킬 | 설명 |
+|------|------|
+| `/metrics [today\|week\|all]` | 빌드 성공률, 에러 빈도, 핫스팟 파일 대시보드 |
+| `/learn save [pattern\|error\|profile]` | 코드 패턴, 에러 해결법, 프로젝트 특성 저장 |
+| `/learn show` | 축적된 학습 메모리 조회 |
+| `/retrospective` | 전체 이력 분석 → 에이전트/스킬/규칙 개선안 도출 |
+
+### 메모리 구조
+
+```
+.claude/memory/
+├── patterns.md           # 코드 패턴, 에러 해결법
+├── project-profile.md    # 프로젝트별 특성 (DB, API, 서비스)
+└── improvements.md       # 회고 개선 이력
+```
+
+### 피드백 루프
+
+1. **일상 개발** — 메트릭이 자동 축적 (개발자는 차이를 느끼지 못함)
+2. **패턴 발견** — `/learn save`로 해결법 저장 → 다음 세션에서 자동 참조
+3. **정기 회고** — `/retrospective`로 분석 → 구체적 개선안 (P0/P1/P2)
+4. **개선 적용** — 규칙/에이전트/스킬 업데이트 → 다음 회고에서 효과 측정
 
 ## 기본 기술 스택
 

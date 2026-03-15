@@ -34,7 +34,7 @@ echo "Target:  $PROJECT_DIR"
 echo ""
 
 # .claude 디렉토리 생성
-mkdir -p "$PROJECT_DIR/.claude"/{agents,hooks,rules,skills,session-logs}
+mkdir -p "$PROJECT_DIR/.claude"/{agents,hooks,rules,skills,session-logs,memory,metrics}
 
 # Agents 복사
 echo "[1/$TOTAL_STEPS] Agents..."
@@ -135,6 +135,8 @@ echo "  - Agents:  $(ls "$PROJECT_DIR/.claude/agents/" | wc -l | tr -d ' ')개"
 echo "  - Hooks:   $(ls "$PROJECT_DIR/.claude/hooks/" | wc -l | tr -d ' ')개"
 echo "  - Skills:  $(ls "$PROJECT_DIR/.claude/skills/" | wc -l | tr -d ' ')개"
 echo "  - Rules:   $(ls "$PROJECT_DIR/.claude/rules/" | wc -l | tr -d ' ')개"
+echo "  - Memory:  .claude/memory/ (학습 패턴 저장)"
+echo "  - Metrics: .claude/metrics/ (자동 메트릭 수집)"
 [ -f "$PROJECT_DIR/playwright.config.ts" ] && echo "  - Playwright: playwright.config.ts (HTML 리포트)"
 if [ "$WITH_ORCHESTRATORS" = true ]; then
   echo "  - Orchestrators:"
@@ -147,6 +149,8 @@ echo "  1. .claude/settings.local.json 의 env 섹션에 프로젝트별 환경�
 echo "  2. CLAUDE.md 의 플레이스홀더({{...}}) 채우기"
 echo "  3. 필요 시 .claude/rules/ 에 프로젝트별 규칙 추가 (예: supabase.md)"
 echo "  4. deny 목록에 프로젝트별 위험 명령 추가"
+echo "  5. 메트릭이 쌓이면 /metrics 로 대시보드 확인"
+echo "  6. /retrospective 로 정기 회고 실행"
 if [ "$WITH_ORCHESTRATORS" = true ]; then
   echo "  5. orchestrators/README.md 참고하여 오케스트레이터 설정 완료"
 fi

@@ -87,6 +87,16 @@
             "timeout": 60000
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/metrics-collector.sh",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "Stop": [

@@ -20,7 +20,9 @@
 │   ├── agents/
 │   ├── rules/
 │   ├── hooks/
-│   └── skills/
+│   ├── skills/
+│   ├── memory/          # 학습 패턴/에러 해결법 축적
+│   └── metrics/         # 자동 수집 메트릭
 ├── src/
 │   ├── app/            # Next.js App Router 페이지
 │   ├── components/     # React 컴포넌트 (도메인별 폴더)
@@ -48,3 +50,13 @@ npx tsc --noEmit     # 타입 체크
 - `conventions.md` — 코드 스타일, 파일/폴더, Server Action 패턴
 - `git.md` — Conventional Commits, 브랜치 네이밍
 - `donts.md` — 금지 사항
+
+## Learning System
+
+코드 수정 시 메트릭이 자동 수집되고, 학습 내용이 `.claude/memory/`에 축적된다:
+
+- 새 세션 시작 시 `.claude/memory/patterns.md`를 읽어 이전 학습 활용
+- `/learn save pattern` — 발견한 코드 패턴 저장
+- `/learn save error` — 해결한 에러 패턴 저장
+- `/metrics` — 빌드 성공률, 에러 빈도 대시보드
+- `/retrospective` — 종합 회고 분석 실행
