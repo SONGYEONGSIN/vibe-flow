@@ -22,6 +22,11 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 
 ## 아키텍처
 
+![claude-builds Architecture](docs/architecture.png)
+
+<details>
+<summary>텍스트 다이어그램 보기</summary>
+
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                   Orchestration Layer (선택)                         │
@@ -161,6 +166,8 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 │  uncommitted-warn.sh  →  session-log.sh               │
 └────────────────────────────────────────────────────────┘
 ```
+
+</details>
 
 ## 구성 요소
 
