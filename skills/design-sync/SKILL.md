@@ -24,8 +24,9 @@ argument-hint: <URL|이미지경로> [페이지경로]
 | 3 | **텍스트/문단** | `p`, `span`, `label`, `li`, `a` — 부제, 설명, 배지, 링크 |
 | 4 | **카드/컨테이너** | `div`(border/bg/rounded), `section` — stat card, 카드 래퍼 |
 | 5 | **폼** | `input`, `select`, `button`, `textarea` — 검색, 필터, 액션 버튼 |
-| 6 | **테이블** | `table`, `thead`, `tbody`, `tr`, `th`, `td` — 행·셀 단위 |
-| 7 | **아이콘** | `svg`, `img[src*=".svg"]`, Lucide/Heroicons 컴포넌트 — 크기, 색상, strokeWidth |
+| 6 | **검색/필터/드롭다운** | 검색 컨테이너(relative wrapper + 아이콘), 필터 바/칩, 커스텀 드롭다운 패널/아이템 |
+| 7 | **테이블** | `table`, `thead`, `tbody`, `tr`, `th`, `td` — 행·셀 단위 |
+| 8 | **아이콘** | `svg`, `img[src*=".svg"]`, Lucide/Heroicons 컴포넌트 — 크기, 색상, strokeWidth |
 
 **2. 21개 속성 카테고리를 빠짐없이 추출한다.**
 
@@ -427,6 +428,10 @@ y < headerBottom && x ≥ sidebarRight → header
 |------|------|
 | `svg`, `img[src*=".svg"]` | icon |
 | `table`, `thead`, `th`, `td` | table |
+| `input[type="search"]`, `input` + 부모 `relative` + 형제 `svg` | search |
+| `div`/`ul` + `position:absolute` + `z-index≥10` + `boxShadow` + 내부 아이템 목록 | dropdown |
+| `div`/`span` + `inline-flex` + `rounded-full`/`rounded-md` + bgColor + 작은 크기 | chip/filter |
+| `div` + `display:flex` + `gap` + 내부 `button`/`select` 다수 | filter-bar |
 | `input`, `select`, `textarea` | form |
 | `button` | button |
 | `h1`~`h5` | heading |
@@ -434,6 +439,58 @@ y < headerBottom && x ≥ sidebarRight → header
 | `div`/`section` + border + bg + radius | card |
 | `span`/`div` + inline + bgColor | badge |
 | 그 외 `p`, `span`, `a`, `label` | text |
+
+#### 2.3.1 검색/필터/드롭다운 상세 감지
+
+**검색 컨테이너:**
+```
+감지 조건:
+1. div[position:relative] 내부에 input + svg(아이콘)이 있는 구조
+2. input[type="search"] 또는 input[placeholder*="검색"|"Search"|"찾기"]
+3. 아이콘이 absolute로 input 좌/우측에 배치
+
+추출 대상:
+- 컨테이너: position, width, border, borderRadius, bgColor
+- 인풋: padding(아이콘 공간 확보용 pl-10 등), fontSize, placeholder
+- 아이콘: position(absolute), top/left, width/height, color
+- focus 상태: borderColor, ring/outline, boxShadow 변화
+- ::placeholder: color, fontSize, opacity
+```
+
+**필터 바 / 필터 칩:**
+```
+감지 조건:
+1. div[display:flex][gap] + 내부에 button/select 2개 이상 → filter-bar
+2. span/div[inline-flex][rounded-full] + 작은 padding + bgColor → chip
+3. button[bgColor≠transparent] + 작은 크기 → active filter
+
+추출 대상:
+- 필터 바: display, flexDirection, flexWrap, gap, alignItems, padding
+- 필터 칩(비활성): bgColor, color, border, borderRadius, padding, fontSize
+- 필터 칩(활성): bgColor(진한), color(흰/다른색), fontWeight, border 변화
+- 필터 카운트 뱃지: bgColor, color, borderRadius(full), fontSize, minWidth
+- 필터 구분선: borderRight/borderLeft, height, margin
+```
+
+**커스텀 드롭다운:**
+```
+감지 조건:
+1. div/ul[position:absolute][z-index≥10] + boxShadow + border → dropdown panel
+2. 내부 li/div/a 반복 요소 → dropdown items
+3. 트리거: button/div + 셰브론 아이콘(svg rotate)
+
+추출 대상:
+- 트리거 버튼: border, borderRadius, padding, bgColor, fontSize, gap(텍스트↔아이콘)
+- 셰브론 아이콘: width/height, transform(rotate), transition
+- 패널: position(absolute), top/left/right, width(min-w), maxHeight, overflow-y
+         bgColor, border, borderRadius, boxShadow, zIndex, padding(py)
+- 아이템: padding(px, py), fontSize, color, cursor
+          hover: bgColor, color 변화
+          active/selected: bgColor, fontWeight, 체크 아이콘 유무
+- 구분선: border-t/divide-y, margin(my)
+- 그룹 헤더: fontSize(작음), fontWeight(semibold), color(muted), padding, textTransform
+- 열림 트랜지션: opacity, transform(scale), transition-duration
+```
 
 ### 2.4 스크립트 템플릿 B: extract-inventory.js
 
@@ -483,6 +540,53 @@ const extractAll = (CORRECTION) => {
   function classifyType(tag, el, cs) {
     if (tag === 'svg' || (tag === 'img' && (el.src || '').includes('.svg'))) return 'icon';
     if (['table','thead','tbody','tr','th','td'].includes(tag)) return 'table';
+
+    // 검색 컨테이너: input[type=search] 또는 relative wrapper + input + svg
+    if (tag === 'input') {
+      const type = el.getAttribute('type');
+      const ph = (el.getAttribute('placeholder') || '').toLowerCase();
+      if (type === 'search' || ph.includes('search') || ph.includes('검색') || ph.includes('찾기')) return 'search';
+      const parent = el.parentElement;
+      if (parent && getComputedStyle(parent).position === 'relative' && parent.querySelector('svg')) return 'search';
+    }
+    // 검색 컨테이너 wrapper
+    if ((tag === 'div') && cs.position === 'relative') {
+      const hasInput = el.querySelector('input');
+      const hasSvg = el.querySelector('svg');
+      if (hasInput && hasSvg) {
+        const inputPh = (hasInput.getAttribute('placeholder') || '').toLowerCase();
+        const inputType = hasInput.getAttribute('type');
+        if (inputType === 'search' || inputPh.includes('search') || inputPh.includes('검색') || inputPh.includes('찾기')) return 'search';
+      }
+    }
+
+    // 커스텀 드롭다운 패널: absolute + z-index≥10 + shadow/border + 내부 아이템
+    if ((tag === 'div' || tag === 'ul') &&
+        (cs.position === 'absolute' || cs.position === 'fixed') &&
+        parseInt(cs.zIndex) >= 10 &&
+        (cs.boxShadow !== 'none' || cs.borderWidth !== '0px')) {
+      const children = el.querySelectorAll('li, a, div[role="option"], [class*="item"]');
+      if (children.length >= 2) return 'dropdown';
+    }
+
+    // 필터 칩: inline-flex + rounded + bgColor + 작은 크기
+    if ((tag === 'span' || tag === 'div' || tag === 'button') &&
+        (cs.display === 'inline-flex' || cs.display === 'inline-block') &&
+        cs.backgroundColor !== 'rgba(0, 0, 0, 0)') {
+      const rect = el.getBoundingClientRect();
+      if (rect.height < 40 && rect.width < 200 &&
+          (cs.borderRadius.includes('9999') || parseInt(cs.borderRadius) >= 12)) return 'chip';
+    }
+
+    // 필터 바: flex + gap + 내부에 button/select 2개 이상
+    if (tag === 'div' && (cs.display === 'flex' || cs.display === 'inline-flex') && cs.gap !== 'normal') {
+      const controls = el.querySelectorAll('button, select, input[type="search"], input');
+      if (controls.length >= 2) {
+        const rect = el.getBoundingClientRect();
+        if (rect.height < 80) return 'filter-bar';
+      }
+    }
+
     if (['input','select','textarea'].includes(tag)) return 'form';
     if (tag === 'button') return 'button';
     if (/^h[1-5]$/.test(tag)) return 'heading';
@@ -690,6 +794,84 @@ const extractAll = (CORRECTION) => {
         }
         return Object.keys(pseudo).length > 0 ? { pseudoElements: pseudo } : {};
       })(),
+      // 검색 컨테이너 전용 속성
+      ...(() => {
+        if (type !== 'search') return {};
+        const searchProps = {};
+        // 인풋 찾기
+        const searchInput = tag === 'input' ? el : el.querySelector('input');
+        if (searchInput) {
+          const si = getComputedStyle(searchInput);
+          searchProps.searchInputPadding = shorten4(si.paddingTop, si.paddingRight, si.paddingBottom, si.paddingLeft);
+          searchProps.searchInputFontSize = `${(parseFloat(si.fontSize) * CORRECTION).toFixed(0)}px`;
+          searchProps.searchInputBorder = si.borderWidth !== '0px' ? `${si.borderWidth} ${si.borderStyle} ${si.borderColor}` : 'none';
+          searchProps.searchInputBorderRadius = si.borderRadius !== '0px' ? si.borderRadius : '';
+          searchProps.searchInputBgColor = si.backgroundColor;
+          searchProps.searchPlaceholder = searchInput.getAttribute('placeholder') || '';
+        }
+        // 아이콘 찾기
+        const searchIcon = (tag === 'input' ? el.parentElement : el)?.querySelector('svg');
+        if (searchIcon) {
+          const ics = getComputedStyle(searchIcon);
+          searchProps.searchIconPosition = ics.position;
+          searchProps.searchIconSize = `${ics.width} × ${ics.height}`;
+          searchProps.searchIconColor = ics.color;
+          searchProps.searchIconTop = ics.top !== 'auto' ? ics.top : '';
+          searchProps.searchIconLeft = ics.left !== 'auto' ? ics.left : '';
+          searchProps.searchIconRight = ics.right !== 'auto' ? ics.right : '';
+        }
+        return searchProps;
+      })(),
+      // 드롭다운 패널 전용 속성
+      ...(() => {
+        if (type !== 'dropdown') return {};
+        const ddProps = {};
+        ddProps.dropdownMaxHeight = s.maxHeight !== 'none' ? s.maxHeight : '';
+        ddProps.dropdownOverflowY = s.overflowY !== 'visible' ? s.overflowY : '';
+        ddProps.dropdownMinWidth = s.minWidth !== '0px' && s.minWidth !== 'auto' ? s.minWidth : '';
+        ddProps.dropdownPadding = shorten4(s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft);
+        // 첫 번째 아이템 스타일 추출
+        const firstItem = el.querySelector('li, a, div[role="option"], [class*="item"]');
+        if (firstItem) {
+          const fis = getComputedStyle(firstItem);
+          ddProps.dropdownItemPadding = shorten4(fis.paddingTop, fis.paddingRight, fis.paddingBottom, fis.paddingLeft);
+          ddProps.dropdownItemFontSize = `${(parseFloat(fis.fontSize) * CORRECTION).toFixed(0)}px`;
+          ddProps.dropdownItemColor = fis.color;
+          ddProps.dropdownItemBgColor = fis.backgroundColor;
+          ddProps.dropdownItemCursor = fis.cursor;
+        }
+        // 구분선 확인
+        const hasDivider = el.querySelector('hr, [class*="divider"], [class*="separator"]')
+          || s.getPropertyValue('--tw-divide-y-reverse') !== '';
+        ddProps.dropdownHasDivider = !!hasDivider;
+        return ddProps;
+      })(),
+      // 필터 칩 전용 속성
+      ...(() => {
+        if (type !== 'chip') return {};
+        return {
+          chipBgColor: s.backgroundColor,
+          chipColor: s.color,
+          chipBorder: s.borderWidth !== '0px' ? `${s.borderWidth} ${s.borderStyle} ${s.borderColor}` : 'none',
+          chipBorderRadius: s.borderRadius,
+          chipPadding: shorten4(s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft),
+          chipFontSize: `${(parseFloat(s.fontSize) * CORRECTION).toFixed(0)}px`,
+          chipFontWeight: s.fontWeight,
+          chipGap: s.gap !== 'normal' ? s.gap : '',
+        };
+      })(),
+      // 필터 바 전용 속성
+      ...(() => {
+        if (type !== 'filter-bar') return {};
+        return {
+          filterBarDisplay: s.display,
+          filterBarFlexWrap: s.flexWrap !== 'nowrap' ? s.flexWrap : '',
+          filterBarGap: s.gap !== 'normal' ? s.gap : '',
+          filterBarAlignItems: s.alignItems !== 'normal' ? s.alignItems : '',
+          filterBarPadding: shorten4(s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft),
+          filterBarChildCount: el.querySelectorAll('button, select, input').length,
+        };
+      })(),
       // ::selection 스타일
       ...(() => {
         try {
@@ -791,18 +973,69 @@ CSS 애니메이션을 비활성화하여 결정론적 스크린샷을 확보한
 **캡처 대상:**
 | 상태 | 대상 요소 | 캡처 방법 |
 |------|----------|----------|
-| **hover** | 메뉴 아이템, 버튼, 테이블 행, 카드, 링크 | `element.hover()` → 스크린샷 |
-| **active** | 현재 선택된 메뉴, 활성 탭 | 네비게이션 클릭 후 스크린샷 |
-| **focus** | 입력 필드, 셀렉트 | `element.focus()` → 스크린샷 |
+| **hover** | 메뉴 아이템, 버튼, 테이블 행, 카드, 링크, 드롭다운 아이템 | `element.hover()` → 스크린샷 |
+| **active** | 현재 선택된 메뉴, 활성 탭, 활성 필터 칩 | 네비게이션 클릭 후 스크린샷 |
+| **focus** | 검색 인풋, 입력 필드, 셀렉트 | `element.focus()` → 스크린샷 |
+| **open** | 드롭다운 메뉴, 셀렉트 박스, 콤보박스 | 트리거 `click()` → 패널 스크린샷 |
 
 **추출 속성:**
 - hover 시: `backgroundColor`, `color`, `borderColor`, `boxShadow`, `transform`, `opacity` 변화
 - active 시: 인디케이터 스타일 (좌측 바, 배경색, 폰트 굵기)
-- focus 시: `outline`, `ring`, `borderColor` 변화
+- focus 시: `outline`, `ring`, `borderColor`, `boxShadow` 변화
+- open 시: 드롭다운 패널 전체 스타일 (아래 상세)
+
+**검색/필터/드롭다운 전용 인터랙션 캡처:**
+
+| 컴포넌트 | 상태 | 캡처 속성 |
+|----------|------|----------|
+| **검색 인풋** | focus | `borderColor`, `boxShadow`(ring), `outline`, `outlineOffset`, 아이콘 `color` 변화 |
+| **검색 인풋** | ::placeholder | `color`, `opacity`, `fontSize` (기본 vs focus 시 변화) |
+| **필터 칩** | inactive | `bgColor`, `color`, `border`, `fontWeight` |
+| **필터 칩** | active/selected | `bgColor`(진함), `color`(변경), `fontWeight`(볼드), `border` 변화 |
+| **필터 칩** | hover | `bgColor`, `borderColor` 변화 |
+| **드롭다운 트리거** | closed | `border`, `bgColor`, `padding`, 셰브론 `transform`(rotate 0) |
+| **드롭다운 트리거** | open | `border` 변화, 셰브론 `transform`(rotate 180deg) |
+| **드롭다운 패널** | open | `position`, `top/bottom`, `width`, `maxHeight`, `overflowY`, `bgColor`, `border`, `borderRadius`, `boxShadow`, `zIndex`, `padding` |
+| **드롭다운 아이템** | default | `padding`, `fontSize`, `color`, `bgColor`, `cursor` |
+| **드롭다운 아이템** | hover | `bgColor`, `color` 변화 |
+| **드롭다운 아이템** | selected | `bgColor`, `fontWeight`, 체크 아이콘 유무, `color` |
+| **드롭다운 구분선** | — | `borderTop`/`borderBottom`, `margin` |
+| **드롭다운 그룹헤더** | — | `fontSize`(작음), `fontWeight`, `color`(muted), `padding`, `textTransform` |
+
+**드롭다운 열림 캡처 방법:**
+```javascript
+// 트리거 클릭 → 패널 열림
+const trigger = page.locator('button[class*="select"], [role="combobox"], [class*="dropdown"]').first();
+const beforeStyle = await trigger.evaluate(/* 기본 상태 */);
+await trigger.click();
+await page.waitForTimeout(300);
+// 패널 캡처
+const panel = page.locator('[role="listbox"], ul[class*="dropdown"], div[class*="menu"]').first();
+const panelStyle = await panel.evaluate(e => {
+  const s = getComputedStyle(e);
+  return {
+    position: s.position, top: s.top, left: s.left, width: s.width,
+    maxHeight: s.maxHeight, overflowY: s.overflowY, bgColor: s.backgroundColor,
+    border: `${s.borderWidth} ${s.borderStyle} ${s.borderColor}`,
+    borderRadius: s.borderRadius, boxShadow: s.boxShadow, zIndex: s.zIndex,
+    padding: `${s.paddingTop} ${s.paddingRight} ${s.paddingBottom} ${s.paddingLeft}`,
+  };
+});
+// 아이템 스타일
+const items = await panel.locator('li, [role="option"]').all();
+for (const item of items.slice(0, 5)) {
+  const itemStyle = await item.evaluate(/* default 스타일 */);
+  await item.hover();
+  const hoverStyle = await item.evaluate(/* hover 스타일 */);
+}
+// 셰브론 회전 확인
+const chevron = await trigger.locator('svg').first();
+const chevronTransform = await chevron.evaluate(e => getComputedStyle(e).transform);
+```
 
 **비교 방법:**
-1. 레퍼런스 사이트에서 hover 상태 캡처 + computed style 추출
-2. 로컬 사이트에서 동일 요소 hover 상태 캡처 + computed style 추출
+1. 레퍼런스 사이트에서 각 상태 캡처 + computed style 추출
+2. 로컬 사이트에서 동일 요소 동일 상태 캡처 + computed style 추출
 3. computed style 값 직접 비교 (px 단위 diff)
 
 ### 3.5 정렬/배열 검증
@@ -1091,6 +1324,11 @@ function cropToMatch(pngA, pngB) {
   const HOVER_TARGETS = [
     'nav a', 'nav button', 'aside a', 'aside button',
     'button', 'a[href]', 'tr', '[class*="card"]',
+    // 검색/필터/드롭다운
+    'input[type="search"]', '[class*="search"] input',
+    '[class*="dropdown"] li', '[class*="dropdown"] a', '[class*="menu"] li',
+    '[class*="chip"]', '[class*="tag"]', '[class*="filter"] button',
+    'select', '[role="option"]', '[role="listbox"] > *',
   ];
 
   const refHover = await captureHoverStyles(REF_URL, HOVER_TARGETS);
@@ -1509,6 +1747,10 @@ const AREA_FILE_MAP = {
     badge: ['ui/status-badge.tsx'],
     heading: [], // 페이지 파일에서 직접 사용
     button: [],
+    search: ['ui/search-input.tsx', 'ui/search-bar.tsx'],
+    dropdown: ['ui/dropdown.tsx', 'ui/dropdown-menu.tsx', 'ui/select.tsx'],
+    chip: ['ui/chip.tsx', 'ui/tag.tsx', 'ui/filter-chip.tsx'],
+    'filter-bar': ['ui/filter-bar.tsx', 'ui/toolbar.tsx'],
   },
 };
 
@@ -2322,6 +2564,192 @@ function suggestChange(refValue, property) {
               if (refEl.caretColor) {
                 if (!fc.classes.match(/caret-/)) {
                   diffs.push({ line: fc.line, property: 'caretColor', reference: refEl.caretColor, current: '', suggestion: '→ caret-* (커스텀)' });
+                }
+              }
+
+              // === 검색/필터/드롭다운 전용 속성 비교 ===
+
+              // 검색 인풋 속성
+              if (refEl.searchInputPadding) {
+                const padValues = refEl.searchInputPadding.split(' ').map(v => parseFloat(v));
+                const spMap = { 0:'0',1:'1',2:'2',3:'3',4:'4',5:'5',6:'6',8:'8',10:'10',12:'12' };
+                const pyVal = spMap[padValues[0] / 4];
+                const pxVal = spMap[(padValues[1] || padValues[0]) / 4];
+                if (pyVal && pxVal) {
+                  const twPy = `py-${pyVal}`;
+                  const twPx = `px-${pxVal}`;
+                  if (!fc.classes.includes(twPy) || !fc.classes.includes(twPx)) {
+                    diffs.push({ line: fc.line, property: 'searchInputPadding', reference: `${refEl.searchInputPadding} (${twPy} ${twPx})`, current: '', suggestion: `→ ${twPy} ${twPx}` });
+                  }
+                }
+              }
+              if (refEl.searchInputFontSize) {
+                const twFS = TAILWIND_MAP.fontSize[refEl.searchInputFontSize];
+                if (twFS && !fc.classes.includes(twFS)) {
+                  diffs.push({ line: fc.line, property: 'searchInputFontSize', reference: `${refEl.searchInputFontSize} (${twFS})`, current: '', suggestion: `→ ${twFS}` });
+                }
+              }
+              if (refEl.searchInputBorderRadius) {
+                const brMap = { '4px':'rounded-sm','6px':'rounded-md','8px':'rounded-lg','12px':'rounded-xl','9999px':'rounded-full' };
+                const twBR = brMap[refEl.searchInputBorderRadius];
+                if (twBR && !fc.classes.includes(twBR)) {
+                  diffs.push({ line: fc.line, property: 'searchInputBorderRadius', reference: `${refEl.searchInputBorderRadius} (${twBR})`, current: '', suggestion: `→ ${twBR}` });
+                }
+              }
+              if (refEl.searchInputBgColor && refEl.searchInputBgColor !== 'rgba(0, 0, 0, 0)') {
+                const bgMap = {
+                  'rgb(249, 250, 251)': 'bg-gray-50', 'rgb(243, 244, 246)': 'bg-gray-100',
+                  'rgb(255, 255, 255)': 'bg-white',
+                };
+                const twBG = bgMap[refEl.searchInputBgColor];
+                if (twBG && !fc.classes.includes(twBG.replace('bg-', ''))) {
+                  diffs.push({ line: fc.line, property: 'searchInputBgColor', reference: twBG, current: '', suggestion: `→ ${twBG}` });
+                }
+              }
+              // 검색 아이콘
+              if (refEl.searchIconSize) {
+                const [w, h] = refEl.searchIconSize.split('×').map(s => parseInt(s.trim()));
+                const iconMap = { 12:'w-3 h-3', 16:'w-4 h-4', 20:'w-5 h-5', 24:'w-6 h-6' };
+                const twIcon = iconMap[w];
+                if (twIcon) {
+                  const twW = twIcon.split(' ')[0];
+                  if (!fc.classes.includes(twW)) {
+                    diffs.push({ line: fc.line, property: 'searchIconSize', reference: `${refEl.searchIconSize} (${twIcon})`, current: '', suggestion: `→ ${twIcon}` });
+                  }
+                }
+              }
+              if (refEl.searchIconColor) {
+                const colorMap = {
+                  'rgb(107, 114, 128)': 'text-gray-500', 'rgb(156, 163, 175)': 'text-gray-400',
+                  'rgb(75, 85, 99)': 'text-gray-600',
+                };
+                const twColor = colorMap[refEl.searchIconColor];
+                if (twColor && !fc.classes.includes(twColor.replace('text-', ''))) {
+                  diffs.push({ line: fc.line, property: 'searchIconColor', reference: twColor, current: '', suggestion: `→ ${twColor}` });
+                }
+              }
+
+              // 드롭다운 패널 속성
+              if (refEl.dropdownMaxHeight) {
+                const mhPx = parseFloat(refEl.dropdownMaxHeight);
+                const twMH = mhPx <= 256 ? `max-h-64` : mhPx <= 384 ? 'max-h-96' : `max-h-[${mhPx}px]`;
+                if (!fc.classes.includes(twMH) && !fc.classes.match(/max-h-/)) {
+                  diffs.push({ line: fc.line, property: 'dropdownMaxHeight', reference: `${refEl.dropdownMaxHeight} (${twMH})`, current: '', suggestion: `→ ${twMH}` });
+                }
+              }
+              if (refEl.dropdownOverflowY && refEl.dropdownOverflowY !== 'visible') {
+                const twOF = { 'auto':'overflow-y-auto', 'scroll':'overflow-y-scroll', 'hidden':'overflow-y-hidden' }[refEl.dropdownOverflowY];
+                if (twOF && !fc.classes.includes(twOF)) {
+                  diffs.push({ line: fc.line, property: 'dropdownOverflowY', reference: `${refEl.dropdownOverflowY} (${twOF})`, current: '', suggestion: `→ ${twOF}` });
+                }
+              }
+              if (refEl.dropdownPadding) {
+                const padValues = refEl.dropdownPadding.split(' ').map(v => parseFloat(v));
+                const spMap = { 0:'0',0.5:'0.5',1:'1',1.5:'1.5',2:'2',3:'3',4:'4' };
+                const pyVal = spMap[padValues[0] / 4];
+                if (pyVal) {
+                  const twPy = `py-${pyVal}`;
+                  if (!fc.classes.includes(twPy)) {
+                    diffs.push({ line: fc.line, property: 'dropdownPadding', reference: `${refEl.dropdownPadding} (${twPy})`, current: '', suggestion: `→ ${twPy}` });
+                  }
+                }
+              }
+              // 드롭다운 아이템 속성
+              if (refEl.dropdownItemPadding) {
+                const padValues = refEl.dropdownItemPadding.split(' ').map(v => parseFloat(v));
+                const spMap = { 0:'0',1:'1',2:'2',3:'3',4:'4',5:'5',6:'6',8:'8' };
+                const pyVal = spMap[padValues[0] / 4];
+                const pxVal = spMap[(padValues[1] || padValues[0]) / 4];
+                if (pyVal && pxVal) {
+                  const twPy = `py-${pyVal}`;
+                  const twPx = `px-${pxVal}`;
+                  if (!fc.classes.includes(twPy) || !fc.classes.includes(twPx)) {
+                    diffs.push({ line: fc.line, property: 'dropdownItemPadding', reference: `${refEl.dropdownItemPadding} (${twPy} ${twPx})`, current: '', suggestion: `→ ${twPy} ${twPx}` });
+                  }
+                }
+              }
+              if (refEl.dropdownItemFontSize) {
+                const twFS = TAILWIND_MAP.fontSize[refEl.dropdownItemFontSize];
+                if (twFS && !fc.classes.includes(twFS)) {
+                  diffs.push({ line: fc.line, property: 'dropdownItemFontSize', reference: `${refEl.dropdownItemFontSize} (${twFS})`, current: '', suggestion: `→ ${twFS}` });
+                }
+              }
+              if (refEl.dropdownItemColor) {
+                const colorMap = {
+                  'rgb(17, 24, 39)': 'text-gray-900', 'rgb(55, 65, 81)': 'text-gray-700',
+                  'rgb(75, 85, 99)': 'text-gray-600', 'rgb(107, 114, 128)': 'text-gray-500',
+                };
+                const twColor = colorMap[refEl.dropdownItemColor];
+                if (twColor && !fc.classes.includes(twColor.replace('text-', ''))) {
+                  diffs.push({ line: fc.line, property: 'dropdownItemColor', reference: twColor, current: '', suggestion: `→ ${twColor}` });
+                }
+              }
+
+              // 필터 칩 속성
+              if (refEl.chipBgColor && refEl.chipBgColor !== 'rgba(0, 0, 0, 0)') {
+                const bgMap = {
+                  'rgb(243, 244, 246)': 'bg-gray-100', 'rgb(229, 231, 235)': 'bg-gray-200',
+                  'rgb(219, 234, 254)': 'bg-blue-100', 'rgb(239, 246, 255)': 'bg-blue-50',
+                  'rgb(255, 255, 255)': 'bg-white',
+                };
+                const twBG = bgMap[refEl.chipBgColor];
+                if (twBG && !fc.classes.includes(twBG.replace('bg-', ''))) {
+                  diffs.push({ line: fc.line, property: 'chipBgColor', reference: twBG, current: '', suggestion: `→ ${twBG}` });
+                }
+              }
+              if (refEl.chipActiveBgColor && refEl.chipActiveBgColor !== refEl.chipBgColor) {
+                const bgMap = {
+                  'rgb(37, 99, 235)': 'bg-blue-600', 'rgb(59, 130, 246)': 'bg-blue-500',
+                  'rgb(219, 234, 254)': 'bg-blue-100', 'rgb(243, 244, 246)': 'bg-gray-100',
+                };
+                const twBG = bgMap[refEl.chipActiveBgColor];
+                if (twBG) {
+                  diffs.push({ line: fc.line, property: 'chipActiveBgColor', reference: twBG, current: '', suggestion: `활성 상태: → ${twBG}` });
+                }
+              }
+              if (refEl.chipFontSize) {
+                const twFS = TAILWIND_MAP.fontSize[refEl.chipFontSize];
+                if (twFS && !fc.classes.includes(twFS)) {
+                  diffs.push({ line: fc.line, property: 'chipFontSize', reference: `${refEl.chipFontSize} (${twFS})`, current: '', suggestion: `→ ${twFS}` });
+                }
+              }
+              if (refEl.chipBorderRadius) {
+                const brMap = { '4px':'rounded-sm','6px':'rounded-md','9999px':'rounded-full','16px':'rounded-2xl' };
+                const twBR = brMap[refEl.chipBorderRadius];
+                if (twBR && !fc.classes.includes(twBR)) {
+                  diffs.push({ line: fc.line, property: 'chipBorderRadius', reference: `${refEl.chipBorderRadius} (${twBR})`, current: '', suggestion: `→ ${twBR}` });
+                }
+              }
+              if (refEl.chipPadding) {
+                const padValues = refEl.chipPadding.split(' ').map(v => parseFloat(v));
+                const spMap = { 0:'0',0.5:'0.5',1:'1',1.5:'1.5',2:'2',3:'3',4:'4' };
+                const pyVal = spMap[padValues[0] / 4];
+                const pxVal = spMap[(padValues[1] || padValues[0]) / 4];
+                if (pyVal && pxVal) {
+                  diffs.push({ line: fc.line, property: 'chipPadding', reference: `${refEl.chipPadding} (py-${pyVal} px-${pxVal})`, current: '', suggestion: `→ py-${pyVal} px-${pxVal}` });
+                }
+              }
+
+              // 필터 바 속성
+              if (refEl.filterBarGap) {
+                const gapPx = parseFloat(refEl.filterBarGap);
+                const gapRem = gapPx / 4;
+                const gapMap = { 1:'1', 2:'2', 3:'3', 4:'4', 6:'6', 8:'8' };
+                const twGap = gapMap[gapRem] ? `gap-${gapMap[gapRem]}` : `gap-[${gapPx}px]`;
+                if (!fc.classes.includes(twGap)) {
+                  diffs.push({ line: fc.line, property: 'filterBarGap', reference: `${refEl.filterBarGap} (${twGap})`, current: '', suggestion: `→ ${twGap}` });
+                }
+              }
+              if (refEl.filterBarFlexWrap && refEl.filterBarFlexWrap !== 'nowrap') {
+                const twFW = { 'wrap':'flex-wrap', 'wrap-reverse':'flex-wrap-reverse' }[refEl.filterBarFlexWrap];
+                if (twFW && !fc.classes.includes(twFW)) {
+                  diffs.push({ line: fc.line, property: 'filterBarFlexWrap', reference: `${refEl.filterBarFlexWrap} (${twFW})`, current: '', suggestion: `→ ${twFW}` });
+                }
+              }
+              if (refEl.filterBarAlignItems) {
+                const twAI = { 'center':'items-center', 'flex-start':'items-start', 'flex-end':'items-end' }[refEl.filterBarAlignItems];
+                if (twAI && !fc.classes.includes(twAI)) {
+                  diffs.push({ line: fc.line, property: 'filterBarAlignItems', reference: `${refEl.filterBarAlignItems} (${twAI})`, current: '', suggestion: `→ ${twAI}` });
                 }
               }
             }
