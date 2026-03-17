@@ -67,10 +67,11 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 │             │                                                       │
 │             ▼                                                       │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │                     Hooks Pipeline (8개)                      │   │
+│  │                     Hooks Pipeline (11개)                     │   │
 │  │                                                               │   │
 │  │  ┌─ PreToolUse ──────────────────────────────────────────┐   │   │
 │  │  │  command-guard.sh  ── 위험 명령 차단 (force push 등)   │   │   │
+│  │  │  smart-guard.sh    ── 학습 패턴 기반 2차 검증          │   │   │
 │  │  └────────────────────────────────────────────────────────┘   │   │
 │  │                          │                                    │   │
 │  │                    [도구 실행]                                 │   │
@@ -81,22 +82,25 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 │  │  │  typecheck.sh          ── TypeScript 타입 체크         │   │   │
 │  │  │  test-runner.sh        ── 관련 테스트 실행             │   │   │
 │  │  │  metrics-collector.sh  ── 메트릭 자동 수집             │   │   │
+│  │  │  pattern-check.sh      ── 학습 패턴 준수 확인          │   │   │
 │  │  └────────────────────────────────────────────────────────┘   │   │
 │  │                                                               │   │
 │  │  ┌─ Stop (세션 종료) ────────────────────────────────────┐   │   │
 │  │  │  uncommitted-warn.sh ── 미커밋 변경 경고               │   │   │
+│  │  │  session-review.sh   ── 세션 품질 종합 리뷰            │   │   │
 │  │  │  session-log.sh      ── 세션 로그 + 메트릭 요약        │   │   │
 │  │  └────────────────────────────────────────────────────────┘   │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 │                                                                     │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │                    Skills (12개) — /명령어                     │   │
+│  │                    Skills (13개) — /명령어                     │   │
 │  │                                                               │   │
 │  │  ┌─ 개발 ────────┐  ┌─ 품질 ────────┐  ┌─ 운영 ────────┐   │   │
 │  │  │ /commit        │  │ /verify       │  │ /status       │   │   │
 │  │  │ /scaffold      │  │ /feedback     │  │ /security     │   │   │
 │  │  │ /design-sync   │  │ /test         │  │ /review-pr    │   │   │
-│  │  └────────────────┘  └───────────────┘  └───────────────┘   │   │
+│  │  └────────────────┘  │ /eval         │  └───────────────┘   │   │
+│  │                       └───────────────┘                       │   │
 │  │  ┌─ 학습 ────────────────────────────────────────────────┐   │   │
 │  │  │ /metrics  /learn  /retrospective                       │   │   │
 │  │  └────────────────────────────────────────────────────────┘   │   │
@@ -104,16 +108,20 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 │                                │                                    │
 │                                ▼                                    │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │                    Agents (7개) — 전문 위임                    │   │
+│  │                    Agents (10개) — 전문 위임                   │   │
 │  │                                                               │   │
 │  │   ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────────┐   │   │
 │  │   │ planner  │ │ designer │ │developer │ │retrospective│   │   │
 │  │   │ 작업 분해 │ │ UI/UX    │ │ 구현     │ │ 회고/학습    │   │   │
 │  │   └──────────┘ └──────────┘ └──────────┘ └─────────────┘   │   │
-│  │   ┌──────────┐ ┌──────────┐ ┌──────────┐                    │   │
-│  │   │ feedback │ │    qa    │ │ security │                    │   │
-│  │   │ 코드리뷰  │ │ 테스트   │ │ 보안스캔 │                    │   │
-│  │   └──────────┘ └──────────┘ └──────────┘                    │   │
+│  │   ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────────┐   │   │
+│  │   │ feedback │ │    qa    │ │ security │ │   grader    │   │   │
+│  │   │ 코드리뷰  │ │ 테스트   │ │ 보안스캔 │ │ eval 평가   │   │   │
+│  │   └──────────┘ └──────────┘ └──────────┘ └─────────────┘   │   │
+│  │   ┌────────────┐ ┌────────────────┐                          │   │
+│  │   │ comparator │ │ skill-reviewer │                          │   │
+│  │   │ A/B 비교    │ │ 스킬 품질 검증  │                          │   │
+│  │   └────────────┘ └────────────────┘                          │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
@@ -159,15 +167,16 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
     ▼
 ┌─ 코드 수정 (Write/Edit) ─────────────────────────────┐
 │                                                        │
-│  PreToolUse   → command-guard.sh (차단 여부 판별)      │
+│  PreToolUse   → command-guard + smart-guard (차단/검증) │
 │  도구 실행    → 파일 생성/수정                         │
 │  PostToolUse  → prettier → eslint → tsc → test        │
+│               → pattern-check (학습 패턴 준수 확인)    │
 │                                                        │
 └────────────────────────────────────────────────────────┘
     │
     ▼
 ┌─ 세션 종료 ──────────────────────────────────────────┐
-│  uncommitted-warn.sh  →  session-log.sh               │
+│  uncommitted-warn → session-review → session-log       │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -175,24 +184,28 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 
 ## 구성 요소
 
-### Agents (7개)
+### Agents (10개)
 
 | 에이전트 | 역할 | 모델 |
 |---------|------|------|
+| `comparator` | 블라인드 A/B 출력 비교, 루브릭 기반 점수 산출 | opus |
 | `designer` | UI/UX 디자인, Tailwind CSS 스타일링 | opus |
 | `developer` | Server Actions, React 컴포넌트 구현 | opus |
 | `feedback` | 코드 품질 분석, 개선 제안 | opus |
+| `grader` | eval 결과 채점, PASS/FAIL 판정 + 근거 | opus |
 | `planner` | 작업 분해, 영향 분석, 구현 계획 | opus |
 | `qa` | Vitest + Playwright 테스트 작성/실행 | opus |
 | `retrospective` | 메트릭 분석 → 에이전트/스킬/규칙 개선안 도출 | opus |
 | `security` | OWASP Top 10 보안 스캔 | opus |
+| `skill-reviewer` | 스킬 품질 8단계 검토, 100점 스코어카드 | opus |
 
-### Skills (12개)
+### Skills (13개)
 
 | 스킬 | 호출 | 설명 |
 |------|------|------|
 | `commit` | `/commit` | Conventional Commit 자동 생성 |
 | `design-sync` | `/design-sync <URL\|이미지>` | 디자인 URL/캡처 이미지에서 CSS 추출 → 코드 싱크 ([상세](#design-sync-상세)) |
+| `eval-skill` | `/eval <skill-name>` | 스킬 품질 정량 평가 — evals.json 기반 테스트 + grader 채점 |
 | `feedback` | `/feedback` | 최근 변경사항 품질 분석 |
 | `learn` | `/learn [save\|show]` | 프로젝트 메모리 관리 — 패턴/에러 해결법 저장·조회 |
 | `metrics` | `/metrics [today\|week\|all]` | 메트릭 대시보드 — 빌드 성공률, 에러 빈도, 핫스팟 |
@@ -204,18 +217,21 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `test` | `/test [file]` | 단위 테스트 자동 생성 |
 | `verify` | `/verify` | lint → typecheck → test → e2e 검증 |
 
-### Hooks (8개)
+### Hooks (11개)
 
 | 훅 | 트리거 | 역할 |
 |----|--------|------|
-| `command-guard.sh` | PreToolUse (Bash) | 위험 명령 차단 |
+| `command-guard.sh` | PreToolUse (Bash) | 위험 명령 차단 (패턴 매칭) |
+| `smart-guard.sh` | PreToolUse (Bash) | 학습 패턴 기반 2차 검증 (memory/patterns.md 참조) |
 | `prettier-format.sh` | PostToolUse (Write/Edit) | 코드 포맷팅 |
 | `eslint-fix.sh` | PostToolUse (Write/Edit) | 린트 자동 수정 |
 | `typecheck.sh` | PostToolUse (Write/Edit) | TypeScript 타입 체크 |
 | `test-runner.sh` | PostToolUse (Write/Edit) | 관련 테스트 실행 |
 | `metrics-collector.sh` | PostToolUse (Write/Edit) | 메트릭 자동 수집 |
+| `pattern-check.sh` | PostToolUse (Write/Edit) | 학습 패턴 준수 확인 (비차단) |
 | `uncommitted-warn.sh` | Stop | 미커밋 변경 경고 |
-| `session-log.sh` | Stop | 세션 로그 + 메트릭 요약 저장 |
+| `session-review.sh` | Stop | 세션 품질 종합 리뷰 (메트릭 요약 + 학습 제안) |
+| `session-log.sh` | Stop | 세션 로그 저장 |
 
 ### Rules (3개 공통 + 템플릿)
 
@@ -369,9 +385,9 @@ claude-builds/
 ├── setup.sh                       # 원클릭 설치 스크립트 (--with-orchestrators)
 ├── settings/
 │   └── settings.template.json     # 권한, 훅, env, MCP 서버 템플릿
-├── agents/                        # 7개 전문 에이전트
-├── hooks/                         # 8개 자동화 훅
-├── skills/                        # 12개 CLI 스킬
+├── agents/                        # 10개 전문 에이전트
+├── hooks/                         # 11개 자동화 훅
+├── skills/                        # 13개 CLI 스킬
 ├── rules/                         # 3개 공통 규칙
 ├── docs/
 │   └── architecture.png           # 아키텍처 다이어그램
@@ -384,6 +400,8 @@ claude-builds/
 └── templates/                     # 프로젝트별 템플릿
     ├── CLAUDE.md.template
     ├── playwright.config.ts       # Playwright E2E + HTML 리포트 설정
+    ├── evals/
+    │   └── evals.template.json    # eval 테스트 템플릿
     └── rules/
         └── supabase.md
 ```
@@ -454,8 +472,11 @@ ao spawn my-app ISSUE-42    # 이슈에 에이전트 할당
 
 ```
 [코드 수정] → metrics-collector.sh → .claude/metrics/daily-*.json
+[코드 수정] → pattern-check.sh → 학습 패턴 준수 피드백
+[세션 종료] → session-review.sh → 세션 품질 종합 리뷰
 [세션 종료] → session-log.sh → .claude/session-logs/ (메트릭 요약 포함)
-[사용자 호출] → /retrospective → 종합 분석 → .claude/memory/ 업데이트
+[사용자 호출] → /eval <skill> → evals.json 테스트 → benchmark.json
+[사용자 호출] → /retrospective → 종합 분석 + eval 데이터 → .claude/memory/ 업데이트
 ```
 
 ### 메트릭 자동 수집
@@ -480,12 +501,31 @@ ao spawn my-app ISSUE-42    # 이슈에 에이전트 할당
 └── improvements.md       # 회고 개선 이력
 ```
 
+### Eval 프레임워크
+
+스킬 품질을 정량 측정하는 인프라. `/eval <skill-name>`으로 실행.
+
+```
+evals.json (테스트 프롬프트) → subagent 실행 → grader 채점 → benchmark.json
+                                                    ↓
+                                             comparator (A/B 비교, 선택)
+                                                    ↓
+                                             retrospective가 추이 분석
+```
+
+- `grader` 에이전트: 기대 결과 vs 실제 출력 비교 → PASS/FAIL + 점수(0.0-1.0)
+- `comparator` 에이전트: 블라인드 A/B 비교 → Content(60점) + Structure(40점) 루브릭
+- `skill-reviewer` 에이전트: SKILL.md 구조 8단계 검토 → 100점 스코어카드
+- 초기 eval: commit(4), verify(3), security(3) 스킬에 evals.json 제공
+
 ### 피드백 루프
 
 1. **일상 개발** — 메트릭이 자동 축적 (개발자는 차이를 느끼지 못함)
 2. **패턴 발견** — `/learn save`로 해결법 저장 → 다음 세션에서 자동 참조
-3. **정기 회고** — `/retrospective`로 분석 → 구체적 개선안 (P0/P1/P2)
-4. **개선 적용** — 규칙/에이전트/스킬 업데이트 → 다음 회고에서 효과 측정
+3. **품질 측정** — `/eval`로 스킬 정량 평가 → benchmark.json 축적
+4. **정기 회고** — `/retrospective`로 메트릭 + eval 데이터 분석 → 구체적 개선안 (P0/P1/P2)
+5. **개선 검증** — skill-reviewer가 스킬 변경 품질 게이트 → 퇴보 방지
+6. **개선 적용** — 규칙/에이전트/스킬 업데이트 → 다음 회고에서 효과 측정
 
 ## 기본 기술 스택
 

@@ -1,0 +1,33 @@
+{
+  "skill_name": "security",
+  "description": "보안 취약점 탐지율 평가",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "다음 코드에서 보안 취약점을 찾아라:\n```javascript\napp.get('/user', (req, res) => {\n  const id = req.query.id;\n  db.query(`SELECT * FROM users WHERE id = ${id}`);\n});\n```",
+      "expectations": [
+        { "description": "SQL Injection 취약점을 감지한다", "type": "must_pass" },
+        { "description": "parameterized query 또는 prepared statement를 대안으로 제시한다", "type": "must_pass" },
+        { "description": "OWASP A03:2021 (Injection)을 참조한다", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "다음 React 코드에서 보안 취약점을 찾아라:\n```jsx\nfunction Comment({ text }) {\n  return <div dangerouslySetInnerHTML={{ __html: text }} />;\n}\n```",
+      "expectations": [
+        { "description": "XSS (Cross-Site Scripting) 취약점을 감지한다", "type": "must_pass" },
+        { "description": "입력 sanitization 또는 dangerouslySetInnerHTML 제거를 제안한다", "type": "must_pass" },
+        { "description": "DOMPurify 등 구체적 라이브러리를 제안한다", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "다음 환경변수 사용에서 보안 문제를 찾아라:\n```javascript\nconst API_KEY = 'sk-1234567890abcdef';\nfetch(`https://api.example.com?key=${API_KEY}`);\n```",
+      "expectations": [
+        { "description": "하드코딩된 시크릿을 감지한다", "type": "must_pass" },
+        { "description": "환경변수(.env)로 이동을 제안한다", "type": "must_pass" },
+        { "description": "클라이언트 사이드에서 API 키 노출 위험을 언급한다", "type": "should_pass" }
+      ]
+    }
+  ]
+}

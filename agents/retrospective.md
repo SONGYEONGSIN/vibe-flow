@@ -17,6 +17,19 @@ model: opus
 
 ## 분석 항목
 
+### 0. Eval 결과 분석
+
+스킬별 eval 벤치마크가 있으면 분석에 포함:
+
+```bash
+# eval 벤치마크 파일 탐색
+find .claude/skills -name "benchmark.json" -path "*/evals/*" 2>/dev/null
+```
+
+- 스킬별 pass rate 추이 (이전 benchmark vs 현재)
+- 퇴보한 스킬 식별 → P0 개선안에 포함
+- 미설정 스킬 목록 → eval 추가 제안
+
 ### 1. 에러 패턴 분석
 
 - 메트릭에서 `typecheck: fail` 빈도가 높은 파일/디렉토리 식별
@@ -45,6 +58,7 @@ model: opus
 | 에이전트 | `.claude/agents/*.md` | 에이전트가 놓치는 패턴 → 프롬프트 보강 |
 | 스킬 | `.claude/skills/*/SKILL.md` | 자주 반복하는 작업 → 자동화 |
 | 훅 | `.claude/hooks/*.sh` | 감지 못하는 에러 → 훅 추가/개선 |
+| eval | `.claude/skills/*/evals/` | pass rate 퇴보 → 스킬 수정 또는 eval 보강 |
 
 ## 작업 절차
 
@@ -97,7 +111,12 @@ done
    - 우선순위: P0 (즉시), P1 (다음 세션), P2 (향후)
    - 실행 가능해야 함 (모호한 제안 금지)
 
-5. **메모리 업데이트**
+5. **스킬 변경 검증**
+   - 개선안에 스킬 수정이 포함되면 **skill-reviewer** 에이전트 호출
+   - 수정 대상 SKILL.md를 8단계 검토 → 70점 미만이면 개선안 재조정
+   - 검토 결과(스코어카드)를 회고 보고서에 포함
+
+6. **메모리 업데이트**
    - `.claude/memory/improvements.md`에 이번 회고 결과 추가
    - `.claude/memory/patterns.md`에 새로 발견한 패턴 추가
    - 이전 회고에서 제안한 개선이 실행되었는지 확인 (추적)

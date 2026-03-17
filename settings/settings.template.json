@@ -45,6 +45,16 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/smart-guard.sh",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -97,6 +107,16 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/pattern-check.sh",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "Stop": [
@@ -106,6 +126,15 @@
             "type": "command",
             "command": ".claude/hooks/uncommitted-warn.sh",
             "timeout": 5000
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/session-review.sh",
+            "timeout": 10000
           }
         ]
       },

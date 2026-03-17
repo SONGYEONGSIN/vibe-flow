@@ -45,12 +45,19 @@ echo "[2/$TOTAL_STEPS] Hooks..."
 cp "$SCRIPT_DIR/hooks/"*.sh "$PROJECT_DIR/.claude/hooks/"
 chmod +x "$PROJECT_DIR/.claude/hooks/"*.sh
 
-# Skills 복사
+# Skills 복사 (하위 디렉토리 포함)
 echo "[3/$TOTAL_STEPS] Skills..."
 for skill_dir in "$SCRIPT_DIR/skills"/*/; do
   skill_name="$(basename "$skill_dir")"
   mkdir -p "$PROJECT_DIR/.claude/skills/$skill_name"
   cp "$skill_dir/SKILL.md" "$PROJECT_DIR/.claude/skills/$skill_name/SKILL.md"
+  # references/, scripts/, evals/ 등 하위 디렉토리 복사
+  for sub_dir in "$skill_dir"*/; do
+    [ -d "$sub_dir" ] || continue
+    sub_name="$(basename "$sub_dir")"
+    mkdir -p "$PROJECT_DIR/.claude/skills/$skill_name/$sub_name"
+    cp "$sub_dir"* "$PROJECT_DIR/.claude/skills/$skill_name/$sub_name/" 2>/dev/null || true
+  done
 done
 
 # Rules 복사

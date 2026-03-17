@@ -1,0 +1,22 @@
+{
+  "skill_name": "{{SKILL_NAME}}",
+  "description": "{{SKILL_NAME}} 스킬의 품질 평가 테스트",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "테스트 프롬프트 — 스킬에 전달할 입력을 작성",
+      "expectations": [
+        { "description": "기대 결과 1 — 반드시 충족해야 함", "type": "must_pass" },
+        { "description": "기대 결과 2 — 충족 권장", "type": "should_pass" }
+      ],
+      "model": "sonnet"
+    },
+    {
+      "id": 2,
+      "prompt": "엣지 케이스 프롬프트 — 경계 조건 테스트",
+      "expectations": [
+        { "description": "에러를 적절히 처리", "type": "must_pass" }
+      ]
+    }
+  ]
+}
