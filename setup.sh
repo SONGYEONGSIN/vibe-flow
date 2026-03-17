@@ -9,6 +9,20 @@
 
 set -e
 
+# 필수 의존 도구 확인
+MISSING_DEPS=""
+for dep in jq git node npx; do
+  if ! command -v "$dep" &>/dev/null; then
+    MISSING_DEPS="${MISSING_DEPS} $dep"
+  fi
+done
+if [ -n "$MISSING_DEPS" ]; then
+  echo "⚠ 필수 도구 미설치:${MISSING_DEPS}"
+  echo "  hooks가 정상 동작하려면 위 도구들이 필요합니다."
+  echo "  계속 진행합니다..."
+  echo ""
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(pwd)"
 PROJECT_NAME="$(basename "$PROJECT_DIR")"
@@ -68,7 +82,8 @@ cp "$SCRIPT_DIR/rules/"*.md "$PROJECT_DIR/.claude/rules/"
 echo "[5/$TOTAL_STEPS] Settings..."
 if [ ! -f "$PROJECT_DIR/.claude/settings.local.json" ]; then
   # 훅 경로를 프로젝트 절대 경로로 치환
-  sed "s|\\.claude/hooks/|$PROJECT_DIR/.claude/hooks/|g" \
+  ESCAPED_DIR=$(printf '%s\n' "$PROJECT_DIR" | sed 's/[&/\]/\\&/g')
+  sed "s|\\.claude/hooks/|${ESCAPED_DIR}/.claude/hooks/|g" \
     "$SCRIPT_DIR/settings/settings.template.json" \
     > "$PROJECT_DIR/.claude/settings.local.json"
   echo "  Created settings.local.json (훅 경로를 절대 경로로 설정)"

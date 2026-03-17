@@ -2,6 +2,8 @@
 # ESLint auto-fix hook - PostToolUse (Edit/Write)
 INPUT=$(cat)
 LOG_FILE="/tmp/eslint-hook.log"
+# 로그 1MB 초과 시 truncate
+[ -f "$LOG_FILE" ] && [ "$(wc -c < "$LOG_FILE" 2>/dev/null)" -gt 1048576 ] && tail -100 "$LOG_FILE" > "$LOG_FILE.tmp" && mv "$LOG_FILE.tmp" "$LOG_FILE"
 
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
@@ -22,7 +24,7 @@ while [ "$DIR" != "/" ]; do
   DIR=$(dirname "$DIR")
 done
 
-REL_PATH=$(python3 -c "import os; print(os.path.relpath('$FILE_PATH', '$DIR'))")
+REL_PATH="${FILE_PATH#${DIR}/}"
 OUTPUT=$(cd "$DIR" && npx eslint --fix "$REL_PATH" 2>&1)
 EXIT_CODE=$?
 

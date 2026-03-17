@@ -16,7 +16,6 @@ DANGEROUS_PATTERNS=(
   "npx supabase db reset"
   "git push --force"
   "git push -f "
-  "git push -f\t"
 )
 
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
@@ -26,5 +25,12 @@ for pattern in "${DANGEROUS_PATTERNS[@]}"; do
     exit 2
   fi
 done
+
+# git push -f (줄 끝에 플래그만 있는 경우도 차단)
+if echo "$COMMAND" | grep -qE 'git push -f$'; then
+  echo "[command-guard] BLOCKED: 'git push -f' is not allowed." >&2
+  echo "[command-guard] Command: $COMMAND" >&2
+  exit 2
+fi
 
 exit 0

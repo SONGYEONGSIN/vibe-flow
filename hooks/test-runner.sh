@@ -2,6 +2,8 @@
 # Related test auto-runner hook - PostToolUse (Edit/Write)
 INPUT=$(cat)
 LOG_FILE="/tmp/test-runner-hook.log"
+# 로그 1MB 초과 시 truncate
+[ -f "$LOG_FILE" ] && [ "$(wc -c < "$LOG_FILE" 2>/dev/null)" -gt 1048576 ] && tail -100 "$LOG_FILE" > "$LOG_FILE.tmp" && mv "$LOG_FILE.tmp" "$LOG_FILE"
 
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
@@ -54,7 +56,7 @@ while [ "$DIR" != "/" ]; do
   DIR=$(dirname "$DIR")
 done
 
-REL_TEST=$(python3 -c "import os; print(os.path.relpath('$TEST_FILE', '$DIR'))")
+REL_TEST="${TEST_FILE#${DIR}/}"
 if [ -f "$DIR/node_modules/.bin/vitest" ]; then
   OUTPUT=$(cd "$DIR" && npx vitest run "$REL_TEST" 2>&1)
 elif [ -f "$DIR/node_modules/.bin/jest" ]; then

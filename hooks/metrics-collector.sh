@@ -76,11 +76,12 @@ if [ "$PRETTIER_RESULT" = "skip" ] && [ "$ESLINT_RESULT" = "skip" ] && [ "$TYPEC
 fi
 
 # 상대 경로로 변환
-REL_PATH="${FILE_PATH#$PROJECT_ROOT/}"
+REL_PATH="${FILE_PATH#${PROJECT_ROOT}/}"
 
 # jq로 이벤트 추가
 if command -v jq &>/dev/null; then
   TEMP_FILE=$(mktemp)
+  trap "rm -f \"$TEMP_FILE\"" EXIT
   jq --arg ts "$TIMESTAMP" \
      --arg tool "$TOOL_NAME" \
      --arg file "$REL_PATH" \

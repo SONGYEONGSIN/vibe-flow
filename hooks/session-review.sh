@@ -37,10 +37,10 @@ fi
 TODAY=$(date +%Y-%m-%d)
 METRICS_FILE=".claude/metrics/daily-${TODAY}.json"
 
-if [ -f "$METRICS_FILE" ]; then
-  TOTAL_EVENTS=$(python3 -c "import json; d=json.load(open('$METRICS_FILE')); print(len(d.get('events',[])))" 2>/dev/null || echo "0")
+if [ -f "$METRICS_FILE" ] && command -v jq &>/dev/null; then
+  TOTAL_EVENTS=$(jq '.events | length' "$METRICS_FILE" 2>/dev/null || echo "0")
 
-  if command -v jq &>/dev/null && [ "$TOTAL_EVENTS" -gt 0 ]; then
+  if [ "$TOTAL_EVENTS" -gt 0 ] 2>/dev/null; then
     ALL_PASS=$(jq '[.events[] | select(.results.prettier == "pass" and .results.eslint == "pass" and .results.typecheck == "pass" and .results.test == "pass")] | length' "$METRICS_FILE" 2>/dev/null || echo "0")
     TS_FAIL=$(jq '[.events[] | select(.results.typecheck == "fail")] | length' "$METRICS_FILE" 2>/dev/null || echo "0")
     TEST_FAIL=$(jq '[.events[] | select(.results.test == "fail")] | length' "$METRICS_FILE" 2>/dev/null || echo "0")
@@ -59,10 +59,14 @@ fi
 # 3. 학습 저장 제안
 MEMORY_DIR=".claude/memory"
 if [ -d "$MEMORY_DIR" ]; then
-  # patterns.md 최종 수정 확인
   PATTERNS_FILE="$MEMORY_DIR/patterns.md"
   if [ -f "$PATTERNS_FILE" ]; then
-    PATTERNS_AGE=$(( ( $(date +%s) - $(stat -f%m "$PATTERNS_FILE" 2>/dev/null || stat -c%Y "$PATTERNS_FILE" 2>/dev/null || echo "0") ) / 86400 ))
+    if [ "$(uname)" = "Darwin" ]; then
+      MOD_TIME=$(stat -f %m "$PATTERNS_FILE" 2>/dev/null || echo "0")
+    else
+      MOD_TIME=$(stat -c %Y "$PATTERNS_FILE" 2>/dev/null || echo "0")
+    fi
+    PATTERNS_AGE=$(( ($(date +%s) - MOD_TIME) / 86400 ))
     if [ "$PATTERNS_AGE" -gt 7 ]; then
       echo ""
       echo "💡 patterns.md가 ${PATTERNS_AGE}일 전에 마지막 수정됨"

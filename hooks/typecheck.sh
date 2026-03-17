@@ -2,6 +2,8 @@
 # TypeScript type check hook - PostToolUse (Edit/Write)
 INPUT=$(cat)
 LOG_FILE="/tmp/typecheck-hook.log"
+# 로그 1MB 초과 시 truncate
+[ -f "$LOG_FILE" ] && [ "$(wc -c < "$LOG_FILE" 2>/dev/null)" -gt 1048576 ] && tail -100 "$LOG_FILE" > "$LOG_FILE.tmp" && mv "$LOG_FILE.tmp" "$LOG_FILE"
 
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 

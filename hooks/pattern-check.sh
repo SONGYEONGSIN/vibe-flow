@@ -5,8 +5,9 @@
 # 수정된 코드가 따르는지 검증한다.
 # 위반 시 systemMessage로 피드백 (차단하지 않음).
 
-TOOL_NAME="${CLAUDE_TOOL_NAME:-}"
-FILE_PATH="${CLAUDE_TOOL_INPUT_FILE_PATH:-}"
+INPUT=$(cat)
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
+FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null)
 
 # Write/Edit 도구만 검증
 if [ "$TOOL_NAME" != "Write" ] && [ "$TOOL_NAME" != "Edit" ]; then

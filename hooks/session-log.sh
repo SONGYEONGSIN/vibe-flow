@@ -30,7 +30,11 @@ if [ -f "$METRICS_FILE" ] && command -v jq &>/dev/null; then
   if [ "$TOTAL" -gt 0 ]; then
     ALL_PASS=$(jq '[.events[] | select(.results.prettier == "pass" and .results.eslint == "pass" and .results.typecheck == "pass" and .results.test == "pass")] | length' "$METRICS_FILE" 2>/dev/null || echo "0")
     TS_FAIL=$(jq '[.events[] | select(.results.typecheck == "fail")] | length' "$METRICS_FILE" 2>/dev/null || echo "0")
-    SUCCESS_RATE=$((ALL_PASS * 100 / TOTAL))
+    if [ "$TOTAL" -gt 0 ] 2>/dev/null; then
+      SUCCESS_RATE=$((ALL_PASS * 100 / TOTAL))
+    else
+      SUCCESS_RATE=0
+    fi
     METRICS_SUMMARY="이벤트 ${TOTAL}개, 성공률 ${SUCCESS_RATE}%, TS에러 ${TS_FAIL}회"
   fi
 fi
@@ -55,3 +59,5 @@ ${STAGED_FILES:-없음}
 ## 메트릭 요약
 ${METRICS_SUMMARY}
 EOF
+
+exit 0
