@@ -30,11 +30,7 @@ if [ -f "$METRICS_FILE" ] && command -v jq &>/dev/null; then
   if [ "$TOTAL" -gt 0 ]; then
     ALL_PASS=$(jq '[.events[] | select(.results.prettier == "pass" and .results.eslint == "pass" and .results.typecheck == "pass" and .results.test == "pass")] | length' "$METRICS_FILE" 2>/dev/null || echo "0")
     TS_FAIL=$(jq '[.events[] | select(.results.typecheck == "fail")] | length' "$METRICS_FILE" 2>/dev/null || echo "0")
-    if [ "$TOTAL" -gt 0 ] 2>/dev/null; then
-      SUCCESS_RATE=$((ALL_PASS * 100 / TOTAL))
-    else
-      SUCCESS_RATE=0
-    fi
+    SUCCESS_RATE=$((ALL_PASS * 100 / TOTAL))
     METRICS_SUMMARY="이벤트 ${TOTAL}개, 성공률 ${SUCCESS_RATE}%, TS에러 ${TS_FAIL}회"
   fi
 fi
@@ -44,20 +40,20 @@ if [ -z "$RECENT_COMMITS" ] && [ -z "$CHANGED_FILES" ] && [ -z "$STAGED_FILES" ]
   exit 0
 fi
 
-cat > "$LOG_FILE" << EOF
-# Session Log - ${TIMESTAMP}
-
-## 오늘의 커밋
-${RECENT_COMMITS:-없음}
-
-## 미커밋 변경 파일
-${CHANGED_FILES:-없음}
-
-## 스테이징된 파일
-${STAGED_FILES:-없음}
-
-## 메트릭 요약
-${METRICS_SUMMARY}
-EOF
+{
+  echo "# Session Log - ${TIMESTAMP}"
+  echo ""
+  echo "## 오늘의 커밋"
+  echo "${RECENT_COMMITS:-없음}"
+  echo ""
+  echo "## 미커밋 변경 파일"
+  echo "${CHANGED_FILES:-없음}"
+  echo ""
+  echo "## 스테이징된 파일"
+  echo "${STAGED_FILES:-없음}"
+  echo ""
+  echo "## 메트릭 요약"
+  echo "${METRICS_SUMMARY}"
+} > "$LOG_FILE"
 
 exit 0

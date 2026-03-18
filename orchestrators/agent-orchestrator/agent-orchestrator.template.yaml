@@ -20,7 +20,7 @@ defaults:
 projects:
   {{PROJECT_NAME}}:
     repo: {{GITHUB_OWNER}}/{{PROJECT_NAME}}
-    path: ~/{{PROJECT_PATH}}
+    path: {{PROJECT_PATH}}
     defaultBranch: main
     sessionPrefix: {{PROJECT_PREFIX}}
 
@@ -45,7 +45,7 @@ reactions:
 
 # --- 운영 워크플로우 ---
 #
-# claude-builds의 6개 에이전트를 단계별로 활용:
+# claude-builds의 10개 에이전트를 단계별로 활용:
 #
 # 1. 기획 (planner)
 #    ao spawn {{PROJECT_NAME}} ISSUE-123
@@ -70,3 +70,19 @@ reactions:
 # 6. 보안 (security)
 #    ao spawn {{PROJECT_NAME}} ISSUE-123
 #    ao send <session> "보안을 점검하라. .claude/agents/security.md 지침을 따르라."
+#
+# 7. 회고 (retrospective)
+#    ao spawn {{PROJECT_NAME}} RETRO-001
+#    ao send <session> "메트릭을 분석하고 개선안을 도출하라. .claude/agents/retrospective.md 지침을 따르라."
+#
+# 8. 평가 (grader)
+#    ao spawn {{PROJECT_NAME}} EVAL-001
+#    ao send <session> "eval 케이스를 실행하고 점수를 매겨라. .claude/agents/grader.md 지침을 따르라."
+#
+# 9. 비교 (comparator)
+#    ao spawn {{PROJECT_NAME}} COMPARE-001
+#    ao send <session> "두 결과를 블라인드 비교하라. .claude/agents/comparator.md 지침을 따르라."
+#
+# 10. 스킬 리뷰 (skill-reviewer)
+#    ao spawn {{PROJECT_NAME}} SKILL-REVIEW-001
+#    ao send <session> "스킬을 8단계로 검토하라. .claude/agents/skill-reviewer.md 지침을 따르라."

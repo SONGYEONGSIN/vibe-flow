@@ -24,6 +24,12 @@ while [ "$DIR" != "/" ]; do
   DIR=$(dirname "$DIR")
 done
 
+# eslint config를 찾지 못하면 스킵
+if ! ls "$DIR"/eslint.config.* &>/dev/null; then
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] No eslint config found" >> "$LOG_FILE"
+  exit 0
+fi
+
 REL_PATH="${FILE_PATH#${DIR}/}"
 OUTPUT=$(cd "$DIR" && npx eslint --fix "$REL_PATH" 2>&1)
 EXIT_CODE=$?

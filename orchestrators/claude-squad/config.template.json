@@ -24,6 +24,22 @@
     {
       "name": "security",
       "program": "claude --allowedTools 'Read,Grep,Glob' --prompt 'OWASP Top 10 기준으로 보안 스캔하라. .claude/agents/security.md 지침을 따르라.'"
+    },
+    {
+      "name": "retrospective",
+      "program": "claude --allowedTools 'Read,Grep,Glob,Bash' --prompt '메트릭을 분석하고 개선안을 도출하라. .claude/agents/retrospective.md 지침을 따르라.'"
+    },
+    {
+      "name": "grader",
+      "program": "claude --allowedTools 'Read,Grep,Glob,Bash' --prompt 'eval 케이스를 실행하고 점수를 매겨라. .claude/agents/grader.md 지침을 따르라.'"
+    },
+    {
+      "name": "comparator",
+      "program": "claude --allowedTools 'Read,Grep,Glob' --prompt '두 결과를 블라인드 비교하고 루브릭 기반 점수를 산출하라. .claude/agents/comparator.md 지침을 따르라.'"
+    },
+    {
+      "name": "skill-reviewer",
+      "program": "claude --allowedTools 'Read,Grep,Glob' --prompt '스킬을 8단계로 검토하고 100점 채점하라. .claude/agents/skill-reviewer.md 지침을 따르라.'"
     }
   ]
 }

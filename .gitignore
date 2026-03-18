@@ -1,5 +1,35 @@
+# OS
 .DS_Store
-*.log
-session-logs/
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+.vercel/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# Test outputs
 playwright-report/
 test-results/
+coverage/
+
+# Logs
+*.log
+
+# Claude Code (프로젝트별 자동 생성 데이터)
+.claude/session-logs/
+.claude/metrics/
+.claude/memory/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

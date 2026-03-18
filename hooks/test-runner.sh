@@ -56,6 +56,12 @@ while [ "$DIR" != "/" ]; do
   DIR=$(dirname "$DIR")
 done
 
+# package.json을 찾지 못하면 스킵
+if [ ! -f "$DIR/package.json" ]; then
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] No package.json found" >> "$LOG_FILE"
+  exit 0
+fi
+
 REL_TEST="${TEST_FILE#${DIR}/}"
 if [ -f "$DIR/node_modules/.bin/vitest" ]; then
   OUTPUT=$(cd "$DIR" && npx vitest run "$REL_TEST" 2>&1)

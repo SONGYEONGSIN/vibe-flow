@@ -8,6 +8,12 @@
 # PreToolUse 훅으로 등록하여 Bash 도구 실행 전 검증.
 
 INPUT=$(cat)
+
+# jq 필수 — 없으면 안전하게 통과 (command-guard.sh가 별도로 실행됨)
+if ! command -v jq &>/dev/null; then
+  exit 0
+fi
+
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
 
 # Bash 도구만 검증
