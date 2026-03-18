@@ -35,6 +35,10 @@ cp orchestrators/claude-squad/config.template.json ~/.claude-squad/config.json
 | feedback | agents/feedback.md | 코드 품질 리뷰 | Read, Grep, Glob, Bash |
 | qa | agents/qa.md | 테스트 작성/실행 | Read, Grep, Glob, Bash, Edit, Write |
 | security | agents/security.md | OWASP 보안 스캔 | Read, Grep, Glob |
+| retrospective | agents/retrospective.md | 메트릭 분석, 개선안 도출 | Read, Grep, Glob, Bash |
+| grader | agents/grader.md | eval 결과 채점 | Read, Grep, Glob, Bash |
+| comparator | agents/comparator.md | 블라인드 A/B 비교 | Read, Grep, Glob |
+| skill-reviewer | agents/skill-reviewer.md | 스킬 품질 8단계 검토 | Read, Grep, Glob |
 
 ### 사용법
 
@@ -67,6 +71,8 @@ cs                    # TUI 실행
 4. qa 세션 → 테스트 작성
 5. feedback 세션 → 코드 리뷰
 6. security 세션 → 보안 점검
+7. retrospective 세션 → 메트릭 분석 + 개선안 도출
+8. grader 세션 → eval 채점 (스킬 품질 측정 시)
 ```
 
 ---

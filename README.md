@@ -426,7 +426,7 @@ brew install claude-squad
 cs                          # TUI 실행, 프로필로 에이전트 지정
 ```
 
-6개 에이전트가 프로필로 매핑. 각 세션은 독립 git worktree에서 실행되어 충돌 없이 병렬 작업 가능.
+10개 에이전트가 프로필로 매핑. 각 세션은 독립 git worktree에서 실행되어 충돌 없이 병렬 작업 가능.
 
 | 프로필 | 에이전트 | 역할 |
 |--------|----------|------|
@@ -436,6 +436,10 @@ cs                          # TUI 실행, 프로필로 에이전트 지정
 | `feedback` | feedback.md | 코드 품질 리뷰 |
 | `qa` | qa.md | 테스트 작성/실행 |
 | `security` | security.md | OWASP 보안 스캔 |
+| `retrospective` | retrospective.md | 메트릭 분석, 개선안 도출 |
+| `grader` | grader.md | eval 결과 채점 |
+| `comparator` | comparator.md | 블라인드 A/B 비교 |
+| `skill-reviewer` | skill-reviewer.md | 스킬 품질 8단계 검토 |
 
 ### Agent Orchestrator — CI/CD 자동화
 
