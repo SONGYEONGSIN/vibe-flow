@@ -49,6 +49,10 @@ generate_id() {
 
 case "$ACTION" in
   send)
+    if [ $# -lt 6 ]; then
+      echo "ERROR: send 명령은 최소 6개 인자 필요 (from, to, type, priority, subject, body)" >&2
+      exit 1
+    fi
     ensure_dirs
     FROM="$1"; TO="$2"; TYPE="$3"; PRIORITY="$4"; SUBJECT="$5"; BODY="$6"
     CONTEXT="${7:-null}"

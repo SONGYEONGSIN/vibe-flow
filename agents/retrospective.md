@@ -163,8 +163,8 @@ done
 
 | 우선순위 | 카테고리 | 대상 파일 | 현재 문제 | 제안 변경 |
 |---------|---------|----------|----------|----------|
-| P0 | 규칙 | rules/conventions.md | [문제] | [구체적 수정] |
-| P1 | 에이전트 | agents/developer.md | [문제] | [구체적 수정] |
+| P0 | 규칙 | .claude/rules/conventions.md | [문제] | [구체적 수정] |
+| P1 | 에이전트 | .claude/agents/developer.md | [문제] | [구체적 수정] |
 
 ### 이전 개선안 추적
 

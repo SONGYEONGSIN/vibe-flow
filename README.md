@@ -583,7 +583,7 @@ evals.json (테스트 프롬프트) → subagent 실행 → grader 채점 → be
 - `grader` 에이전트: 기대 결과 vs 실제 출력 비교 → PASS/FAIL + 점수(0.0-1.0)
 - `comparator` 에이전트: 블라인드 A/B 비교 → Content(60점) + Structure(40점) 루브릭
 - `skill-reviewer` 에이전트: SKILL.md 구조 8단계 검토 → 100점 스코어카드
-- 초기 eval: commit(4), verify(3), security(3) 스킬에 evals.json 제공
+- 초기 eval: commit(4), discuss(2), verify(3), security(3) 스킬에 evals.json 제공
 
 ### 피드백 루프
 
