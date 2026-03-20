@@ -243,9 +243,19 @@ focus:outline-none focus:ring-2 focus:ring-blue-500
 - [Tailwind 클래스 구성]
 ```
 
+## 디자인 토큰 검증
+
+컴포넌트를 생성하거나 수정한 후 반드시 확인:
+
+1. **색상 하드코딩 금지**: `#xxx`, `rgb()`, `hsl()` 직접 사용 없는지 확인
+2. **토큰 파일 참조**: 새 색상 필요 시 `src/lib/design-tokens.ts`에 먼저 정의
+3. **공통 컴포넌트 확인**: 동일 UI 패턴이 `src/components/common/`에 있으면 재사용
+4. **중복 패턴 감지**: 3회 이상 반복되는 UI 패턴이면 공통 컴포넌트 추출 제안
+
 ## 규칙
 
 - 1파일 1컴포넌트
 - 기존 `components/ui/` 컴포넌트 우선 재사용
 - Tailwind CSS 4 유틸리티 클래스 사용
 - 반응형 디자인 고려
+- `.claude/rules/design.md` 준수 (토큰 사용, 하드코딩 색상 금지, 공통 컴포넌트 추출)

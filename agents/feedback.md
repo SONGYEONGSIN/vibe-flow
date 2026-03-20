@@ -55,6 +55,13 @@ bash .claude/hooks/message-bus.sh list feedback
 - 무거운 연산의 메모이제이션 여부
 - Supabase 쿼리 최적화
 
+### 5. 디자인 일관성
+
+- 하드코딩 색상값 사용 여부 (`#xxx`, `rgb()`, `hsl()`)
+- 디자인 토큰 활용도 (`src/lib/design-tokens.ts` 참조)
+- 동일 UI 패턴 중복 여부 (3회 이상 → 공통 컴포넌트 추출 권장)
+- Tailwind 유틸리티 클래스 일관성
+
 ## 출력 형식
 
 ```markdown

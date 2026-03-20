@@ -123,6 +123,16 @@
         "hooks": [
           {
             "type": "command",
+            "command": ".claude/hooks/design-lint.sh",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
             "command": ".claude/hooks/debate-trigger.sh",
             "timeout": 5000
           }

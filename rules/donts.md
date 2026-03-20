@@ -19,6 +19,7 @@
 - 직접 객체 뮤테이션 금지 (spread operator로 불변성 유지)
 - `useEffect` 내에서 데이터 fetch 금지 (Server Action 또는 Server Component 사용)
 - 인라인 스타일 금지 (Tailwind CSS 클래스 사용)
+- 컴포넌트에서 하드코딩 색상 금지 (`#xxx`, `rgb()`, `hsl()` → 토큰 또는 Tailwind 사용)
 
 ## 완료 기준
 

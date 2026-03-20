@@ -33,6 +33,13 @@
 └── package.json
 ```
 
+## Design System
+
+- **Design Tokens**: `src/lib/design-tokens.ts` — 색상, 간격, 타이포 중앙 정의
+- **Common Components**: `src/components/common/` — 재사용 UI 패턴 (3회+ 반복 추출)
+- **색상 규칙**: 컴포넌트에서 하드코딩 hex/rgb/hsl 금지, Tailwind 클래스 또는 토큰 사용
+- **검증**: `hooks/design-lint.sh`가 Write/Edit 시 자동 감지, `/design-audit`로 전체 스캔
+
 ## Commands
 
 ```bash
@@ -51,6 +58,7 @@ npx tsc --noEmit     # 타입 체크
 - `conventions.md` — 코드 스타일, 파일/폴더, Server Action 패턴
 - `git.md` — Conventional Commits, 브랜치 네이밍
 - `donts.md` — 금지 사항
+- `design.md` — 디자인 토큰, 색상 규칙, 공통 컴포넌트
 
 ## Learning System
 

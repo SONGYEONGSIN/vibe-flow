@@ -203,7 +203,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `security` | OWASP Top 10 보안 스캔 | opus |
 | `skill-reviewer` | 스킬 품질 8단계 검토, 100점 스코어카드 | opus |
 
-### Skills (14개)
+### Skills (15개)
 
 | 스킬 | 호출 | 설명 |
 |------|------|------|
@@ -220,9 +220,10 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `security` | `/security` | 전체 코드 보안 스캔 |
 | `status` | `/status` | 프로젝트 상태 대시보드 |
 | `test` | `/test [file]` | 단위 테스트 자동 생성 |
+| `design-audit` | `/design-audit` | 디자인 시스템 준수 점검 — 색상 토큰 커버리지, 중복 패턴 감지 |
 | `verify` | `/verify` | lint → typecheck → test → e2e 검증 |
 
-### Hooks (13개)
+### Hooks (14개)
 
 | 훅 | 트리거 | 역할 |
 |----|--------|------|
@@ -234,19 +235,21 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `test-runner.sh` | PostToolUse (Write/Edit) | 관련 테스트 실행 |
 | `metrics-collector.sh` | PostToolUse (Write/Edit) | 메트릭 자동 수집 |
 | `pattern-check.sh` | PostToolUse (Write/Edit) | 학습 패턴 준수 확인 (비차단) |
+| `design-lint.sh` | PostToolUse (Write/Edit) | 하드코딩 색상 감지 (비차단 경고) |
 | `debate-trigger.sh` | PostToolUse (Write/Edit) | 충돌 패턴 감지 시 자동 토론 트리거 |
 | `uncommitted-warn.sh` | Stop | 미커밋 변경 경고 |
 | `session-review.sh` | Stop | 세션 품질 종합 리뷰 (메트릭 요약 + 학습 제안) |
 | `session-log.sh` | Stop | 세션 로그 저장 |
 | `message-bus.sh` | — (유틸리티) | 에이전트 간 메시지 전송/수신/아카이브 |
 
-### Rules (3개 공통 + 템플릿)
+### Rules (4개 공통 + 템플릿)
 
 | 규칙 | 내용 |
 |------|------|
 | `conventions.md` | 코드 스타일, 파일 크기, Server Action 패턴 |
 | `git.md` | Conventional Commits, 브랜치 네이밍, PR 규칙, HARD-GATE (20개 파일) |
-| `donts.md` | 코드 품질, 보안, 패턴, 완료 기준 금지 사항 (14항목) |
+| `design.md` | 디자인 토큰 중앙 관리, 하드코딩 색상 금지, 공통 컴포넌트 추출 규칙 |
+| `donts.md` | 코드 품질, 보안, 패턴, 완료 기준 금지 사항 (15항목) |
 | `templates/rules/supabase.md` | Supabase 프로젝트용 규칙 (선택) |
 
 ## Design Sync 상세
@@ -381,6 +384,36 @@ designer 에이전트는 레퍼런스 유형에 따라 design-sync를 자동 실
 | URL 제공 | `/design-sync <URL>` 전체 7단계 실행 → 싱크율 95%+ 목표 |
 | 이미지 제공 | `/design-sync --from-image <경로>` 5단계 실행 → 싱크율 85~90% 목표 |
 | 없음 | 프로젝트 유형 판단 → 디자인 토큰 자율 설계 |
+
+---
+
+## Design System Enforcement
+
+프로젝트의 디자인 일관성을 자동으로 유지하는 3중 레이어.
+
+### 레이어
+
+| 레이어 | 구성 요소 | 동작 |
+|--------|----------|------|
+| 규칙 | `rules/design.md` | 에이전트가 따르는 디자인 토큰/색상/컴포넌트 규칙 |
+| 훅 | `hooks/design-lint.sh` | Write/Edit 시 하드코딩 색상 자동 감지 (비차단 경고) |
+| 스킬 | `/design-audit` | 온디맨드 코드베이스 전체 디자인 감사 |
+
+### 디자인 토큰
+
+프로젝트의 `src/lib/design-tokens.ts`에 색상, 간격, 타이포그래피 등을 `as const` 객체로 정의.
+`tailwind.config.ts`의 `theme.extend`에서 참조하여 프로젝트 전용 유틸리티 클래스 생성.
+
+### 공통 컴포넌트
+
+`src/components/common/`에 3회 이상 반복되는 UI 패턴을 추출하여 관리.
+`ui/`(원자 수준 — shadcn)와 구분되는 조합(molecule) 수준 컴포넌트.
+
+### 감지 대상
+
+- 하드코딩 hex 색상: `#xxx`, `#xxxxxx`, `#xxxxxxxx`
+- CSS 색상 함수: `rgb()`, `rgba()`, `hsl()`, `hsla()`
+- 예외: `tailwind.config.*`, `design-tokens.*`, `globals.css`
 
 ---
 
