@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>claude-builds Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0e1a;
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    width: 800px;
+    padding: 40px 32px 48px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Title ─────────────────────────────── */
+  .title-block {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .title-block h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+  }
+  .title-block h1 span.accent { color: #00d4aa; }
+  .title-block .subtitle {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #64748b;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── Section header ────────────────────── */
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: #00d4aa;
+    margin-bottom: 12px;
+    padding-left: 2px;
+  }
+  .section-label .num {
+    display: inline-block;
+    background: #00d4aa;
+    color: #0a0e1a;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  /* ── Card ───────────────────────────────── */
+  .card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 6px;
+    box-shadow: 0 0 12px rgba(0, 212, 170, 0.04);
+  }
+  .card.glow {
+    border-color: #163832;
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.07);
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 4px;
+  }
+  .card-sub {
+    font-size: 11.5px;
+    color: #94a3b8;
+    line-height: 1.55;
+  }
+  .card-tag {
+    display: inline-block;
+    background: #1a2332;
+    border: 1px solid #1e293b;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 10.5px;
+    color: #94a3b8;
+    font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+    margin-right: 3px;
+    margin-top: 4px;
+  }
+  .card-tag.cyan {
+    color: #0ea5e9;
+    border-color: #0c3547;
+    background: #0b1a2a;
+  }
+
+  /* ── Row helpers ────────────────────────── */
+  .row { display: flex; gap: 10px; margin-bottom: 6px; }
+  .row > * { flex: 1; }
+  .row-3 > * { flex: 1; }
+
+  /* ── Flow arrow ────────────────────────── */
+  .arrow-down {
+    text-align: center;
+    padding: 8px 0;
+    color: #1e3a3a;
+    font-size: 18px;
+    line-height: 1;
+    letter-spacing: 4px;
+  }
+  .arrow-down .tri {
+    color: #00d4aa;
+    font-size: 14px;
+    display: block;
+    margin-top: 2px;
+  }
+  .arrow-down .line {
+    display: block;
+    width: 2px;
+    height: 14px;
+    background: linear-gradient(to bottom, #163832, #00d4aa);
+    margin: 0 auto;
+    border-radius: 1px;
+  }
+
+  /* ── Annotation (centered note) ────────── */
+  .note {
+    text-align: center;
+    font-size: 11.5px;
+    color: #64748b;
+    padding: 4px 0 2px;
+    margin-bottom: 6px;
+  }
+
+  /* ── Big section frame ─────────────────── */
+  .frame {
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 6px;
+    background: #0d1220;
+  }
+  .frame-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .frame-title .badge {
+    background: linear-gradient(135deg, #00d4aa, #0ea5e9);
+    color: #0a0e1a;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 4px;
+  }
+
+  /* ── Mini header inside frame ──────────── */
+  .mini-head {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #475569;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    padding-left: 2px;
+  }
+  .mini-head:first-child { margin-top: 0; }
+
+  /* ── Hooks pipeline ────────────────────── */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 6px 0;
+  }
+  .pipe-stage {
+    flex: 1;
+    text-align: center;
+    padding: 10px 6px;
+    border-radius: 6px;
+    font-size: 10px;
+    line-height: 1.45;
+    position: relative;
+  }
+  .pipe-stage.pre {
+    background: #1a1428;
+    border: 1px solid #2d1f54;
+    color: #c4b5fd;
+  }
+  .pipe-stage.exec {
+    background: #0f2318;
+    border: 1px solid #1a3d2a;
+    color: #6ee7b7;
+    flex: 0.5;
+  }
+  .pipe-stage.post {
+    background: #0f1d2e;
+    border: 1px solid #1a3050;
+    color: #7dd3fc;
+  }
+  .pipe-stage.stop {
+    background: #1f1315;
+    border: 1px solid #3d1a20;
+    color: #fca5a5;
+  }
+  .pipe-stage .stage-label {
+    font-weight: 700;
+    font-size: 9.5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    display: block;
+  }
+  .pipe-stage .stage-items {
+    font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+    font-size: 9.5px;
+    line-height: 1.6;
+  }
+  .pipe-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 3px;
+    color: #334155;
+    font-size: 14px;
+  }
+
+  /* ── Skills grid ───────────────────────── */
+  .skill-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .skill-cat {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .skill-cat-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .skill-cat-label.dev { color: #00d4aa; }
+  .skill-cat-label.qa { color: #f59e0b; }
+  .skill-cat-label.ops { color: #0ea5e9; }
+  .skill-cat-label.learn { color: #a78bfa; }
+  .skill-cat-label.collab { color: #f472b6; }
+  .skill-item {
+    font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+    font-size: 10px;
+    color: #94a3b8;
+    line-height: 1.7;
+  }
+
+  /* ── Agent grid ────────────────────────── */
+  .agent-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .agent-box {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 9px 10px;
+    text-align: center;
+  }
+  .agent-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: #e2e8f0;
+    font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  }
+  .agent-role {
+    font-size: 9.5px;
+    color: #64748b;
+    margin-top: 2px;
+  }
+
+  /* ── Message bus ────────────────────────── */
+  .bus-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 10px 0;
+  }
+  .bus-node {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 10px 18px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #e2e8f0;
+  }
+  .bus-arrow {
+    padding: 0 8px;
+    color: #00d4aa;
+    font-size: 16px;
+  }
+
+  /* ── Loop visual ───────────────────────── */
+  .loop-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px 0;
+  }
+  .loop-box {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 10px 16px;
+    text-align: center;
+    font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+    font-size: 11px;
+    color: #e2e8f0;
+  }
+  .loop-arrow {
+    color: #00d4aa;
+    font-size: 16px;
+  }
+
+  /* ── Setup distribution ────────────────── */
+  .distrib {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .distrib-source {
+    background: #111827;
+    border: 1px solid #00d4aa33;
+    border-radius: 10px;
+    padding: 14px 18px;
+    text-align: center;
+    min-width: 150px;
+    box-shadow: 0 0 16px rgba(0, 212, 170, 0.08);
+  }
+  .distrib-source .name {
+    font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: #00d4aa;
+  }
+  .distrib-source .desc {
+    font-size: 10.5px;
+    color: #64748b;
+    margin-top: 4px;
+  }
+  .distrib-mid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 10px;
+    color: #00d4aa;
+    font-size: 18px;
+    gap: 4px;
+    min-width: 40px;
+  }
+  .distrib-targets {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+  .distrib-target {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .distrib-target .proj-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #e2e8f0;
+    white-space: nowrap;
+  }
+  .distrib-target .proj-contents {
+    font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+    font-size: 9.5px;
+    color: #64748b;
+  }
+
+  /* ── Spacing utilities ─────────────────── */
+  .mb-4 { margin-bottom: 4px; }
+  .mb-8 { margin-bottom: 8px; }
+  .mb-12 { margin-bottom: 12px; }
+  .mb-16 { margin-bottom: 16px; }
+  .mb-20 { margin-bottom: 20px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
+
+  /* ── Divider ───────────────────────────── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, #1e293b, transparent);
+    margin: 14px 0;
+  }
+
+  /* ── Loop ring ─────────────────────────── */
+  .loop-ring {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 16px 0;
+  }
+  .loop-ring-inner {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 2px solid #163832;
+    border-radius: 40px;
+    padding: 8px 14px;
+    background: #0d1220;
+  }
+  .loop-ring-inner .loop-box {
+    border: none;
+    background: transparent;
+    padding: 6px 12px;
+  }
+  .loop-ring-inner .loop-arrow {
+    font-size: 14px;
+  }
+  .loop-label {
+    position: absolute;
+    top: 2px;
+    right: 50%;
+    transform: translateX(50%);
+    font-size: 9px;
+    color: #00d4aa;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 700;
+    background: #0d1220;
+    padding: 0 8px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     TITLE
+     ═══════════════════════════════════════════ -->
+<div class="title-block">
+  <h1><span class="accent">claude-builds</span> &middot; Project Configuration Kit</h1>
+  <div class="subtitle">Reusable .claude/ scaffolding for Claude Code projects</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     1. ORCHESTRATION LAYER
+     ═══════════════════════════════════════════ -->
+<div class="section-label"><span class="num">1</span> Orchestration Layer <span style="color:#475569;font-weight:400;letter-spacing:0;">&#8202;(Optional)</span></div>
+
+<div class="row mb-4">
+  <div class="card">
+    <div class="card-title">Claude Squad</div>
+    <div class="card-sub">
+      로컬 병렬 실행<br>
+      tmux sessions &times; N, 각 세션 = git worktree
+    </div>
+    <div style="margin-top:6px;">
+      <span class="card-tag cyan">cs &rarr; TUI</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Agent Orchestrator</div>
+    <div class="card-sub">
+      CI/CD 연동<br>
+      GitHub issues &rarr; agent assign, CI fail &rarr; auto fix
+    </div>
+    <div style="margin-top:6px;">
+      <span class="card-tag cyan">ao spawn</span>
+    </div>
+  </div>
+</div>
+
+<div class="note">각 세션이 <span style="font-family:monospace;color:#94a3b8;">.claude/</span> 설정 상속</div>
+
+<div class="arrow-down"><span class="line"></span><span class="tri">&#9660;</span></div>
+
+
+<!-- ═══════════════════════════════════════════
+     2. CLAUDE CODE CLI
+     ═══════════════════════════════════════════ -->
+<div class="section-label"><span class="num">2</span> Claude Code CLI</div>
+
+<div class="frame glow" style="border-color:#163832;">
+  <div class="frame-title">
+    <span class="badge">Core</span>
+    .claude/ Configuration
+  </div>
+
+  <!-- CLAUDE.md -->
+  <div class="card glow mb-8">
+    <div class="card-title">CLAUDE.md</div>
+    <div class="card-sub">프로젝트 컨텍스트 &mdash; 모든 세션의 시작점</div>
+    <div style="margin-top:6px;">
+      <span class="card-tag">tech stack</span>
+      <span class="card-tag">structure</span>
+      <span class="card-tag">commands</span>
+      <span class="card-tag">rules</span>
+    </div>
+  </div>
+
+  <!-- Settings + Rules row -->
+  <div class="row mb-8">
+    <div class="card">
+      <div class="card-title">settings.local.json</div>
+      <div class="card-sub">권한 및 환경 설정</div>
+      <div style="margin-top:6px;">
+        <span class="card-tag">allow / deny</span>
+        <span class="card-tag">env vars</span>
+        <span class="card-tag">hooks config</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Rules <span style="color:#00d4aa;font-size:12px;">(4)</span></div>
+      <div class="card-sub">프로젝트 규칙 + 커스텀 확장</div>
+      <div style="margin-top:6px;">
+        <span class="card-tag">conventions</span>
+        <span class="card-tag">git</span>
+        <span class="card-tag">donts</span>
+        <span class="card-tag">design</span>
+      </div>
+      <div style="margin-top:4px;">
+        <span class="card-tag cyan">+ 프로젝트별 규칙</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── Hooks Pipeline ──────────────────── -->
+  <div class="mini-head">Hooks Pipeline <span style="color:#00d4aa;">(14)</span></div>
+
+  <div class="pipeline">
+    <!-- PreToolUse -->
+    <div class="pipe-stage pre">
+      <span class="stage-label">PreToolUse</span>
+      <div class="stage-items">
+        command-guard.sh<br>
+        <span style="font-size:8.5px;color:#a78bfa99;">위험 명령 차단</span><br>
+        smart-guard.sh<br>
+        <span style="font-size:8.5px;color:#a78bfa99;">학습 패턴 기반 2차 검증</span>
+      </div>
+    </div>
+
+    <div class="pipe-arrow">&rarr;</div>
+
+    <!-- Exec -->
+    <div class="pipe-stage exec">
+      <span class="stage-label" style="font-size:10px;">&#9654;</span>
+      <div class="stage-items" style="font-size:10px;">도구<br>실행</div>
+    </div>
+
+    <div class="pipe-arrow">&rarr;</div>
+
+    <!-- PostToolUse -->
+    <div class="pipe-stage post" style="flex:2;">
+      <span class="stage-label">PostToolUse <span style="font-weight:400;opacity:0.6;">(Write|Edit)</span></span>
+      <div class="stage-items">
+        prettier-format.sh &middot; eslint-fix.sh &middot; typecheck.sh<br>
+        test-runner.sh &middot; metrics-collector.sh<br>
+        pattern-check.sh &middot; design-lint.sh &middot; debate-trigger.sh
+      </div>
+    </div>
+
+    <div class="pipe-arrow">&rarr;</div>
+
+    <!-- Stop -->
+    <div class="pipe-stage stop">
+      <span class="stage-label">Stop</span>
+      <div class="stage-items">
+        uncommitted-warn.sh<br>
+        session-review.sh<br>
+        session-log.sh
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── Skills ──────────────────────────── -->
+  <div class="mini-head">Skills <span style="color:#00d4aa;">(15)</span> &mdash; <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#64748b;font-family:monospace;">/명령어</span></div>
+
+  <div class="skill-grid mb-8" style="grid-template-columns: repeat(5, 1fr);">
+    <div class="skill-cat">
+      <div class="skill-cat-label dev">개발</div>
+      <div class="skill-item">/commit<br>/scaffold<br>/design-sync</div>
+    </div>
+    <div class="skill-cat">
+      <div class="skill-cat-label qa">품질</div>
+      <div class="skill-item">/verify<br>/feedback<br>/test<br>/eval-skill<br>/design-audit</div>
+    </div>
+    <div class="skill-cat">
+      <div class="skill-cat-label ops">운영</div>
+      <div class="skill-item">/status<br>/security<br>/review-pr</div>
+    </div>
+    <div class="skill-cat">
+      <div class="skill-cat-label learn">학습</div>
+      <div class="skill-item">/metrics<br>/learn<br>/retrospective</div>
+    </div>
+    <div class="skill-cat">
+      <div class="skill-cat-label collab">협업</div>
+      <div class="skill-item">/discuss</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── Agents ──────────────────────────── -->
+  <div class="mini-head">Agents <span style="color:#00d4aa;">(11)</span> &mdash; <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#64748b;">전문 위임</span></div>
+
+  <div class="agent-grid mb-4">
+    <div class="agent-box">
+      <div class="agent-name">planner</div>
+      <div class="agent-role">작업 분해</div>
+    </div>
+    <div class="agent-box">
+      <div class="agent-name">designer</div>
+      <div class="agent-role">UI/UX</div>
+    </div>
+    <div class="agent-box">
+      <div class="agent-name">developer</div>
+      <div class="agent-role">구현</div>
+    </div>
+    <div class="agent-box">
+      <div class="agent-name">retrospective</div>
+      <div class="agent-role">회고/학습</div>
+    </div>
+  </div>
+  <div class="agent-grid mb-4">
+    <div class="agent-box">
+      <div class="agent-name">feedback</div>
+      <div class="agent-role">코드리뷰</div>
+    </div>
+    <div class="agent-box">
+      <div class="agent-name">qa</div>
+      <div class="agent-role">테스트</div>
+    </div>
+    <div class="agent-box">
+      <div class="agent-name">security</div>
+      <div class="agent-role">보안스캔</div>
+    </div>
+    <div class="agent-box">
+      <div class="agent-name">grader</div>
+      <div class="agent-role">eval 평가</div>
+    </div>
+  </div>
+  <div class="agent-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="agent-box">
+      <div class="agent-name">comparator</div>
+      <div class="agent-role">A/B 비교</div>
+    </div>
+    <div class="agent-box">
+      <div class="agent-name">skill-reviewer</div>
+      <div class="agent-role">스킬 품질 검증</div>
+    </div>
+    <div class="agent-box">
+      <div class="agent-name">moderator</div>
+      <div class="agent-role">토론 중재</div>
+    </div>
+  </div>
+
+</div><!-- /frame -->
+
+<div class="arrow-down"><span class="line"></span><span class="tri">&#9660;</span></div>
+
+
+<!-- ═══════════════════════════════════════════
+     3. AGENT COMMUNICATION SYSTEM
+     ═══════════════════════════════════════════ -->
+<div class="section-label"><span class="num">3</span> Agent Communication System</div>
+
+<div class="card glow mb-4">
+  <div class="card-title" style="margin-bottom:8px;">
+    <span style="font-family:monospace;color:#00d4aa;">message-bus.sh</span>
+    <span style="font-size:11px;color:#64748b;font-weight:400;margin-left:6px;">에이전트 간 메시지 전송 &middot; 수신 &middot; 아카이브</span>
+  </div>
+  <div class="bus-flow">
+    <div class="bus-node" style="border-color:#2d1f54;color:#c4b5fd;">send</div>
+    <div class="bus-arrow">&rarr;</div>
+    <div class="bus-node" style="border-color:#1a3050;color:#7dd3fc;">inbox</div>
+    <div class="bus-arrow">&rarr;</div>
+    <div class="bus-node" style="border-color:#1a3d2a;color:#6ee7b7;">read</div>
+    <div class="bus-arrow">&rarr;</div>
+    <div class="bus-node" style="border-color:#1e293b;color:#94a3b8;">archive</div>
+  </div>
+</div>
+
+<div class="arrow-down"><span class="line"></span><span class="tri">&#9660;</span></div>
+
+
+<!-- ═══════════════════════════════════════════
+     4. AUTO LEARNING FEEDBACK LOOP
+     ═══════════════════════════════════════════ -->
+<div class="section-label"><span class="num">4</span> Auto Learning Feedback Loop</div>
+
+<div class="card glow mb-4">
+  <div class="loop-ring">
+    <div class="loop-ring-inner">
+      <div class="loop-box" style="color:#0ea5e9;">metrics-collector</div>
+      <div class="loop-arrow">&rarr;</div>
+      <div class="loop-box" style="color:#a78bfa;">memory/<br>patterns.md</div>
+      <div class="loop-arrow">&rarr;</div>
+      <div class="loop-box" style="color:#00d4aa;">smart-guard<br>+ pattern-check</div>
+      <div class="loop-arrow" style="font-size:12px;">&#8635;</div>
+    </div>
+  </div>
+  <div class="note" style="color:#475569;font-size:10.5px;">수집 &rarr; 패턴 축적 &rarr; 가드 강화 &rarr; 재수집 (자동 학습 루프)</div>
+</div>
+
+<div class="arrow-down"><span class="line"></span><span class="tri">&#9660;</span></div>
+
+
+<!-- ═══════════════════════════════════════════
+     5. SETUP.SH
+     ═══════════════════════════════════════════ -->
+<div class="section-label"><span class="num">5</span> Distribution</div>
+
+<div class="card glow" style="padding:20px 22px;">
+  <div class="distrib">
+    <div class="distrib-source">
+      <div class="name">setup.sh</div>
+      <div class="desc">claude-builds에서<br>프로젝트로 복사</div>
+    </div>
+
+    <div class="distrib-mid">
+      <span>&rarr;</span>
+      <span>&rarr;</span>
+      <span>&rarr;</span>
+    </div>
+
+    <div class="distrib-targets">
+      <div class="distrib-target">
+        <div class="proj-name">Project A</div>
+        <div class="proj-contents">.claude/ &mdash; agents/ hooks/ skills/ rules/</div>
+      </div>
+      <div class="distrib-target">
+        <div class="proj-name">Project B</div>
+        <div class="proj-contents">.claude/ &mdash; agents/ hooks/ skills/ rules/</div>
+      </div>
+      <div class="distrib-target">
+        <div class="proj-name">Project C</div>
+        <div class="proj-contents">.claude/ &mdash; agents/ hooks/ skills/ rules/</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div style="text-align:center;padding:28px 0 8px;color:#334155;font-size:10px;letter-spacing:1px;">
+  claude-builds &middot; 2025
+</div>
+
+</body>
+</html>
