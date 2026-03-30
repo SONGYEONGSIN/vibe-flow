@@ -57,8 +57,28 @@ collect_result() {
   fi
 
   # 마지막 줄에서 결과 판단
-  local last_lines=$(tail -3 "$log_file" 2>/dev/null)
-  if echo "$last_lines" | grep -qi "error\|fail\|exit code [1-9]"; then
+  local last_lines=$(tail -5 "$log_file" 2>/dev/null)
+
+  # 성공 키워드가 있으면 pass (INPUT/HOOK TRIGGERED 등 메타 라인 무시)
+  if echo "$last_lines" | grep -q "PRETTIER DONE\|SKIPPED:\|exit=0\|exit code 0"; then
+    echo "pass"
+    return
+  fi
+
+  # 실제 에러만 감지 (0 errors 제외)
+  if echo "$last_lines" | grep -qi "exit code [1-9]\|exit=[1-9]\|BLOCKED"; then
+    echo "fail"
+    return
+  fi
+
+  # (0 errors, N warnings) 는 pass
+  if echo "$last_lines" | grep -q "(0 errors"; then
+    echo "pass"
+    return
+  fi
+
+  # 그 외 error/fail 키워드
+  if echo "$last_lines" | grep -qi "error\|failed"; then
     echo "fail"
   else
     echo "pass"
