@@ -1,7 +1,6 @@
 ---
 name: review-pr
-description: GitHub PR을 코드 리뷰한다. 코드 품질, 보안, 테스트 커버리지를 점검한다.
-argument-hint: "[pr-number]"
+description: GitHub PR을 코드 리뷰한다. 코드 품질, 보안, 테스트 커버리지를 점검한다. 사용법: /review-pr [pr-number]
 ---
 
 GitHub PR #$ARGUMENTS 를 코드 리뷰한다.

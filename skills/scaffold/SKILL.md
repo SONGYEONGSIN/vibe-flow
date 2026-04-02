@@ -1,7 +1,6 @@
 ---
 name: scaffold
-description: 새 도메인의 보일러플레이트 파일을 프로젝트 패턴에 맞게 자동 생성한다
-argument-hint: "[domain-name]"
+description: 새 도메인의 보일러플레이트 파일을 프로젝트 패턴에 맞게 자동 생성한다. 사용법: /scaffold [domain-name]
 ---
 
 `$ARGUMENTS` 도메인의 보일러플레이트를 생성한다.

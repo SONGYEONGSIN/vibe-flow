@@ -1,7 +1,6 @@
 ---
 name: learn
-description: 프로젝트 메모리에 패턴/규칙을 저장하거나 조회한다
-argument-hint: "[save|show] [pattern|error|profile]"
+description: 프로젝트 메모리에 패턴/규칙을 저장하거나 조회한다. 사용법: /learn [save|show] [pattern|error|profile]
 ---
 
 프로젝트 메모리를 관리한다.

@@ -1,7 +1,6 @@
 ---
 name: discuss
-description: 에이전트 간 구조화된 토론을 개시하여 기술적 의견 차이를 해결한다
-argument-hint: "<topic> [--agents agent1,agent2,...] [--rounds N]"
+description: 에이전트 간 구조화된 토론을 개시하여 기술적 의견 차이를 해결한다. 사용법: /discuss <topic> [--agents agent1,agent2,...] [--rounds N]
 ---
 
 에이전트 간 토론을 개시하고, moderator가 중재하여 합의를 도출한다.

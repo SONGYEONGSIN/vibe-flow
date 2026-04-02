@@ -1,7 +1,6 @@
 ---
 name: test
-description: 지정 파일에 대한 Vitest 단위 테스트를 자동 생성한다
-argument-hint: "[file-path]"
+description: 지정 파일에 대한 Vitest 단위 테스트를 자동 생성한다. 사용법: /test [file-path]
 ---
 
 `$ARGUMENTS` 파일에 대한 Vitest 단위 테스트를 생성한다.

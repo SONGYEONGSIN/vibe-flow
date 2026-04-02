@@ -1,7 +1,6 @@
 ---
 name: design-sync
-description: 참고 디자인 URL 또는 캡처 이미지에서 CSS를 추출하여 현재 코드베이스와 비교/적용한다
-argument-hint: <URL|이미지경로> [페이지경로]
+description: 참고 디자인 URL 또는 캡처 이미지에서 CSS를 추출하여 현재 코드베이스와 비교/적용한다. 사용법: /design-sync <URL|이미지경로> [페이지경로]
 ---
 
 참고 디자인 URL 또는 캡처 이미지를 받아 체계적 워크플로우로 CSS를 추출·비교·적용하고, 정량적 싱크율로 검증한다.

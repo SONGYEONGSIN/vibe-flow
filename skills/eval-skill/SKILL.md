@@ -1,7 +1,6 @@
 ---
 name: eval-skill
-description: 지정 스킬의 evals를 실행하여 품질을 정량 측정한다
-argument-hint: <skill-name>
+description: 지정 스킬의 evals를 실행하여 품질을 정량 측정한다. 사용법: /eval <skill-name>
 ---
 
 스킬의 `evals/evals.json`을 로드하고 테스트 프롬프트를 실행하여 품질을 정량 측정한다.
