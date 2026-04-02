@@ -57,8 +57,9 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 │                    ┌───────────┴───────────┐                        │
 │                    ▼                       ▼                        │
 │  ┌──────────────────────┐   ┌──────────────────────────────────┐   │
-│  │   settings.local.json │   │          Rules (4개)              │   │
+│  │   settings.local.json │   │          Rules (6개)              │   │
 │  │                       │   │  conventions · git · donts · design│   │
+│  │                       │   │  tdd · debugging                   │   │
 │  │  permissions (allow)  │   │                                   │   │
 │  │  permissions (deny)   │   │  + 프로젝트별 규칙 (supabase 등)  │   │
 │  │  env variables        │   └──────────────────────────────────┘   │
@@ -95,7 +96,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 │  └──────────────────────────────────────────────────────────────┘   │
 │                                                                     │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │                    Skills (15개) — /명령어                     │   │
+│  │                    Skills (16개) — /명령어                     │   │
 │  │                                                               │   │
 │  │  ┌─ 개발 ────────┐  ┌─ 품질 ────────┐  ┌─ 운영 ────────┐   │   │
 │  │  │ /commit        │  │ /verify       │  │ /status       │   │   │
@@ -156,7 +157,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
     │
     ▼
 ┌─ Rules 참조 ──────────────────────────────────────────┐
-│  conventions.md + git.md + donts.md + design.md        │
+│  conventions + git + donts + design + tdd + debugging   │
 └────────────────────────────────────────────────────────┘
     │
     ▼
@@ -204,7 +205,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `security` | OWASP Top 10 보안 스캔 | opus |
 | `skill-reviewer` | 스킬 품질 8단계 검토, 100점 스코어카드 | opus |
 
-### Skills (15개)
+### Skills (16개)
 
 | 스킬 | 호출 | 설명 |
 |------|------|------|
@@ -223,6 +224,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `test` | `/test [file]` | 단위 테스트 자동 생성 |
 | `design-audit` | `/design-audit` | 디자인 시스템 준수 점검 — 색상 토큰 커버리지, 중복 패턴 감지 |
 | `verify` | `/verify` | lint → typecheck → test → e2e 검증 |
+| `worktree` | `/worktree [create\|list\|remove]` | Git worktree 격리 작업 환경 생성/관리 |
 
 ### Hooks (14개)
 
@@ -243,14 +245,16 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `session-log.sh` | Stop | 세션 로그 저장 |
 | `message-bus.sh` | — (유틸리티) | 에이전트 간 메시지 전송/수신/아카이브 |
 
-### Rules (4개 공통 + 템플릿)
+### Rules (6개 공통 + 템플릿)
 
 | 규칙 | 내용 |
 |------|------|
-| `conventions.md` | 코드 스타일, 파일 크기, Server Action 패턴 |
-| `git.md` | Conventional Commits, 브랜치 네이밍, PR 규칙, HARD-GATE (20개 파일) |
+| `conventions.md` | 설계 선행 원칙, 코드 스타일, Server Action 패턴 |
+| `git.md` | Conventional Commits, HARD-GATE 설계 등급, Git Worktree |
 | `design.md` | 디자인 토큰 중앙 관리, 하드코딩 색상 금지, 공통 컴포넌트 추출 규칙 |
-| `donts.md` | 코드 품질, 보안, 패턴, 완료 기준 금지 사항 (15항목) |
+| `donts.md` | 코드 품질, 보안, 완료 기준, 합리화 방지 표 |
+| `tdd.md` | TDD Iron Law — RED-GREEN-REFACTOR 강제 |
+| `debugging.md` | 4단계 체계적 디버깅 프로세스 (관찰→가설→검증→수정) |
 | `templates/rules/supabase.md` | Supabase 프로젝트용 규칙 (선택) |
 
 ## Design Sync 상세
@@ -427,9 +431,9 @@ claude-builds/
 ├── settings/
 │   └── settings.template.json     # 권한, 훅, env, MCP 서버 템플릿
 ├── agents/                        # 11개 전문 에이전트
-├── hooks/                         # 12개 자동화 훅
-├── skills/                        # 14개 CLI 스킬
-├── rules/                         # 3개 공통 규칙
+├── hooks/                         # 14개 자동화 훅
+├── skills/                        # 16개 CLI 스킬
+├── rules/                         # 6개 공통 규칙
 ├── docs/
 │   └── architecture.png           # 아키텍처 다이어그램
 ├── orchestrators/                 # 오케스트레이터 설정 (선택)
