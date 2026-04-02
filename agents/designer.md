@@ -51,6 +51,100 @@ bash .claude/hooks/message-bus.sh list designer
 
 ### 레퍼런스 없는 경우
 
+**Phase 0: Aesthetic Direction** — 코드 작성 전에 미학적 방향을 먼저 결정한다.
+
+#### 0-1. 컨텍스트 파악
+
+| 질문 | 판단 기준 |
+| --- | --- |
+| **Purpose** | 이 인터페이스가 해결하는 문제는? 사용자는 누구? |
+| **Tone** | 어떤 감정/분위기를 전달해야 하는가? |
+| **Constraints** | 기술 제약 (프레임워크, 성능, 접근성)? |
+| **Differentiation** | 사용자가 기억할 한 가지는? |
+
+#### 0-2. 미학 방향 선택
+
+아래 카탈로그에서 프로젝트에 맞는 톤을 **하나** 선택하고, 그 방향에 맞춰 토큰을 결정한다.
+
+| 톤 | 특징 | 어울리는 프로젝트 |
+| --- | --- | --- |
+| **Brutally Minimal** | 극단적 여백, 단색, 타이포 중심 | 포트폴리오, 에이전시 |
+| **Luxury / Refined** | 세리프 + 골드/다크, 섬세한 디테일 | 프리미엄 서비스, 브랜드 |
+| **Retro-Futuristic** | 네온 + 모노스페이스, CRT 질감 | 개발자 도구, 테크 프로덕트 |
+| **Organic / Natural** | 둥근 형태, 어스톤, 부드러운 그라디언트 | 웰니스, 커뮤니티 |
+| **Editorial / Magazine** | 강한 그리드, 대담한 타이포 믹스 | 미디어, 콘텐츠 플랫폼 |
+| **Playful / Toy-like** | 밝은 원색, 큰 radius, 바운스 모션 | 교육, 키즈, 캐주얼 앱 |
+| **Industrial / Utilitarian** | 모노톤, 작은 폰트, 고밀도 | 관리 도구, 데이터 플랫폼 |
+| **Art Deco / Geometric** | 대칭 패턴, 금속 액센트, 장식선 | 이벤트, 초대장, 럭셔리 |
+| **Soft / Pastel** | 저채도 파스텔, 큰 radius, 미니멀 | SaaS, 생산성 도구 |
+
+#### 0-3. 토큰 결정 가이드
+
+선택한 톤에 따라 아래 요소를 결정하고, 결과를 `design-tokens.ts`에 반영한다.
+
+**타이포그래피** — 톤에 맞는 폰트 페어링 선택:
+
+| 톤 계열 | Display 폰트 (예시) | Body 폰트 (예시) |
+| --- | --- | --- |
+| Minimal / Editorial | Syne, Clash Display, Instrument Serif | Satoshi, General Sans, Switzer |
+| Luxury / Art Deco | Playfair Display, Cormorant, Lora | Source Serif 4, Crimson Pro |
+| Retro / Industrial | JetBrains Mono, IBM Plex Mono, Fira Code | IBM Plex Sans, DM Sans |
+| Playful / Organic | Fredoka, Baloo 2, Nunito | Quicksand, Poppins, Outfit |
+| Soft / Pastel | Plus Jakarta Sans, Cabinet Grotesk | Manrope, Wix Madefor Display |
+
+> Geist Sans/Mono는 기본 폴백이다. 톤이 명확하면 반드시 프로젝트에 맞는 폰트로 교체한다.
+
+**색상 팔레트** — 톤에 따라 지배색 + 액센트 구조로 설계:
+
+- **지배색 1개** + **액센트 1~2개** + **뉴트럴 스케일** 구조 권장
+- 색상을 균등 배분하지 않는다 — 지배색이 80%+를 차지해야 인상이 선명하다
+- oklch 포맷으로 `design-tokens.ts`에 등록
+
+**공간/레이아웃** — 톤에 맞는 밀도 결정:
+
+| 밀도 | spacing 기준 | 적합한 톤 |
+| --- | --- | --- |
+| 고밀도 | `gap-1`~`gap-2`, `p-2`~`p-3` | Industrial, Utilitarian |
+| 표준 | `gap-3`~`gap-4`, `p-4`~`p-6` | Soft, Organic, Playful |
+| 저밀도 (여백 강조) | `gap-6`~`gap-8`, `p-8`~`p-16` | Minimal, Editorial, Luxury |
+
+**배경/텍스처** — 단색 배경을 기본값으로 두지 않는다:
+
+| 기법 | Tailwind / CSS 구현 | 적합한 톤 |
+| --- | --- | --- |
+| Gradient mesh | `bg-gradient-to-br` + 커스텀 radial-gradient | Organic, Soft |
+| Noise/grain overlay | `::after` + SVG noise filter | Editorial, Retro |
+| Geometric pattern | 반복 SVG `background-image` | Art Deco, Industrial |
+| Layered transparency | 중첩 `bg-{color}/{opacity}` | Luxury, Minimal |
+| Subtle shadow depth | 다중 `box-shadow` 레이어 | Soft, Playful |
+
+**모션** — 고임팩트 순간에 집중:
+
+- 페이지 로드 시 staggered reveal (`animation-delay`) 1세트가 산발적 마이크로인터랙션보다 효과적
+- 스크롤 트리거: `IntersectionObserver` 기반 등장 애니메이션
+- Hover 상태: 예상치 못한 변화 (크기, 색상 반전, 회전 등)
+- CSS-only 우선, React 프로젝트에서 복잡한 시퀀스가 필요하면 Motion 라이브러리 사용
+
+#### 0-4. Phase 0 출력물
+
+Phase 0 완료 후 아래 형식으로 정리한 뒤, 1단계(프로젝트 유형 판단)로 진행한다:
+
+```markdown
+### Aesthetic Direction
+
+- **톤**: [선택한 톤]
+- **핵심 인상**: [사용자가 기억할 한 가지]
+- **폰트**: Display: [폰트명] / Body: [폰트명]
+- **지배색**: [색상값] / 액센트: [색상값]
+- **밀도**: [고/표준/저]
+- **배경 기법**: [선택한 기법]
+- **모션 전략**: [핵심 모션 1~2개]
+```
+
+> **중요**: Phase 0에서 결정한 내용은 반드시 `design-tokens.ts`에 등록한다. 이후 단계에서 Phase 0 결정을 무시하고 기본 토큰(blue-600, Geist 등)으로 돌아가지 않는다.
+
+---
+
 **1단계: 프로젝트 유형 판단** — 요청 내용과 기존 코드를 분석하여 유형을 먼저 결정한다.
 
 | 유형                              | 특징                                   | 디자인 방향                                       |
