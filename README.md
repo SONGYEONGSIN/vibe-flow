@@ -68,7 +68,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 │             │                                                       │
 │             ▼                                                       │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │                     Hooks Pipeline (14개)                     │   │
+│  │                     Hooks Pipeline (15개)                     │   │
 │  │                                                               │   │
 │  │  ┌─ PreToolUse ──────────────────────────────────────────┐   │   │
 │  │  │  command-guard.sh  ── 위험 명령 차단 (force push 등)   │   │   │
@@ -226,7 +226,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `verify` | `/verify` | lint → typecheck → test → e2e 검증 |
 | `worktree` | `/worktree [create\|list\|remove]` | Git worktree 격리 작업 환경 생성/관리 |
 
-### Hooks (14개)
+### Hooks (15개)
 
 | 훅 | 트리거 | 역할 |
 |----|--------|------|
@@ -243,6 +243,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `uncommitted-warn.sh` | Stop | 미커밋 변경 경고 |
 | `session-review.sh` | Stop | 세션 품질 종합 리뷰 (메트릭 요약 + 학습 제안) |
 | `session-log.sh` | Stop | 세션 로그 저장 |
+| `readme-sync.sh` | PostToolUse (Write/Edit) | README/아키텍처 수치 자동 동기화 (비차단) |
 | `message-bus.sh` | — (유틸리티) | 에이전트 간 메시지 전송/수신/아카이브 |
 
 ### Rules (6개 공통 + 템플릿)
@@ -431,7 +432,7 @@ claude-builds/
 ├── settings/
 │   └── settings.template.json     # 권한, 훅, env, MCP 서버 템플릿
 ├── agents/                        # 11개 전문 에이전트
-├── hooks/                         # 14개 자동화 훅
+├── hooks/                         # 15개 자동화 훅
 ├── skills/                        # 16개 CLI 스킬
 ├── rules/                         # 6개 공통 규칙
 ├── docs/

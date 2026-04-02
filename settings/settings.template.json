@@ -136,6 +136,16 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/readme-sync.sh",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "Stop": [
