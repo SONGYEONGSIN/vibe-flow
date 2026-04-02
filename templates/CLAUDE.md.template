@@ -55,9 +55,11 @@ npx tsc --noEmit     # 타입 체크
 
 프로젝트 규칙은 `.claude/rules/`에 분리 관리:
 
-- `conventions.md` — 코드 스타일, 파일/폴더, Server Action 패턴
-- `git.md` — Conventional Commits, 브랜치 네이밍
-- `donts.md` — 금지 사항
+- `conventions.md` — 설계 선행 원칙, 코드 스타일, Server Action 패턴
+- `git.md` — Conventional Commits, HARD-GATE 설계 등급, Git Worktree
+- `donts.md` — 금지 사항, 완료 기준, 합리화 방지 표
+- `tdd.md` — TDD Iron Law (RED-GREEN-REFACTOR 강제)
+- `debugging.md` — 4단계 체계적 디버깅 프로세스
 - `design.md` — 디자인 토큰, 색상 규칙, 공통 컴포넌트
 
 ## Learning System

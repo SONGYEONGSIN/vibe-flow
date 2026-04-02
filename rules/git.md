@@ -21,8 +21,24 @@
 - PR 본문: `## Summary` + `## Test plan` 포함
 - Squash merge 기본
 
-## HARD-GATE
+## HARD-GATE (설계 등급)
 
-- **20개 이상** 파일 변경 시 Planner 에이전트 분석 필수
+모든 코드 변경에 설계가 필요하다. 규모에 따라 등급이 다르다.
+
+| 변경 파일 수 | 설계 등급 | 요구사항 |
+|-------------|----------|---------|
+| 1~5개 | **인라인 설계** | 변경 의도 + 검증 방법 한 줄 |
+| 6~19개 | **간략 설계** | 영향 분석 + 태스크 분해 (Planner 권장) |
+| 20개 이상 | **전체 설계** | Planner 에이전트 분석 **필수** + 설계 문서 |
+
 - Planner 호출: `subagent_type: Plan` 또는 `.claude/agents/planner.md` 직접 위임
-- 그 외에는 바로 구현 가능
+- 20개 이상 변경 시 `git worktree` 격리 작업 권장 (`/worktree` 스킬 참조)
+
+## Git Worktree
+
+대규모 기능 개발 시 worktree로 격리하여 병렬 작업한다.
+
+- 생성: `git worktree add ../project-feat-xxx feat/xxx`
+- 네이밍: `../project-<branch-type>-<name>`
+- 완료 후 정리: `git worktree remove ../project-feat-xxx`
+- worktree에서도 동일한 커밋/PR 규칙 적용

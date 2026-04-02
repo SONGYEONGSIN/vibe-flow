@@ -57,9 +57,16 @@ export async function action(prevState: State, formData: FormData) {
 
 ## 규칙
 
+### 코드 규칙
 - `any` 타입 사용 금지
 - `console.log` 남기지 않기
 - 하드코딩된 시크릿 금지
 - Immutability: spread로 새 객체 생성
 - 함수 50줄 이하, 파일 400줄 권장
 - zod 에러: `parsed.error.issues[0].message` (`.errors` 아님)
+
+### 프로세스 규칙
+- **설계 확인**: 구현 시작 전 설계 문서 또는 Planner 태스크 분해가 존재하는지 확인. 없으면 Planner 호출
+- **TDD 준수**: 새 기능 구현 시 테스트를 먼저 작성 (`rules/tdd.md` 참조). 테스트 없이 코드를 쓰지 않는다
+- **디버깅**: 에러 발생 시 4단계 프로세스를 따른다 (`rules/debugging.md` 참조). 찍어맞추기 금지
+- **완료 검증**: 구현 완료 시 `/verify` 실행. VERIFIED 상태가 아니면 완료가 아니다
