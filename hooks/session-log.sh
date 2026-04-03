@@ -1,7 +1,8 @@
 #!/bin/bash
+set -u  # 미정의 변수 사용 시 즉시 에러
 # Stop hook: 세션 종료 시 작업 기록 저장 + 메트릭 요약
 
-PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
 if [ -z "$PROJECT_ROOT" ]; then
   exit 0
 fi

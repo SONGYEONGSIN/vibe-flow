@@ -1348,4 +1348,4 @@ function suggestChange(refValue, property) {
 
   fs.writeFileSync('mapping.json', JSON.stringify(mapping, null, 2));
   console.log('\nSaved: mapping.json');
-})().catch(console.error);
+})().catch(err => { console.error(err); process.exit(1); });

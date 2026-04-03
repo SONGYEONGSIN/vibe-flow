@@ -12,6 +12,10 @@ import { chromium } from 'playwright';
 import fs from 'fs';
 
 const URL = '<<URL>>';
+if (URL === '<<URL>>') {
+  console.error('ERROR: URL 플레이스홀더를 실제 URL로 교체하세요.');
+  process.exit(1);
+}
 const VIEWPORT = { width: 1366, height: 900 };
 const CORRECTION = 1.0; // Phase 1에서 산출한 보정 계수
 const PAGES = [
@@ -142,9 +146,11 @@ const extractAll = (CORRECTION) => {
     return roles[tag] || '';
   }
 
+  const MAX_ELEMENTS = 5000;
   const selectors = 'h1,h2,h3,h4,h5,h6,p,span,a,label,li,table,thead,tbody,tr,th,td,input,select,button,textarea,nav,aside,header,main,section,svg';
   const cardSelector = 'div[class*="border"],div[class*="bg-"],div[class*="rounded"]';
-  const allEls = [...document.querySelectorAll(selectors), ...document.querySelectorAll(cardSelector)];
+  const rawEls = [...document.querySelectorAll(selectors), ...document.querySelectorAll(cardSelector)];
+  const allEls = rawEls.slice(0, MAX_ELEMENTS);
 
   const seen = new Set();
   const items = [];
@@ -167,9 +173,11 @@ const extractAll = (CORRECTION) => {
     // 배경색 체인 탐색
     let bgColor = s.backgroundColor;
     let parent = el;
-    while (bgColor === 'rgba(0, 0, 0, 0)' && parent.parentElement) {
+    let depth = 0;
+    while (bgColor === 'rgba(0, 0, 0, 0)' && parent.parentElement && depth < 20) {
       parent = parent.parentElement;
       bgColor = getComputedStyle(parent).backgroundColor;
+      depth++;
     }
     const fgP = parseRGB(s.color), bgP = parseRGB(bgColor);
     const cr = fgP && bgP ? contrastRatio(fgP, bgP) : null;
@@ -434,8 +442,15 @@ const extractAll = (CORRECTION) => {
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: VIEWPORT });
-  await page.goto(URL, { waitUntil: 'networkidle', timeout: 30000 });
+  let page;
+  try {
+    page = await browser.newPage({ viewport: VIEWPORT });
+    await page.goto(URL, { waitUntil: 'networkidle', timeout: 30000 });
+  } catch (e) {
+    console.error(`ERROR: URL 접근 실패 — ${e.message}`);
+    await browser.close();
+    process.exit(1);
+  }
   await page.waitForTimeout(3000);
 
   const inventory = { pages: {} };
@@ -472,4 +487,4 @@ const extractAll = (CORRECTION) => {
   fs.writeFileSync('inventory.json', JSON.stringify(inventory, null, 2));
   console.log('\nSaved: inventory.json');
   await browser.close();
-})().catch(console.error);
+})().catch(err => { console.error(err); process.exit(1); });

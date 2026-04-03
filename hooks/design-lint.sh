@@ -1,4 +1,5 @@
 #!/bin/bash
+set -u  # 미정의 변수 사용 시 즉시 에러
 # design-lint.sh — PostToolUse prompt 훅
 #
 # Write/Edit 도구 사용 후, .tsx/.jsx/.css 파일에서

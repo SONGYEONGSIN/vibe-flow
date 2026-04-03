@@ -19,6 +19,10 @@ import pixelmatch from 'pixelmatch';
 import fs from 'fs';
 
 const REF_URL = '<<REF_URL>>';
+if (REF_URL === '<<REF_URL>>') {
+  console.error('ERROR: REF_URL 플레이스홀더를 실제 URL로 교체하세요.');
+  process.exit(1);
+}
 const LOCAL_URL = 'http://localhost:3000';
 const VIEWPORT = { width: 1366, height: 900 };
 const PAGES = [
@@ -370,4 +374,4 @@ function cropToMatch(pngA, pngB) {
   } catch (e) {
     console.log(`  Dark mode: SKIP (${e.message})`);
   }
-})().catch(console.error);
+})().catch(err => { console.error(err); process.exit(1); });

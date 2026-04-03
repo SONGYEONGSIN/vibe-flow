@@ -13,6 +13,10 @@ import { chromium } from 'playwright';
 import fs from 'fs';
 
 const URL = '<<URL>>';
+if (URL === '<<URL>>') {
+  console.error('ERROR: URL 플레이스홀더를 실제 URL로 교체하세요.');
+  process.exit(1);
+}
 const VIEWPORT = { width: 1366, height: 900 };
 const TAILWIND_FONT_SCALE = [12, 14, 16, 18, 20, 24, 30, 36, 48, 60, 72, 96];
 const PAGES = [
@@ -21,6 +25,7 @@ const PAGES = [
 ];
 
 function autoCalcCorrectionFactor(fontSizes) {
+  if (fontSizes.length === 0) return { factor: 1.0, confidence: 'NONE' };
   let bestFactor = 1.0, bestError = Infinity;
   for (let f = 1.0; f <= 1.3; f += 0.01) {
     const error = fontSizes.reduce((sum, fs) => {
@@ -39,8 +44,15 @@ function autoCalcCorrectionFactor(fontSizes) {
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: VIEWPORT });
-  await page.goto(URL, { waitUntil: 'networkidle', timeout: 30000 });
+  let page;
+  try {
+    page = await browser.newPage({ viewport: VIEWPORT });
+    await page.goto(URL, { waitUntil: 'networkidle', timeout: 30000 });
+  } catch (e) {
+    console.error(`ERROR: URL 접근 실패 — ${e.message}`);
+    await browser.close();
+    process.exit(1);
+  }
   await page.waitForTimeout(3000);
 
   const allFontSizes = [];
@@ -232,4 +244,4 @@ function autoCalcCorrectionFactor(fontSizes) {
   console.log('Saved: tokens.json');
 
   await browser.close();
-})().catch(console.error);
+})().catch(err => { console.error(err); process.exit(1); });

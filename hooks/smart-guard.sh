@@ -1,4 +1,5 @@
 #!/bin/bash
+set -u  # 미정의 변수 사용 시 즉시 에러
 # smart-guard.sh — PreToolUse prompt 훅 래퍼
 #
 # 기존 command-guard.sh를 직접 실행(빠른 차단)하고,

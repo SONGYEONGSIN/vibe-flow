@@ -1,4 +1,5 @@
 #!/bin/bash
+set -u  # 미정의 변수 사용 시 즉시 에러
 # PostToolUse hook: README/아키텍처 수치 자동 동기화
 # agents/, hooks/, skills/, rules/ 파일이 변경되면 수치를 갱신한다
 # 비차단 — 실패해도 exit 0

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -uo pipefail  # 미정의 변수 에러 + 파이프라인 실패 전파
 # sync-memory.sh — Claude Code 학습 데이터 동기화 스크립트
 # ~/.claude/ 의 메모리, 설정, 에이전트 학습 데이터를 orphan branch로 push/pull
 #

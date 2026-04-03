@@ -1,6 +1,7 @@
 #!/bin/bash
 # _common.sh — 크로스 플랫폼 공유 유틸리티
 # 다른 훅에서 source "$(dirname "$0")/_common.sh" 로 로드
+set -u  # 미정의 변수 사용 시 즉시 에러
 
 # 크로스 플랫폼 임시 디렉토리
 # Git Bash(Windows): TEMP, macOS: TMPDIR, Linux: /tmp

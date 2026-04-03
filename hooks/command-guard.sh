@@ -1,4 +1,5 @@
 #!/bin/bash
+set -u  # 미정의 변수 사용 시 즉시 에러
 # PreToolUse hook — blocks dangerous Bash commands
 # Exit 2 = block execution with error message to Claude
 

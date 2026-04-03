@@ -23,6 +23,19 @@ if [ -n "$MISSING_DEPS" ]; then
   echo ""
 fi
 
+# design-sync 선택적 의존성 확인
+OPTIONAL_MISSING=""
+for dep in playwright sharp pixelmatch; do
+  if ! node -e "require('$dep')" 2>/dev/null; then
+    OPTIONAL_MISSING="${OPTIONAL_MISSING} $dep"
+  fi
+done
+if [ -n "$OPTIONAL_MISSING" ]; then
+  echo "ℹ design-sync 선택적 의존성 미설치:${OPTIONAL_MISSING}"
+  echo "  /design-sync 스킬 사용 시 필요합니다: npm i -D${OPTIONAL_MISSING}"
+  echo ""
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(pwd)"
 PROJECT_NAME="$(basename "$PROJECT_DIR")"
