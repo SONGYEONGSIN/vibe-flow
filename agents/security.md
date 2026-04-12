@@ -2,9 +2,11 @@
 name: security
 description: 보안 취약점 점검 전문 에이전트. OWASP Top 10 기준으로 코드를 스캔하고 취약점을 보고한다.
 tools: Read, Grep, Glob
+disallowedTools: Edit, Write
 model: opus
 maxTurns: 20
 effort: high
+initialPrompt: "메시지 수신함을 확인하고, 프로젝트의 src/ 디렉토리를 OWASP Top 10 기준으로 스캔을 시작하라."
 ---
 
 ## 메시지 수신 프로토콜

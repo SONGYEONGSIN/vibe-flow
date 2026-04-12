@@ -2,6 +2,7 @@
 name: grader
 description: 스킬 eval 결과를 기대치와 비교하여 PASS/FAIL을 판정하는 평가 에이전트
 tools: Read, Grep, Glob
+disallowedTools: Edit, Write, Bash
 model: opus
 maxTurns: 10
 effort: medium

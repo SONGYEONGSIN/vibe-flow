@@ -33,6 +33,24 @@
     ],
     "defaultMode": "acceptEdits"
   },
+  "autoMode": {
+    "environment": [
+      "개발 전용 로컬 환경. 프로덕션 접근 없음.",
+      "Git 레포에서만 작업. force push 차단됨."
+    ],
+    "allow": [
+      "src/ 내 코드 파일 읽기/수정 허용",
+      "npm/node 명령 실행 허용",
+      "git add, commit 허용",
+      "테스트 실행 허용"
+    ],
+    "soft_deny": [
+      "git push는 사용자 확인 필요",
+      ".env, credentials 등 민감 파일 수정 차단",
+      "package.json 의존성 변경 시 확인 필요",
+      "데이터베이스 직접 조작 차단"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
@@ -59,6 +77,7 @@
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
+        "if": "Edit(*.ts) | Edit(*.tsx) | Edit(*.js) | Edit(*.jsx) | Edit(*.css) | Edit(*.json) | Write(*.ts) | Write(*.tsx) | Write(*.js) | Write(*.jsx) | Write(*.css) | Write(*.json)",
         "hooks": [
           {
             "type": "command",
@@ -69,6 +88,7 @@
       },
       {
         "matcher": "Write|Edit",
+        "if": "Edit(*.ts) | Edit(*.tsx) | Edit(*.js) | Edit(*.jsx) | Write(*.ts) | Write(*.tsx) | Write(*.js) | Write(*.jsx)",
         "hooks": [
           {
             "type": "command",
@@ -79,6 +99,7 @@
       },
       {
         "matcher": "Write|Edit",
+        "if": "Edit(*.ts) | Edit(*.tsx) | Write(*.ts) | Write(*.tsx)",
         "hooks": [
           {
             "type": "command",
@@ -89,6 +110,7 @@
       },
       {
         "matcher": "Write|Edit",
+        "if": "Edit(*.ts) | Edit(*.tsx) | Edit(*.js) | Edit(*.jsx) | Write(*.ts) | Write(*.tsx) | Write(*.js) | Write(*.jsx)",
         "hooks": [
           {
             "type": "command",
@@ -119,6 +141,7 @@
       },
       {
         "matcher": "Write|Edit",
+        "if": "Edit(*.tsx) | Edit(*.jsx) | Edit(*.css) | Edit(*.scss) | Write(*.tsx) | Write(*.jsx) | Write(*.css) | Write(*.scss)",
         "hooks": [
           {
             "type": "command",

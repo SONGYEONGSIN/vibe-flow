@@ -133,6 +133,14 @@ else
   echo "  playwright.config.ts already exists, skipped"
 fi
 
+# .worktreeinclude 복사 (worktree에서 gitignored 파일 자동 복사 설정)
+if [ ! -f "$PROJECT_DIR/.worktreeinclude" ]; then
+  cp "$SCRIPT_DIR/templates/.worktreeinclude" "$PROJECT_DIR/.worktreeinclude"
+  echo "  Created .worktreeinclude (worktree용 .env 자동 복사)"
+else
+  echo "  .worktreeinclude already exists, skipped"
+fi
+
 # Orchestrator 설정 (선택)
 if [ "$WITH_ORCHESTRATORS" = true ]; then
   echo "[7/$TOTAL_STEPS] Orchestrators..."
@@ -182,6 +190,7 @@ echo "  - Memory:  .claude/memory/ (학습 패턴 저장)"
 echo "  - Metrics: .claude/metrics/ (자동 메트릭 수집)"
 echo "  - Messages: .claude/messages/ (에이전트 간 통신)"
 [ -f "$PROJECT_DIR/playwright.config.ts" ] && echo "  - Playwright: playwright.config.ts (HTML 리포트)"
+[ -f "$PROJECT_DIR/.worktreeinclude" ] && echo "  - Worktree:   .worktreeinclude (.env 자동 복사)"
 if [ "$WITH_ORCHESTRATORS" = true ]; then
   echo "  - Orchestrators:"
   [ -f "$HOME/.claude-squad/config.json" ] && echo "    - Claude Squad: ~/.claude-squad/config.json"

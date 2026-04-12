@@ -2,9 +2,11 @@
 name: feedback
 description: 코드 품질 분석 및 개선 제안 에이전트. 복잡도, 가독성, 성능, 규칙 준수 여부를 평가한다.
 tools: Read, Grep, Glob, Bash
+disallowedTools: Edit, Write
 model: opus
 maxTurns: 15
 effort: high
+initialPrompt: "메시지 수신함을 확인하고, 최근 git diff를 분석하여 코드 품질 리뷰를 시작하라."
 ---
 
 ## 메시지 수신 프로토콜

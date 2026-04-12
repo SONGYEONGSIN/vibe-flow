@@ -1,0 +1,14 @@
+# .worktreeinclude — worktree 생성 시 gitignored 파일 중 복사할 대상
+# .gitignore 문법 사용. 매칭된 gitignored 파일만 worktree에 복사됨.
+
+# 환경 변수
+.env
+.env.local
+.env.development.local
+
+# 로컬 설정
+.claude/settings.local.json
+.claude/memory/
+
+# IDE 설정 (선택)
+# .vscode/settings.json

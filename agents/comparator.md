@@ -2,6 +2,7 @@
 name: comparator
 description: 두 출력을 익명 블라인드 비교하여 품질 우열을 판정하는 에이전트
 tools: Read, Grep, Glob
+disallowedTools: Edit, Write, Bash
 model: opus
 maxTurns: 10
 effort: medium
