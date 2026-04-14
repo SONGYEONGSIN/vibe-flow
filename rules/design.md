@@ -73,6 +73,13 @@ export const shadows = {
 
 AI가 만든 듯한 뻔한 디자인을 방지한다. 모든 디자인 모드(URL/이미지/로컬 파일/자율)에 적용.
 
+### DESIGN.md 연동
+
+프로젝트 루트 `DESIGN.md` 또는 `design-ref/DESIGN.md`가 존재하면 ([VoltAgent/Google Stitch 9섹션 포맷](https://github.com/VoltAgent/awesome-design-md)):
+
+- **§2 Color Palette**: `design-tokens.ts`의 우선 소스로 간주 — 아래 기본 팔레트보다 DESIGN.md §2 값이 우선한다
+- **§7 Do's and Don'ts**: 아래 쿠키커터 지표 위에 프로젝트 고유 체크리스트로 추가 로드한다 — tsx/jsx 편집 시 §7 Don'ts 위반을 실시간 점검
+
 ### 쿠키커터 지표
 
 아래 패턴 조합이 감지되면 프로젝트 고유성이 부족한 것이다:
