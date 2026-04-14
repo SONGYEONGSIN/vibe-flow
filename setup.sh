@@ -64,8 +64,10 @@ echo ""
 mkdir -p "$PROJECT_DIR/.claude"/{agents,hooks,rules,skills,session-logs,memory,metrics}
 # 디자인 레퍼런스 폴더 생성
 mkdir -p "$PROJECT_DIR/design-ref"
+# 에이전트 목록 단일 소스 배포 (agents.json)
+cp "$SCRIPT_DIR/agents.json" "$PROJECT_DIR/.claude/agents.json"
 # 메시지 버스 디렉토리
-AGENTS_LIST="developer qa security feedback planner designer retrospective grader comparator skill-reviewer moderator"
+AGENTS_LIST=$(jq -r '.agents[]' "$SCRIPT_DIR/agents.json" | tr '\n' ' ')
 mkdir -p "$PROJECT_DIR/.claude/messages"/{archive,debates,broadcast}
 for agent in $AGENTS_LIST; do
   mkdir -p "$PROJECT_DIR/.claude/messages/inbox/$agent"
@@ -141,6 +143,10 @@ else
   echo "  .worktreeinclude already exists, skipped"
 fi
 
+# validate.sh 복사 (post-setup 검증 스크립트)
+cp "$SCRIPT_DIR/validate.sh" "$PROJECT_DIR/.claude/validate.sh"
+chmod +x "$PROJECT_DIR/.claude/validate.sh"
+
 # Orchestrator 설정 (선택)
 if [ "$WITH_ORCHESTRATORS" = true ]; then
   echo "[7/$TOTAL_STEPS] Orchestrators..."
@@ -198,12 +204,13 @@ if [ "$WITH_ORCHESTRATORS" = true ]; then
 fi
 echo ""
 echo "다음 단계:"
-echo "  1. .claude/settings.local.json 의 env 섹션에 프로젝트별 환경변수 추가"
-echo "  2. CLAUDE.md 의 플레이스홀더({{...}}) 채우기"
-echo "  3. 필요 시 .claude/rules/ 에 프로젝트별 규칙 추가 (예: supabase.md)"
-echo "  4. deny 목록에 프로젝트별 위험 명령 추가"
-echo "  5. 메트릭이 쌓이면 /metrics 로 대시보드 확인"
-echo "  6. /retrospective 로 정기 회고 실행"
+echo "  1. bash .claude/validate.sh 로 설치 상태 검증"
+echo "  2. .claude/settings.local.json 의 env 섹션에 프로젝트별 환경변수 추가"
+echo "  3. CLAUDE.md 의 플레이스홀더({{...}}) 채우기"
+echo "  4. 필요 시 .claude/rules/ 에 프로젝트별 규칙 추가 (예: supabase.md)"
+echo "  5. deny 목록에 프로젝트별 위험 명령 추가"
+echo "  6. 메트릭이 쌓이면 /metrics 로 대시보드 확인"
+echo "  7. /retrospective 로 정기 회고 실행"
 if [ "$WITH_ORCHESTRATORS" = true ]; then
-  echo "  7. orchestrators/README.md 참고하여 오케스트레이터 설정 완료"
+  echo "  8. orchestrators/README.md 참고하여 오케스트레이터 설정 완료"
 fi

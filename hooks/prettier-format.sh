@@ -2,10 +2,7 @@
 INPUT=$(cat)
 source "$(dirname "$0")/_common.sh"
 LOG_FILE="$PRETTIER_LOG"
-# 로그 1MB 초과 시 truncate (원자적 처리)
-if [ -f "$LOG_FILE" ] && [ "$(wc -c < "$LOG_FILE" 2>/dev/null || echo 0)" -gt 1048576 ]; then
-  TMPLOG=$(mktemp "${LOG_FILE}.XXXXXX") && tail -100 "$LOG_FILE" > "$TMPLOG" && mv "$TMPLOG" "$LOG_FILE" || rm -f "$TMPLOG"
-fi
+truncate_log_file "$LOG_FILE"
 echo "$(date): HOOK TRIGGERED" >> "$LOG_FILE"
 echo "INPUT: $INPUT" >> "$LOG_FILE"
 

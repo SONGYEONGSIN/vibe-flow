@@ -30,7 +30,14 @@ ARCHIVE_DIR="${MSG_DIR}/archive"
 BROADCAST_DIR="${MSG_DIR}/broadcast"
 DEBATES_DIR="${MSG_DIR}/debates"
 
-AGENTS="developer qa security feedback planner designer retrospective grader comparator skill-reviewer moderator"
+# 에이전트 목록은 .claude/agents.json에서 읽는다 (단일 소스)
+AGENTS_CONFIG="${PROJECT_ROOT}/.claude/agents.json"
+if [ -f "$AGENTS_CONFIG" ]; then
+  AGENTS=$(jq -r '.agents[]' "$AGENTS_CONFIG" | tr '\n' ' ')
+else
+  # agents.json 없으면 폴백 (하위 호환)
+  AGENTS="comparator designer developer feedback grader moderator planner qa retrospective security skill-reviewer"
+fi
 
 ACTION="$1"
 shift || true

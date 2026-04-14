@@ -29,3 +29,15 @@ generate_random_hex() {
     printf '%04x' "$RANDOM"
   fi
 }
+
+# 로그 파일이 max_bytes 초과 시 tail로 잘라 저장 (원자적 처리)
+# 기본 제한: 1MB(1048576), 보관 라인 수: 100
+truncate_log_file() {
+  local log_file="$1"
+  local max_bytes="${2:-1048576}"
+  local tail_lines="${3:-100}"
+  if [ -f "$log_file" ] && [ "$(wc -c < "$log_file" 2>/dev/null || echo 0)" -gt "$max_bytes" ]; then
+    local tmplog
+    tmplog=$(mktemp "${log_file}.XXXXXX") && tail -n "$tail_lines" "$log_file" > "$tmplog" && mv "$tmplog" "$log_file" || rm -f "$tmplog"
+  fi
+}
