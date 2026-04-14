@@ -226,7 +226,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `verify` | `/verify` | lint → typecheck → test → e2e 검증 |
 | `worktree` | `/worktree [create\|list\|remove]` | Git worktree 격리 작업 환경 생성/관리 |
 
-### Hooks (15개)
+### Hooks (18개)
 
 | 훅 | 트리거 | 역할 |
 |----|--------|------|
@@ -240,10 +240,13 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `pattern-check.sh` | PostToolUse (Write/Edit) | 학습 패턴 준수 확인 (비차단) |
 | `design-lint.sh` | PostToolUse (Write/Edit) | 하드코딩 색상 감지 (비차단 경고) |
 | `debate-trigger.sh` | PostToolUse (Write/Edit) | 충돌 패턴 감지 시 자동 토론 트리거 |
+| `tool-failure-handler.sh` | PostToolUseFailure | 도구 실행 실패 자동 로깅 + 복구 힌트 |
 | `uncommitted-warn.sh` | Stop | 미커밋 변경 경고 |
 | `session-review.sh` | Stop | 세션 품질 종합 리뷰 (메트릭 요약 + 학습 제안) |
 | `session-log.sh` | Stop | 세션 로그 저장 |
 | `readme-sync.sh` | PostToolUse (Write/Edit) | README/아키텍처 수치 자동 동기화 (비차단) |
+| `notify.sh` | Notification (idle_prompt) | 사용자 입력 대기 시 데스크톱 알림 (macOS) |
+| `pre-compact.sh` | PreCompact | 컨텍스트 압축 전 중요 정보(브랜치/커밋/미커밋) 보존 |
 | `message-bus.sh` | — (유틸리티) | 에이전트 간 메시지 전송/수신/아카이브 |
 
 ### Rules (6개 공통 + 템플릿)
@@ -395,15 +398,34 @@ designer 에이전트는 레퍼런스 유형에 따라 design-sync를 자동 실
 
 ## Design System Enforcement
 
-프로젝트의 디자인 일관성을 자동으로 유지하는 3중 레이어.
+프로젝트의 디자인 일관성을 자동으로 유지하는 4중 레이어.
 
 ### 레이어
 
 | 레이어 | 구성 요소 | 동작 |
 |--------|----------|------|
-| 규칙 | `rules/design.md` | 에이전트가 따르는 디자인 토큰/색상/컴포넌트 규칙 |
+| 입력 | `DESIGN.md` (루트 또는 `design-ref/`) | VoltAgent/Google Stitch 9섹션 포맷 → 토큰/규칙 자동 주입 |
+| 규칙 | `rules/design.md` | 에이전트가 따르는 디자인 토큰/색상/컴포넌트 규칙 + DESIGN.md §7 Don'ts 병합 |
 | 훅 | `hooks/design-lint.sh` | Write/Edit 시 하드코딩 색상 자동 감지 (비차단 경고) |
 | 스킬 | `/design-audit` | 온디맨드 코드베이스 전체 디자인 감사 |
+
+### DESIGN.md 통합 (VoltAgent/Google Stitch)
+
+프로젝트 루트에 `DESIGN.md`를 드롭하면 `designer` 에이전트가 자동으로 인식하여 9개 섹션을 Phase 0/토큰/규칙에 매핑한다.
+
+- **§1 Visual Theme** → Phase 0 "톤" 자동 결정 (미학 카탈로그 선택 스킵)
+- **§2 Color Palette** → `design-tokens.ts`의 우선 소스 (hex → oklch 변환)
+- **§3 Typography** → Display/Body 폰트 페어링
+- **§4 Component Stylings** → 버튼/카드/인풋/내비 설계 스펙
+- **§5 Layout Principles** → spacing 스케일 + 그리드
+- **§6 Depth & Elevation** → shadows 토큰
+- **§7 Do's and Don'ts** → 안티-제네릭 가드레일 위에 세션 체크리스트로 로드
+- **§8 Responsive Behavior** → 브레이크포인트 + 터치 타깃
+- **§9 Agent Prompt Guide** → 프롬프트 템플릿
+
+**파일 탐색 우선순위**: 루트 `DESIGN.md` > `design-ref/DESIGN.md` > `design-ref/readme.md` > `design-ref/*.html`
+
+**브랜드별 예시 66개**: [VoltAgent/awesome-design-md](https://github.com/VoltAgent/awesome-design-md) (Stripe, Linear, Notion, Apple, Tesla 등) — 원하는 브랜드 `DESIGN.md`를 복사해서 드롭인하면 해당 브랜드 스타일로 UI 생성.
 
 ### 디자인 토큰
 
