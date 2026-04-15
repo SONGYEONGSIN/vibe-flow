@@ -73,3 +73,31 @@ export async function action(prevState: State, formData: FormData) {
 - **TDD 준수**: 새 기능 구현 시 테스트를 먼저 작성 (`rules/tdd.md` 참조). 테스트 없이 코드를 쓰지 않는다
 - **디버깅**: 에러 발생 시 4단계 프로세스를 따른다 (`rules/debugging.md` 참조). 찍어맞추기 금지
 - **완료 검증**: 구현 완료 시 `/verify` 실행. VERIFIED 상태가 아니면 완료가 아니다
+
+### Pair mode 완료 프로토콜
+
+Pair mode(`skills/pair/`)로 작업할 때, 자기 작업을 "완료"로 선언하기 전에 **validator에게 검증 요청**을 보낸다.
+
+작업 완료 판단 체크:
+- [ ] 실패 테스트(RED) → 구현(GREEN) 순서를 지킴 (커밋 이력에 반영)
+- [ ] `npx vitest run`, `npx tsc --noEmit`, `npx eslint` 모두 종료 코드 0
+- [ ] git commit 완료 (커밋 메시지에 스펙 명시)
+
+그 후 validator 호출:
+
+```bash
+bash .claude/hooks/message-bus.sh send developer validator pair-review-request high \
+  "[pair] <작업명> 검증 요청" \
+  "$(jq -n --arg task "$TASK_DESC" --arg branch "$BRANCH" --arg tests "$TEST_FILES" \
+     '{task:$task, branch_or_worktree:$branch, test_file:$tests, acceptance_criteria:[
+       "전체 테스트 통과",
+       "TypeScript 에러 0",
+       "TDD 증거 (테스트 커밋이 구현보다 선행 또는 동일)"
+     ]}')"
+```
+
+validator 응답 처리:
+- **approved**: 작업 완료 선언 가능
+- **needs-revision**: BLOCKER 항목 모두 수정 후 재요청 (SUGGESTED는 선택적). 최대 3회 반려 시 moderator 소환됨 (자동)
+
+자기 판단으로 "잘 됐다"고 완료하지 않는다 — validator의 binary 판정이 공식 완료 신호.

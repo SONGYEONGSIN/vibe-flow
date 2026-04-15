@@ -31,18 +31,16 @@ claude-builds 개선 로드맵. 커뮤니티 리서치(GitHub 오픈소스 Claud
 - **출처**: [obra/superpowers](https://github.com/obra/superpowers) (Anthropic 마켓플레이스)
 - **동작**: 소스 파일 수정 시 대응 `*.test.*` / `__tests__/` 미존재 → `additionalContext`로 Claude에게 경고 전달
 - **모드 전환**: `export CLAUDE_TDD_ENFORCE=strict` (차단) / `off` (비활성화) / 기본값 `warn`
-- **확장 여지**: 신뢰 쌓인 뒤 strict를 기본값으로 승격
+
+### 커뮤니티 2순위: Builder/Validator Pair Mode ✅
+- [x] **Validator 에이전트 + Pair 스킬** — `agents/validator.md` (Edit/Write 차단, Bash 허용), `skills/pair/SKILL.md` (Builder+Validator 워크플로우), `agents/developer.md`에 pair 완료 프로토콜 추가
+- **출처**: [disler/claude-code-hooks-mastery](https://github.com/disler/claude-code-hooks-mastery)
+- **역할 구분**: comparator(A/B 비교), feedback(품질 리뷰), validator(머지 준비 binary 판정) — 중복 없음
+- **사용**: Builder 완료 시 `pair-review-request` 메시지 → Validator 7단계 검증 → approved/needs-revision (최대 3 iteration, 교착 시 moderator 자동 소환)
 
 ---
 
 ## 미완 (우선순위 순)
-
-### 🟡 커뮤니티 2순위: Builder/Validator Pair Mode
-- **출처**: [disler/claude-code-hooks-mastery](https://github.com/disler/claude-code-hooks-mastery)
-- **핵심**: 모든 팀 작업이 **Builder(구현) + Validator(검증 전용, Edit/Write 권한 없음)** 쌍으로 자동 스폰
-- **통합 지점**: `skills/orchestrate/`에 `pair_mode: builder+validator` 플래그 추가, 관련 에이전트 설정
-- **예상 공수**: 1일 (대규모 — orchestrate 구조 변경)
-- **위험**: 기존 debate 패턴과 경계 설정 필요
 
 ### 🔵 P2 전략 공백: 토큰/비용 예산 프레임워크
 - **배경**: `/orchestrate`로 11개 에이전트 병렬 실행 시 무제한 과금 가능

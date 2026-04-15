@@ -189,7 +189,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 
 ## 구성 요소
 
-### Agents (11개)
+### Agents (12개)
 
 | 에이전트 | 역할 | 모델 |
 |---------|------|------|
@@ -204,8 +204,9 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `retrospective` | 메트릭 분석 → 에이전트/스킬/규칙 개선안 도출 | opus |
 | `security` | OWASP Top 10 보안 스캔 | opus |
 | `skill-reviewer` | 스킬 품질 8단계 검토, 100점 스코어카드 | opus |
+| `validator` | Pair mode 품질 게이트 — Builder 작업을 fresh-context로 검증, binary 판정(approved/needs-revision) | opus |
 
-### Skills (16개)
+### Skills (17개)
 
 | 스킬 | 호출 | 설명 |
 |------|------|------|
@@ -225,6 +226,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `design-audit` | `/design-audit` | 디자인 시스템 준수 점검 — 색상 토큰 커버리지, 중복 패턴 감지 |
 | `verify` | `/verify` | lint → typecheck → test → e2e 검증 |
 | `worktree` | `/worktree [create\|list\|remove]` | Git worktree 격리 작업 환경 생성/관리 |
+| `pair` | (문서 기반) | Builder+Validator 페어 프로그래밍 — fresh-context 검증 루프 |
 
 ### Hooks (19개)
 
