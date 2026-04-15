@@ -67,6 +67,17 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "if": "Edit(*.ts) | Edit(*.tsx) | Edit(*.js) | Edit(*.jsx) | Write(*.ts) | Write(*.tsx) | Write(*.js) | Write(*.jsx)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/tdd-enforce.sh",
+            "timeout": 3000
+          }
+        ]
       }
     ],
     "PostToolUse": [

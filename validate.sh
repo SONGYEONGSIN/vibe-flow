@@ -54,7 +54,7 @@ echo ""
 echo "[3/5] 훅 파일 검증"
 if [ -d "$CLAUDE_DIR/hooks" ]; then
   # 필수 훅 파일 목록
-  REQUIRED_HOOKS="_common command-guard smart-guard prettier-format eslint-fix typecheck test-runner metrics-collector pattern-check design-lint debate-trigger message-bus readme-sync session-log session-review uncommitted-warn tool-failure-handler notify pre-compact"
+  REQUIRED_HOOKS="_common command-guard smart-guard prettier-format eslint-fix typecheck test-runner metrics-collector pattern-check design-lint debate-trigger message-bus readme-sync session-log session-review uncommitted-warn tool-failure-handler notify pre-compact tdd-enforce"
   HOOK_MISSING=0
   for hook in $REQUIRED_HOOKS; do
     if [ ! -f "$CLAUDE_DIR/hooks/${hook}.sh" ]; then

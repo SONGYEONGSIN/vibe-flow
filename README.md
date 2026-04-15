@@ -226,12 +226,13 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `verify` | `/verify` | lint → typecheck → test → e2e 검증 |
 | `worktree` | `/worktree [create\|list\|remove]` | Git worktree 격리 작업 환경 생성/관리 |
 
-### Hooks (18개)
+### Hooks (19개)
 
 | 훅 | 트리거 | 역할 |
 |----|--------|------|
 | `command-guard.sh` | PreToolUse (Bash) | 위험 명령 차단 (패턴 매칭) |
 | `smart-guard.sh` | PreToolUse (Bash) | 학습 패턴 기반 2차 검증 (memory/patterns.md 참조) |
+| `tdd-enforce.sh` | PreToolUse (Write/Edit) | 테스트 파일 없이 소스 수정 시 경고 (strict 모드로 차단 전환 가능) |
 | `prettier-format.sh` | PostToolUse (Write/Edit) | 코드 포맷팅 |
 | `eslint-fix.sh` | PostToolUse (Write/Edit) | 린트 자동 수정 |
 | `typecheck.sh` | PostToolUse (Write/Edit) | TypeScript 타입 체크 |

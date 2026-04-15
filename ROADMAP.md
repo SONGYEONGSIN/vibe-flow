@@ -26,6 +26,13 @@ claude-builds 개선 로드맵. 커뮤니티 리서치(GitHub 오픈소스 Claud
 - **출처**: [disler/claude-code-hooks-multi-agent-observability](https://github.com/disler/claude-code-hooks-multi-agent-observability)
 - **사용**: `bash .claude/scripts/watch-events.sh [--errors-only] [--file <pattern>] [--raw]`
 
+### 커뮤니티 4순위: TDD 강제화 훅 ✅
+- [x] **경고 모드 도입** — `hooks/tdd-enforce.sh` (PreToolUse Write|Edit), settings.template.json 등록, validate.sh REQUIRED_HOOKS 업데이트
+- **출처**: [obra/superpowers](https://github.com/obra/superpowers) (Anthropic 마켓플레이스)
+- **동작**: 소스 파일 수정 시 대응 `*.test.*` / `__tests__/` 미존재 → `additionalContext`로 Claude에게 경고 전달
+- **모드 전환**: `export CLAUDE_TDD_ENFORCE=strict` (차단) / `off` (비활성화) / 기본값 `warn`
+- **확장 여지**: 신뢰 쌓인 뒤 strict를 기본값으로 승격
+
 ---
 
 ## 미완 (우선순위 순)
@@ -36,13 +43,6 @@ claude-builds 개선 로드맵. 커뮤니티 리서치(GitHub 오픈소스 Claud
 - **통합 지점**: `skills/orchestrate/`에 `pair_mode: builder+validator` 플래그 추가, 관련 에이전트 설정
 - **예상 공수**: 1일 (대규모 — orchestrate 구조 변경)
 - **위험**: 기존 debate 패턴과 경계 설정 필요
-
-### ⚠️ 커뮤니티 4순위: TDD 강제화 훅
-- **출처**: [obra/superpowers](https://github.com/obra/superpowers) (Anthropic 마켓플레이스)
-- **핵심**: 실패 테스트 없이 구현 코드 작성 시 **PreToolUse 훅이 Edit 자체를 revert**
-- **통합 지점**: 신규 `hooks/tdd-enforce.sh` (PreToolUse, Write|Edit 매처)
-- **예상 공수**: 반나절~1일
-- **주의**: 파괴적 동작 — **경고 모드로 시작, 신뢰 쌓인 뒤 차단으로 승격**
 
 ### 🔵 P2 전략 공백: 토큰/비용 예산 프레임워크
 - **배경**: `/orchestrate`로 11개 에이전트 병렬 실행 시 무제한 과금 가능
