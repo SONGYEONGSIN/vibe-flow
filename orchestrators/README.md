@@ -165,6 +165,19 @@ ao dashboard                      # 웹 대시보드 (localhost:3001)
 | 팀 협업 + 자동 리뷰 대응 | Agent Orchestrator |
 | 개발~배포 전 구간 자동화 | 둘 다 사용 |
 
+## 대안 도구
+
+Claude Squad 외에도 멀티 에이전트 세션을 관리하는 도구들이 있다. tmux를 쓸 수 없는 환경이라면 대안을 고려.
+
+| 도구 | tmux 필요 | 플랫폼 | 특징 |
+|------|:---------:|--------|------|
+| [Claude Squad](https://github.com/smtg-ai/claude-squad) | O | Linux/macOS | tmux 기반, worktree 자동 관리, TUI |
+| [cmux (craigsc)](https://github.com/craigsc/cmux) | O | Linux/macOS | 경량 쉘 래퍼, worktree 라이프사이클 단순화 |
+| [cmux (Manaflow)](https://github.com/manaflow-ai/cmux) | X | macOS | Ghostty 네이티브 터미널, GPU 렌더링 |
+| [CCManager](https://github.com/kbwo/ccmanager) | X | 크로스 플랫폼 | 자체 세션 관리, Gemini/Codex/Copilot도 지원 |
+
+> claude-builds의 훅/에이전트/스킬은 어떤 도구를 쓰든 동일하게 동작한다. 오케스트레이터는 "여러 Claude Code 세션을 어떻게 띄우고 관리하느냐"만 담당.
+
 ## 비용 관리
 
 - 병렬 에이전트 수 = API 비용 배수

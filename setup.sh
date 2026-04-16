@@ -243,6 +243,7 @@ else
   echo "병렬 오케스트레이션이 필요하면:"
   echo "  bash setup.sh --with-orchestrators"
   echo "  - Claude Squad: 로컬 병렬 (tmux 필요)"
-  echo "  - Agent Orchestrator: CI/CD 자동화 (GitHub Actions, tmux 불필요)"
+  echo "  - Agent Orchestrator: CI/CD 자동화 (tmux 불필요)"
+  echo "  - tmux 없는 환경: CCManager, cmux(Manaflow) 등 대안 — orchestrators/README.md 참고"
   echo "  비용 예산 프레임워크 미구현 — 소규모 프로젝트는 코어(훅+스킬)만으로 충분합니다."
 fi
