@@ -1,0 +1,35 @@
+{
+  "skill_name": "pair",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/pair 인자 없이 실행해라. 사용자에게 작업 설명을 요청하는지 확인해라.",
+      "expectations": [
+        { "description": "$ARGUMENTS가 비어있으면 사용자에게 작업 설명을 요청한다", "type": "must_pass" },
+        { "description": "Builder를 바로 실행하지 않는다", "type": "must_pass" }
+      ],
+      "model": "sonnet"
+    },
+    {
+      "id": 2,
+      "prompt": "/pair \"src/utils/format.ts에 날짜 포맷 유틸 함수 추가\" — Builder가 성공하고 Validator가 approved를 반환하는 시나리오를 시뮬레이션해라.",
+      "expectations": [
+        { "description": "Builder(developer) 에이전트를 Agent 도구로 생성한다", "type": "must_pass" },
+        { "description": "Builder 완료 후 Validator(validator) 에이전트를 생성한다", "type": "must_pass" },
+        { "description": "Validator는 fresh-context로 실행된다 (Builder 히스토리 미전달)", "type": "should_pass" },
+        { "description": "최종 결과를 마크다운으로 보고한다", "type": "should_pass" }
+      ],
+      "model": "sonnet"
+    },
+    {
+      "id": 3,
+      "prompt": "/pair \"버그 수정\" — Validator가 needs-revision을 반환하는 시나리오. 최대 3회 반복 후 어떻게 처리하는지 확인해라.",
+      "expectations": [
+        { "description": "needs-revision 시 Builder에게 blocker 목록을 전달하며 재실행한다", "type": "must_pass" },
+        { "description": "최대 3회 반복 후 moderator 에이전트를 소환한다", "type": "must_pass" },
+        { "description": "반복 횟수를 추적하고 보고한다", "type": "should_pass" }
+      ],
+      "model": "sonnet"
+    }
+  ]
+}

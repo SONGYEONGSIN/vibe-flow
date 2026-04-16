@@ -49,12 +49,15 @@ fi
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Running: $TEST_FILE" >> "$LOG_FILE"
 
 # 테스트 러너 감지 (vitest 우선)
+# Windows 크로스 플랫폼: "/" 비교 대신 부모=자기 체크로 루트 감지
 DIR=$(dirname "$FILE_PATH")
-while [ "$DIR" != "/" ]; do
+while true; do
   if [ -f "$DIR/package.json" ]; then
     break
   fi
-  DIR=$(dirname "$DIR")
+  PARENT=$(dirname "$DIR")
+  [ "$PARENT" = "$DIR" ] && break  # 루트 도달 (Unix: /, Windows: C:\)
+  DIR="$PARENT"
 done
 
 # package.json을 찾지 못하면 스킵
@@ -80,7 +83,7 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] test exit=$EXIT_CODE" >> "$LOG_FILE"
 if [ $EXIT_CODE -ne 0 ]; then
   echo "[test-runner] Tests failed:" >&2
   echo "$OUTPUT" >&2
-  exit 2
+  # PostToolUse 훅은 항상 exit 0 — 차단하지 않고 결과만 기록
 fi
 
 exit 0

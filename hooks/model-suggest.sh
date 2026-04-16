@@ -19,11 +19,11 @@ WINDOW=10
 RECENT=$(tail -n "$WINDOW" "$EVENTS_FILE" 2>/dev/null)
 [ -z "$RECENT" ] && exit 0
 
-# 복잡도 신호 계산
-FAILURE_COUNT=$(echo "$RECENT" | jq -r 'select(.type == "tool_failure") | .type' 2>/dev/null | wc -l | tr -d ' ')
+# 복잡도 신호 계산 — 각 줄이 독립 JSON 객체이므로 줄 단위로 jq 필터
+FAILURE_COUNT=$(echo "$RECENT" | jq -c 'select(.type == "tool_failure")' 2>/dev/null | wc -l | tr -d ' ')
 UNIQUE_FILES=$(echo "$RECENT" | jq -r '.file // empty' 2>/dev/null | grep -v '^$' | sort -u | wc -l | tr -d ' ')
 ERROR_TYPES=$(echo "$RECENT" | jq -r 'select(.error_class != null) | .error_class' 2>/dev/null | sort -u | wc -l | tr -d ' ')
-FAIL_EVENTS=$(echo "$RECENT" | jq -r 'select(.status == "fail") | .status' 2>/dev/null | wc -l | tr -d ' ')
+FAIL_EVENTS=$(echo "$RECENT" | jq -c 'select(.status == "fail")' 2>/dev/null | wc -l | tr -d ' ')
 
 # 임계값
 SIMPLE_THRESHOLD=1

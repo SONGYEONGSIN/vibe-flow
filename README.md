@@ -68,7 +68,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 │             │                                                       │
 │             ▼                                                       │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │                     Hooks Pipeline (15개)                     │   │
+│  │                     Hooks Pipeline (22개)                     │   │
 │  │                                                               │   │
 │  │  ┌─ PreToolUse ──────────────────────────────────────────┐   │   │
 │  │  │  command-guard.sh  ── 위험 명령 차단 (force push 등)   │   │   │
@@ -96,7 +96,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 │  └──────────────────────────────────────────────────────────────┘   │
 │                                                                     │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │                    Skills (16개) — /명령어                     │   │
+│  │                    Skills (18개) — /명령어                     │   │
 │  │                                                               │   │
 │  │  ┌─ 개발 ────────┐  ┌─ 품질 ────────┐  ┌─ 운영 ────────┐   │   │
 │  │  │ /commit        │  │ /verify       │  │ /status       │   │   │
@@ -113,7 +113,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 │                                │                                    │
 │                                ▼                                    │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │                    Agents (11개) — 전문 위임                   │   │
+│  │                    Agents (12개) — 전문 위임                   │   │
 │  │                                                               │   │
 │  │   ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────────┐   │   │
 │  │   │ planner  │ │ designer │ │developer │ │retrospective│   │   │
@@ -206,7 +206,7 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `skill-reviewer` | 스킬 품질 8단계 검토, 100점 스코어카드 | opus |
 | `validator` | Pair mode 품질 게이트 — Builder 작업을 fresh-context로 검증, binary 판정(approved/needs-revision) | opus |
 
-### Skills (17개)
+### Skills (18개)
 
 | 스킬 | 호출 | 설명 |
 |------|------|------|
@@ -227,8 +227,9 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `verify` | `/verify` | lint → typecheck → test → e2e 검증 |
 | `worktree` | `/worktree [create\|list\|remove]` | Git worktree 격리 작업 환경 생성/관리 |
 | `pair` | `/pair "task"` | Builder+Validator 페어 — developer → validator 루프 자동 오케스트레이션 (최대 3 iteration, 교착 시 moderator 소환) |
+| `evolve` | `/evolve <skill>` | 스킬 자동 개선 — eval 결과 분석 → 후보 생성 → 5개 제약 게이트 → A/B 블라인드 비교 (Hermes Agent 패턴) |
 
-### Hooks (19개)
+### Hooks (22개)
 
 | 훅 | 트리거 | 역할 |
 |----|--------|------|
@@ -251,6 +252,9 @@ bash /path/to/claude-builds/setup.sh --with-orchestrators
 | `notify.sh` | Notification (idle_prompt) | 사용자 입력 대기 시 데스크톱 알림 (macOS) |
 | `pre-compact.sh` | PreCompact | 컨텍스트 압축 전 중요 정보(브랜치/커밋/미커밋) 보존 |
 | `message-bus.sh` | — (유틸리티) | 에이전트 간 메시지 전송/수신/아카이브 |
+| `context-prune.sh` | PreCompact | 컨텍스트 압축 전 도구 출력 1줄 요약 (Hermes Agent 패턴, 12KB 예산) |
+| `model-suggest.sh` | Notification (idle_prompt) | events.jsonl 패턴 분석 → 모델 전환 비차단 제안 (15분 디바운스) |
+| `_common.sh` | — (유틸리티) | 공용 함수: truncate_log_file, get_file_mtime, generate_random_hex |
 
 ### Rules (6개 공통 + 템플릿)
 
@@ -456,9 +460,9 @@ claude-builds/
 ├── setup.sh                       # 원클릭 설치 스크립트 (--with-orchestrators)
 ├── settings/
 │   └── settings.template.json     # 권한, 훅, env, MCP 서버 템플릿
-├── agents/                        # 11개 전문 에이전트
-├── hooks/                         # 15개 자동화 훅
-├── skills/                        # 16개 CLI 스킬
+├── agents/                        # 12개 전문 에이전트
+├── hooks/                         # 22개 자동화 훅
+├── skills/                        # 18개 CLI 스킬
 ├── rules/                         # 6개 공통 규칙
 ├── docs/
 │   └── architecture.png           # 아키텍처 다이어그램
@@ -497,7 +501,7 @@ brew install claude-squad
 cs                          # TUI 실행, 프로필로 에이전트 지정
 ```
 
-11개 에이전트가 프로필로 매핑. 각 세션은 독립 git worktree에서 실행되어 충돌 없이 병렬 작업 가능. 에이전트 간 파일 기반 메시지 버스로 통신.
+12개 에이전트가 프로필로 매핑. 각 세션은 독립 git worktree에서 실행되어 충돌 없이 병렬 작업 가능. 에이전트 간 파일 기반 메시지 버스로 통신.
 
 | 프로필 | 에이전트 | 역할 |
 |--------|----------|------|

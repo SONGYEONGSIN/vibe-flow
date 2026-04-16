@@ -13,7 +13,7 @@
 # 메시지 타입: alert, request, reply, debate-invite, debate-round, debate-verdict, info
 # 우선순위: critical, high, medium, low
 
-set -e
+set -u  # set -e 제거 — jq 검증 등 || 폴백 패턴과 충돌 방지
 source "$(dirname "$0")/_common.sh"
 
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)

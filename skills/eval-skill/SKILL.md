@@ -105,12 +105,22 @@ evals.json이 없으면 에러를 출력하고 종료한다.
       "expectations": [
         { "description": "conventional commits 형식 (feat/fix/...)", "type": "must_pass" },
         { "description": "Co-Authored-By 포함", "type": "must_pass" },
-        { "description": "변경 내용을 정확히 반영", "type": "should_pass" }
+        { "description": "변경 내용을 정확히 반영", "type": "should_pass" },
+        { "description": "이모지 미사용", "type": "nice_to_have" }
       ],
       "model": "sonnet"
     }
   ]
 }
+```
+
+### expectation type 3종
+
+| type | 가중치 | 의미 | FAIL 시 영향 |
+|------|--------|------|-------------|
+| `must_pass` | 0.6 | 필수 통과 | 하나라도 FAIL → 전체 FAIL |
+| `should_pass` | 0.3 | 부분 크레딧 | 점수 감소, 전체 FAIL은 아님 |
+| `nice_to_have` | 0.1 | 보너스 | 점수 가산만, 미충족 시 감점 없음 |
 ```
 
 ## A/B 비교 모드

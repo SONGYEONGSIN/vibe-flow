@@ -44,7 +44,7 @@ bash .claude/hooks/message-bus.sh list designer
 
 ### 참고 URL이 제공된 경우
 
-**반드시 `/design-sync <URL>` 전체 워크플로우를 실행한다.** 싱크율 최대화가 목표이므로 `--tokens-only`는 사용하지 않는다.
+**반드시 `/design-sync <URL>` 전체 워크플로우를 실행한다.** 싱크율 최대화가 목표이므로 기본적으로 `--tokens-only`를 사용하지 않는다. 단, 사용자가 명시적으로 토큰만 추출을 요청한 경우 `--tokens-only` 허용.
 
 1. `/design-sync <URL>` 실행 → 전체 7단계 자동 수행
    - 토큰 추출 → 컴포넌트 인벤토리 → 비주얼 비교 → 매핑 → 코드 적용 → 검증

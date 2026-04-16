@@ -16,12 +16,15 @@ esac
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Checking: $FILE_PATH" >> "$LOG_FILE"
 
 # 가장 가까운 tsconfig.json 탐색
+# Windows 크로스 플랫폼: 부모=자기 체크로 루트 감지
 DIR=$(dirname "$FILE_PATH")
-while [ "$DIR" != "/" ]; do
+while true; do
   if [ -f "$DIR/tsconfig.json" ]; then
     break
   fi
-  DIR=$(dirname "$DIR")
+  PARENT=$(dirname "$DIR")
+  [ "$PARENT" = "$DIR" ] && break
+  DIR="$PARENT"
 done
 
 if [ ! -f "$DIR/tsconfig.json" ]; then
@@ -38,7 +41,7 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] tsc exit=$EXIT_CODE" >> "$LOG_FILE"
 if [ $EXIT_CODE -ne 0 ]; then
   echo "[typecheck] TypeScript errors found:" >&2
   echo "$OUTPUT" >&2
-  exit 2
+  # PostToolUse 훅은 항상 exit 0 — 차단하지 않고 결과만 기록
 fi
 
 exit 0

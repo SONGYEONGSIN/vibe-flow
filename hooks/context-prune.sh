@@ -29,7 +29,12 @@ tail -n "$MAX_EVENTS" "$EVENTS_FILE" | while IFS= read -r line; do
   TOOL=$(echo "$line" | jq -r '.tool // empty' 2>/dev/null)
   FILE=$(echo "$line" | jq -r '.file // empty' 2>/dev/null)
   TS=$(echo "$line" | jq -r '.ts // .timestamp // empty' 2>/dev/null)
-  TIME="${TS:11:8}"  # HH:MM:SS 추출
+  # 타임스탬프가 충분히 길면 HH:MM:SS 추출, 아니면 "??:??:??"
+  if [ "${#TS}" -ge 19 ]; then
+    TIME="${TS:11:8}"
+  else
+    TIME="??:??:??"
+  fi
 
   case "$TYPE" in
     tool_result)

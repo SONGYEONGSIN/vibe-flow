@@ -16,12 +16,15 @@ esac
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ESLint: $FILE_PATH" >> "$LOG_FILE"
 
 # 가장 가까운 eslint.config.* 위치에서 실행
+# Windows 크로스 플랫폼: 부모=자기 체크로 루트 감지
 DIR=$(dirname "$FILE_PATH")
-while [ "$DIR" != "/" ]; do
+while true; do
   if ls "$DIR"/eslint.config.* 2>/dev/null | grep -q .; then
     break
   fi
-  DIR=$(dirname "$DIR")
+  PARENT=$(dirname "$DIR")
+  [ "$PARENT" = "$DIR" ] && break
+  DIR="$PARENT"
 done
 
 # eslint config를 찾지 못하면 스킵
