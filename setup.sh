@@ -238,4 +238,11 @@ echo "  6. 메트릭이 쌓이면 /metrics 로 대시보드 확인"
 echo "  7. /retrospective 로 정기 회고 실행"
 if [ "$WITH_ORCHESTRATORS" = true ]; then
   echo "  8. orchestrators/README.md 참고하여 오케스트레이터 설정 완료"
+else
+  echo ""
+  echo "병렬 오케스트레이션이 필요하면:"
+  echo "  bash setup.sh --with-orchestrators"
+  echo "  - Claude Squad: 로컬 병렬 (tmux 필요)"
+  echo "  - Agent Orchestrator: CI/CD 자동화 (GitHub Actions, tmux 불필요)"
+  echo "  비용 예산 프레임워크 미구현 — 소규모 프로젝트는 코어(훅+스킬)만으로 충분합니다."
 fi
