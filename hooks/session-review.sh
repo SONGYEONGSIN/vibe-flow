@@ -84,7 +84,17 @@ if [ "$METRICS_PRINTED" = "0" ] && [ -f "$METRICS_FILE" ] && command -v jq &>/de
   fi
 fi
 
-# 3. 학습 저장 제안
+# 3. 에러 분류 요약 (Hermes Agent error_classifier 패턴)
+if [ -f "$STORE_DB" ] && [ -f "$STORE_JS" ] && command -v node &>/dev/null && command -v jq &>/dev/null; then
+  ERR_CLASSES=$(node "$STORE_JS" query error-classes 1 2>/dev/null)
+  if [ -n "$ERR_CLASSES" ] && [ "$ERR_CLASSES" != "[]" ]; then
+    echo ""
+    echo "🏷 오늘의 에러 분류:"
+    echo "$ERR_CLASSES" | jq -r '.[] | "  - \(.error_class): \(.count)건 (재시도 가능: \(.retryable_count)건)"' 2>/dev/null || true
+  fi
+fi
+
+# 4. 학습 저장 제안
 MEMORY_DIR="${PROJECT_ROOT}/.claude/memory"
 if [ -d "$MEMORY_DIR" ]; then
   PATTERNS_FILE="$MEMORY_DIR/patterns.md"
@@ -99,14 +109,14 @@ if [ -d "$MEMORY_DIR" ]; then
   fi
 fi
 
-# 4. 세션 커밋 수
+# 5. 세션 커밋 수
 SESSION_COMMITS=$(git log --since="8 hours ago" --oneline 2>/dev/null | wc -l | tr -d ' ')
 if [ "$SESSION_COMMITS" -gt 0 ]; then
   echo ""
   echo "📝 이번 세션 커밋: ${SESSION_COMMITS}개"
 fi
 
-# 5. 에이전트 간 통신: 미커밋 변경이 많으면 feedback에 알림
+# 6. 에이전트 간 통신: 미커밋 변경이 많으면 feedback에 알림
 MSG_BUS="${SCRIPT_DIR}/message-bus.sh"
 if [ -f "$MSG_BUS" ] && [ "$UNCOMMITTED" -gt 5 ] 2>/dev/null; then
   bash "$MSG_BUS" send "session-review" "feedback" "request" "medium" \
@@ -114,7 +124,7 @@ if [ -f "$MSG_BUS" ] && [ "$UNCOMMITTED" -gt 5 ] 2>/dev/null; then
     "커밋되지 않은 변경이 ${UNCOMMITTED}개 파일에 있습니다. 다음 세션에서 코드 리뷰를 권장합니다." >/dev/null 2>&1 || true
 fi
 
-# 6. events.jsonl 회전 (10MB 초과 시 최근 10000라인만 보관)
+# 7. events.jsonl 회전 (10MB 초과 시 최근 10000라인만 보관)
 EVENTS_FILE="${PROJECT_ROOT}/.claude/events.jsonl"
 if [ -f "$EVENTS_FILE" ]; then
   truncate_log_file "$EVENTS_FILE" 10485760 10000

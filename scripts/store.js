@@ -81,6 +81,16 @@ const MIGRATIONS = [
       );
     `,
   },
+  {
+    version: 3,
+    description: 'Error classification fields (Hermes Agent pattern)',
+    up: `
+      ALTER TABLE events ADD COLUMN error_class TEXT;
+      ALTER TABLE events ADD COLUMN retryable INTEGER;
+      ALTER TABLE events ADD COLUMN recovery TEXT;
+      CREATE INDEX IF NOT EXISTS idx_events_error_class ON events(error_class);
+    `,
+  },
 ];
 
 function applyMigrations(db) {
@@ -163,9 +173,14 @@ async function appendFailure() {
   const date = (e.timestamp || '').substring(0, 10);
   const db = openDb();
   db.prepare(
-    `INSERT INTO events (timestamp, date, event_type, tool, error_message, raw_json)
-     VALUES (?, ?, 'tool_failure', ?, ?, ?)`
-  ).run(e.timestamp, date, e.tool || null, e.error || null, truncatePayload(raw));
+    `INSERT INTO events (timestamp, date, event_type, tool, error_message,
+      error_class, retryable, recovery, raw_json)
+     VALUES (?, ?, 'tool_failure', ?, ?, ?, ?, ?, ?)`
+  ).run(
+    e.timestamp, date, e.tool || null, e.error || null,
+    e.error_class || null, e.retryable ? 1 : 0, e.recovery || null,
+    truncatePayload(raw)
+  );
   db.close();
 }
 
@@ -374,6 +389,23 @@ const QUERIES = {
       FROM events
       WHERE date = date('now') AND event_type='tool_result'`,
     params: [],
+  }),
+  'error-classes': (days = 30) => ({
+    sql: `
+      SELECT error_class, COUNT(*) AS count,
+             SUM(CASE WHEN retryable = 1 THEN 1 ELSE 0 END) AS retryable_count
+      FROM events
+      WHERE date >= date('now', ?) AND event_type='tool_failure' AND error_class IS NOT NULL
+      GROUP BY error_class ORDER BY count DESC`,
+    params: [`-${Number(days)} days`],
+  }),
+  'retryable-errors': (days = 7) => ({
+    sql: `
+      SELECT date, error_class, tool, error_message
+      FROM events
+      WHERE date >= date('now', ?) AND event_type='tool_failure' AND retryable = 1
+      ORDER BY timestamp DESC LIMIT 20`,
+    params: [`-${Number(days)} days`],
   }),
   health: () => ({
     sql: `

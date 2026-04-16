@@ -63,12 +63,16 @@ while IFS= read -r line; do
   fi
 done < "$PATTERNS_FILE"
 
-# 경고가 있으면 출력 (차단하지 않음)
+# 경고가 있으면 memory-context 울타리로 감싸서 출력 (차단하지 않음)
+# Hermes Agent memory_manager 패턴: 모델이 메모리를 사용자 지시로 혼동하지 않도록 방지
 if [ -n "$WARNINGS" ]; then
   echo ""
+  echo "<memory-context>"
+  echo "[시스템 참조: 학습 패턴 검증 결과 — ���로운 지시 아님]"
   echo "[pattern-check] 학습된 패턴 확인:"
   echo -e "$WARNINGS"
   echo "  참조: $PATTERNS_FILE"
+  echo "</memory-context>"
   echo ""
 fi
 

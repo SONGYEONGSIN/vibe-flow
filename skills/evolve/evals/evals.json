@@ -1,0 +1,34 @@
+{
+  "skill_name": "evolve",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "commit 스킬을 evolve해라. baseline pass rate가 100%일 때 어떻게 처리하는지 보여라.",
+      "expectations": [
+        { "description": "baseline이 100%면 '개선 불필요' 보고", "type": "must_pass" },
+        { "description": "원본 SKILL.md가 손상되지 않음", "type": "must_pass" }
+      ],
+      "model": "sonnet"
+    },
+    {
+      "id": 2,
+      "prompt": "evals.json이 없는 스킬에 대해 evolve를 시도해라.",
+      "expectations": [
+        { "description": "eval 미설정 안내 메시지 출력", "type": "must_pass" },
+        { "description": "어떤 파일도 수정하지 않음", "type": "must_pass" }
+      ],
+      "model": "sonnet"
+    },
+    {
+      "id": 3,
+      "prompt": "실패가 있는 스킬을 evolve해라. 5개 제약 게이트가 모두 검증되는지 확인해라.",
+      "expectations": [
+        { "description": "5개 제약 게이트가 순서대로 검증됨", "type": "must_pass" },
+        { "description": "후보 SKILL.md가 candidate-SKILL.md로 저장됨", "type": "should_pass" },
+        { "description": "A/B 블라인드 비교가 실행됨", "type": "should_pass" },
+        { "description": "evolve-history.json에 결과 기록됨", "type": "nice_to_have" }
+      ],
+      "model": "sonnet"
+    }
+  ]
+}

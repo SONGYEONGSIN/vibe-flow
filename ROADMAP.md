@@ -40,6 +40,15 @@ claude-builds 개선 로드맵. 커뮤니티 리서치(GitHub 오픈소스 Claud
 - **사용 (L2)**: `/pair "작업 설명"` — 단일 세션 내 Builder+Validator+(moderator) 자동 오케스트레이션
 - **사용 (L1, 하위 호환)**: Claude Squad에서 수동으로 developer + validator 세션 분리 운영
 
+### Hermes Agent 패턴 5종 적용 ✅
+- [x] **Error Classifier** — `hooks/tool-failure-handler.sh` 13-class 분류 체계, `scripts/store.js` Migration v3 + 쿼리 2개 (error-classes, retryable-errors), `hooks/session-review.sh` 에러 분류 요약
+- [x] **Context Compressor** — `hooks/context-prune.sh` PreCompact 훅 신규. events.jsonl 최근 50 이벤트를 1줄 요약 (`[참조]` 접두사), 최대 12KB 예산 제한
+- [x] **Memory Context Fencing** — `skills/learn/SKILL.md` show 모드 `<memory-context>` XML 울타리, `hooks/pattern-check.sh` 경고 출력 펜싱, fence-escape 방지
+- [x] **Smart Model Routing** — `hooks/model-suggest.sh` Notification 훅 신규. events.jsonl 패턴 분석으로 모델 전환 비차단 제안, 15분 디바운스
+- [x] **Self-Evolution Loop** — `skills/evolve/SKILL.md` 신규 스킬. eval 결과 기반 SKILL.md 자동 개선 후보 생성, 5개 제약 게이트 + comparator A/B 블라인드 비교
+- **출처**: [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent), [NousResearch/hermes-agent-self-evolution](https://github.com/NousResearch/hermes-agent-self-evolution)
+- **사용**: `/evolve <skill>`, 나머지는 자동 (훅 기반)
+
 ---
 
 ## 미완 (우선순위 순)
