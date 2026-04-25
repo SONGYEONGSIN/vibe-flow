@@ -91,6 +91,7 @@ mkdir -p "$PROJECT_DIR/.claude/memory/reviews"
 
 # 빈 디렉토리도 git에서 추적되도록 .gitkeep (워크플로우 시작 전 디렉토리 부재로 인한 silent fail 방지)
 for d in plans memory/brainstorms memory/reviews messages/debates; do
+  mkdir -p "$PROJECT_DIR/.claude/$d"
   [ -f "$PROJECT_DIR/.claude/$d/.gitkeep" ] || touch "$PROJECT_DIR/.claude/$d/.gitkeep"
 done
 
