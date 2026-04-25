@@ -25,6 +25,12 @@ Conventional Commit 메시지를 자동 생성하여 커밋한다.
    - `chore:` — 설정, 의존성 등
    - `docs:` — 문서
 5. 메시지를 사용자에게 보여주고 확인 후 커밋
+6. 커밋 후 events.jsonl 기록 (retrospective의 커밋 패턴 분석 입력):
+   ```bash
+   COMMIT_TYPE=$(echo "$MSG" | grep -oE '^[a-z]+' | head -1)
+   FILES=$(git diff-tree --no-commit-id --name-only -r HEAD | wc -l | tr -d ' ')
+   echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"commit_created\",\"commit_type\":\"$COMMIT_TYPE\",\"files_changed\":$FILES,\"sha\":\"$(git rev-parse --short HEAD)\"}" >> .claude/events.jsonl
+   ```
 
 ## 규칙
 

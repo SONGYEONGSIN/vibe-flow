@@ -64,6 +64,79 @@ find .claude/skills -name "benchmark.json" -path "*/evals/*" 2>/dev/null
 - 자주 수정되는 파일 (핫스팟)
 - 세션당 평균 커밋 수
 
+### 3-1. 디자인 시스템 추이
+
+`design-lint.sh` 위반과 `design-sync` 결과를 추적하여 디자인 부패를 조기에 잡는다:
+
+- **하드코딩 색상 위반 추이**: events.jsonl 또는 metrics에서 design-lint 경고 빈도. 주간 증가 추세면 P0 (토큰 시스템 침식 신호).
+- **싱크율 회귀**: `design-sync` 결과가 events.jsonl에 `design_sync` 타입으로 기록되면 이전 대비 추이. 95% 달성 후 80%로 떨어지면 P0.
+- **공통 컴포넌트 추출 미이행**: `/design-audit`에서 "3회 이상 반복" 패턴이 매 회고마다 동일하게 나오면 추출 작업 우선순위 상향.
+- **DESIGN.md drift**: DESIGN.md §2 색상 vs `design-tokens.ts` colors 불일치 — 두 소스가 어긋나면 단일 진실의 원천 정책 위반.
+
+### 3-2. Brainstorm 의사결정 추적
+
+`.claude/memory/brainstorms/`에 누적된 brainstorm 결과를 분석하여 **계획과 실제의 정렬 정도**를 측정한다:
+
+```bash
+# brainstorm 파일 목록 + 토픽
+ls -1t .claude/memory/brainstorms/*.md 2>/dev/null | head -20
+```
+
+**점검 항목**:
+- **추천 채택률**: brainstorm에서 추천한 대안과 실제 구현된 대안이 일치하는가? (불일치 시 spec 파일에 사유가 추가 기록되어야 함 — 안 됐으면 의사결정 추적 결손)
+- **대안 미도출 빈도**: events.jsonl에서 `"alternatives": <2`인 brainstorm 비율 → 높으면 brainstorm 스킬 자체 개선 필요 (`/evolve brainstorm` 후보)
+- **brainstorm 스킵 후 회귀**: brainstorm 없이 직접 구현된 변경이 나중에 큰 재작업으로 이어진 경우 추적 → "brainstorm 의무화 임계 변경 규모" 조정 신호
+- **반복 토픽**: 같은 주제로 brainstorm이 2회 이상 발생 → 첫 brainstorm 결과가 부실했거나 컨텍스트가 변한 것. patterns.md에 결정 요약 누락 가능성.
+
+### 3-3. Plan 진행/이탈 추적
+
+`.claude/plans/` 파일과 events.jsonl을 분석하여 **계획 vs 실행 정렬**을 측정한다:
+
+```bash
+# plan 파일 frontmatter 추출
+for f in .claude/plans/*.md 2>/dev/null; do
+  awk '/^---$/{c++} c==1{print}' "$f" | grep -E "^(plan_id|status|hard_gate|created):"
+done
+```
+
+**점검 항목**:
+- **완료율**: status: completed / 전체 plan 비율. 50% 미만이면 plan이 너무 야심차거나 abandon 빈도 분석 필요
+- **abandoned 사유 분포**: revise 시 기록된 이탈 사유 → 패턴 추출 (예: "scope creep", "기술 제약 발견", "우선순위 변경")
+- **stale plan**: 30일 이상 in_progress 상태인 plan → 정리 또는 재계획 권고
+- **단계 평균 소요**: events.jsonl `plan_step_complete` 간격 분석 → planner의 "2~5분 단위" 가정과 실제 차이. 평균 30분+ 이면 planner 분해 입자도가 너무 큼
+- **plan 없이 진행한 큰 작업**: 6+ 파일 변경된 commit인데 해당 brainstorm/plan이 없는 경우 → HARD-GATE 위반 신호
+
+### 3-4. Finish 결손 추적
+
+events.jsonl `type=finish` 이벤트를 분석하여 **작업 클로징의 일관성**을 측정한다:
+
+**점검 항목**:
+- **finish 호출 비율**: 머지된 PR 수 vs `finish` 이벤트 수 — 격차 크면 사용자가 클로징 절차를 우회하는 것
+- **차단 경로 빈도**: events.jsonl에서 `path: blocked`인 finish 호출 비율 → 높으면 워크플로우 자체에 마찰 (verify 자주 실패 / 미커밋 채로 호출 등)
+- **HARD-GATE 위반 시도**: `--path direct`로 호출했으나 차단된 경우 → 사용자 의도 vs 정책 갭 분석
+- **PR 셀프 리뷰 follow-through**: `finish path=pr` 후 `review_pr` 이벤트가 같은 세션 내 발생했는가 → 안 했으면 PR 만들어두고 잊어버린 패턴
+
+### 3-5. Review 수용 패턴 분석
+
+`.claude/memory/reviews/`와 events.jsonl `type=review_received`를 분석하여 **피드백 수용의 건강성**을 측정한다:
+
+**점검 항목**:
+- **accept/reject 비율**: 너무 한쪽으로 치우치면 신호 — 95%+ accept면 performative agreement 의심, 95%+ reject면 defensive 의심
+- **반복 피드백 패턴**: 동일/유사 피드백이 3회+ 누적되면 `/learn save pattern`으로 규칙화 권장 → patterns.md 또는 `rules/`에 명시 → 미래 리뷰 마찰 감소
+- **카테고리 분포**: bug/security 비율이 높으면 코드 품질 / verify 신뢰도 점검. preference 비율이 높으면 컨벤션 명시 부족 신호
+- **clarify 후속**: clarify로 결정 보류된 항목이 N일 내 해소되었는가 → 미해소 항목은 PR 정체 원인
+- **PR 응답 follow-through**: receive-review 후 `gh pr comment` 게시 이벤트가 있는가 → 안 했으면 결정만 하고 응답 안 한 패턴
+
+**출력 예시**:
+```markdown
+| 지표 | 값 |
+|------|---|
+| brainstorm 호출 횟수 (이번 기간) | 12회 |
+| 추천 채택률 | 9/12 (75%) |
+| 대안 미도출 (alternatives < 2) | 2/12 (17%) |
+| 반복 토픽 | "search 기능" 3회 |
+```
+
 ### 4. 개선안 도출
 
 메트릭 분석 결과를 기반으로 다음 카테고리별 개선안 작성:
@@ -92,6 +165,18 @@ git log --oneline -50
 
 # 핫스팟 파일 (최근 50커밋에서 가장 많이 수정된)
 git log --diff-filter=M --name-only --pretty="" -50 | sort | uniq -c | sort -rn | head -20
+
+# 워크플로우 artifacts (3-2~3-5 분석에 필요)
+ls -1t .claude/memory/brainstorms/*.md 2>/dev/null | head -20      # 의도 탐색 기록
+ls -1 .claude/plans/*.md 2>/dev/null                                # 계획 파일
+ls -1t .claude/memory/reviews/*.md 2>/dev/null | head -20           # 리뷰 수용 기록
+ls -1 .claude/messages/debates/debate-*.json 2>/dev/null            # 토론 verdict
+
+# events.jsonl 최근 1000 이벤트 (스킬별 type 분포 분석)
+tail -n 1000 .claude/events.jsonl 2>/dev/null | jq -r '.type' | sort | uniq -c | sort -rn
+
+# 학습 메모리 변경 추이
+ls -lt .claude/memory/patterns.md .claude/memory/project-profile.md .claude/memory/improvements.md 2>/dev/null
 ```
 
 2. **정량 분석**

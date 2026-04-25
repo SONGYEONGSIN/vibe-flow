@@ -2,7 +2,8 @@
   "env": {
     "NODE_ENV": "development",
     "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50",
-    "PORT": "3000"
+    "PORT": "3000",
+    "CLAUDE_TDD_ENFORCE": "strict"
   },
   "mcpServers": {
     "playwright": {
@@ -28,9 +29,14 @@
       "mcp__playwright__*"
     ],
     "deny": [
-      "Bash(git push --force*)",
-      "Bash(git push -f *)"
+      "Bash(git push --force *)",
+      "Bash(git push --force)",
+      "Bash(git push -f *)",
+      "Bash(npm publish*)",
+      "Bash(yarn publish*)",
+      "Bash(pnpm publish*)"
     ],
+    "_deny_policy_note": "1차 방어 — Claude Code 레벨 차단. 프로젝트별 override 가능 (예: 라이브러리 메인테이너는 npm publish 제거). 절대 위험 (rm -rf / 등)은 hooks/command-guard.sh의 2차 방어에. 자세한 정책은 command-guard.sh 헤더 주석 참조.",
     "defaultMode": "acceptEdits"
   },
   "autoMode": {

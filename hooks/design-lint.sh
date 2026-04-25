@@ -37,8 +37,16 @@ esac
 
 WARNINGS=""
 
-# hex 색상 감지: #xxx, #xxxxxx, #xxxxxxxx (주석 제외)
-HEX_MATCHES=$(grep -nE '#[0-9a-fA-F]{3,8}\b' "$FILE_PATH" 2>/dev/null | grep -v '^\s*//' | grep -v '^\s*\*' | head -5)
+# 라인별 주석 제거 후 검사 — 인라인 // 주석과 단일 라인 /* */ 블록 주석 false positive 방지
+# (다중 라인 블록 주석은 흔치 않으므로 기본 케이스만 처리)
+HEX_MATCHES=$(awk '
+{
+  s = $0
+  sub(/\/\/.*$/, "", s)
+  gsub(/\/\*[^*]*\*\//, "", s)
+  if (s ~ /#[0-9a-fA-F]{3,8}([^0-9a-fA-F]|$)/) print NR ":" $0
+}
+' "$FILE_PATH" 2>/dev/null | head -5)
 if [ -n "$HEX_MATCHES" ]; then
   WARNINGS="${WARNINGS}\n  [hex 색상]"
   while IFS= read -r match; do
@@ -46,10 +54,19 @@ if [ -n "$HEX_MATCHES" ]; then
   done <<< "$HEX_MATCHES"
 fi
 
-# rgb()/rgba()/hsl()/hsla() 감지 (주석 제외)
-FUNC_MATCHES=$(grep -nEi '(rgb|hsl)a?\(' "$FILE_PATH" 2>/dev/null | grep -v '^\s*//' | grep -v '^\s*\*' | head -5)
+# rgb/rgba/hsl/hsla/oklch/oklab/lab/lch/hwb/color() 감지
+# Tailwind 4가 oklch 권장이라 원본 색상 함수 전체를 검사한다
+FUNC_MATCHES=$(awk '
+BEGIN { IGNORECASE=1 }
+{
+  s = $0
+  sub(/\/\/.*$/, "", s)
+  gsub(/\/\*[^*]*\*\//, "", s)
+  if (s ~ /(rgb|hsl|oklch|oklab|lab|lch|hwb|color)a?\(/) print NR ":" $0
+}
+' "$FILE_PATH" 2>/dev/null | head -5)
 if [ -n "$FUNC_MATCHES" ]; then
-  WARNINGS="${WARNINGS}\n  [rgb/hsl 함수]"
+  WARNINGS="${WARNINGS}\n  [색상 함수]"
   while IFS= read -r match; do
     WARNINGS="${WARNINGS}\n    $match"
   done <<< "$FUNC_MATCHES"

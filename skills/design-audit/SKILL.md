@@ -1,6 +1,7 @@
 ---
 name: design-audit
 description: 코드베이스의 디자인 시스템 준수 상태를 점검 — 하드코딩 색상, 중복 UI 패턴, 토큰 커버리지를 분석한다
+effort: medium
 ---
 
 코드베이스 전체의 디자인 시스템 준수 상태를 분석하고 개선 제안을 출력한다.
@@ -15,8 +16,8 @@ description: 코드베이스의 디자인 시스템 준수 상태를 점검 — 
 # hex 색상 (토큰 정의 파일 제외)
 grep -rnE '#[0-9a-fA-F]{3,8}\b' src/ --include='*.tsx' --include='*.jsx' --include='*.css' | grep -v 'design-tokens' | grep -v 'tailwind.config' | grep -v 'globals.css'
 
-# rgb/hsl 함수
-grep -rnEi '(rgb|hsl)a?\(' src/ --include='*.tsx' --include='*.jsx' --include='*.css' | grep -v 'design-tokens' | grep -v 'tailwind.config' | grep -v 'globals.css'
+# 색상 함수 (rgb/hsl/oklch/oklab/lab/lch/hwb/color — Tailwind 4 oklch 포함)
+grep -rnEi '(rgb|hsl|oklch|oklab|lab|lch|hwb|color)a?\(' src/ --include='*.tsx' --include='*.jsx' --include='*.css' | grep -v 'design-tokens' | grep -v 'tailwind.config' | grep -v 'globals.css'
 ```
 
 파일별 하드코딩 색상 수를 집계하고, 가장 빈번한 색상값 TOP 10을 추출한다.
@@ -90,11 +91,28 @@ grep -rlE 'rounded.*(text-xs|text-sm).*bg-|bg-.*rounded.*(text-xs|text-sm)' src/
 
 ### 개선 우선순위
 
-| 우선순위 | 항목 | 예상 효과 |
-|---------|------|----------|
-| P0 | 토큰 파일 생성 | 색상 일괄 변경 가능 |
-| P1 | 검색/필터 바 추출 | 12개 파일 중복 제거 |
-| P2 | 테이블 헤더 통일 | 스타일 일관성 확보 |
+| 우선순위 | 항목 | 예상 효과 | 후속 액션 |
+|---------|------|----------|----------|
+| P0 | 토큰 파일 생성 | 색상 일괄 변경 가능 | `rules/design.md` 구조 가이드 참조하여 수동 생성 |
+| P1 | 검색/필터 바 추출 | 12개 파일 중복 제거 | `/scaffold common SearchFilterBar` 호출하여 보일러플레이트 생성 |
+| P2 | 테이블 헤더 통일 | 스타일 일관성 확보 | `/scaffold common TableHeader` |
+```
+
+## 후속 자동화
+
+각 개선안의 "후속 액션" 컬럼에는 가능한 경우 **구체적 슬래시 명령**을 제시한다. 사용자가 복붙으로 즉시 실행할 수 있도록:
+
+- 공통 컴포넌트 추출 → `/scaffold common <ComponentName>` 형식으로 안내
+- 토큰 파일 생성 필요 → `rules/design.md` 구조 가이드 링크 + 최소 템플릿 제시
+- 하드코딩 색상 일괄 교체 → 가장 빈번한 색상 TOP 3에 대해 `find/sed` 명령 또는 codemod 제안
+
+audit는 **분석 + 액션 안내**까지가 책임. 실제 추출/수정은 사용자가 위 명령을 호출해 진행한다.
+
+## events.jsonl 기록
+
+감사 완료 후 기록 — retrospective의 디자인 추이 분석(섹션 3-1) 입력:
+```bash
+echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"design_audit\",\"coverage\":$COVERAGE,\"violations\":$VIOLATIONS,\"duplicate_patterns\":$DUPS}" >> .claude/events.jsonl
 ```
 
 ## 규칙

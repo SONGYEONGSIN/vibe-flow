@@ -1,6 +1,7 @@
 ---
 name: pair
 description: Builder(developer) + Validator(validator) 페어 프로그래밍 자동 오케스트레이션. /pair "task"로 호출하면 Claude가 단일 세션에서 developer → validator 루프를 자동 실행하고 최종 판정(approved/needs-revision)까지 보고한다.
+effort: high
 ---
 
 # Pair Mode — 자동 오케스트레이션 스킬

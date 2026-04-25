@@ -21,9 +21,18 @@ paths:
 
 - 컴포넌트 파일(`.tsx`/`.jsx`)에서 하드코딩 색상 금지:
   - hex: `#xxx`, `#xxxxxx`, `#xxxxxxxx`
-  - 함수: `rgb()`, `rgba()`, `hsl()`, `hsla()`
+  - 색상 함수: `rgb()`, `rgba()`, `hsl()`, `hsla()`, `oklch()`, `oklab()`, `lab()`, `lch()`, `hwb()`, `color()`
 - 대신 Tailwind CSS 클래스 또는 디자인 토큰 상수 사용
-- Tailwind arbitrary value(`bg-[#xxx]`)도 토큰 사용 권장
+- **Tailwind arbitrary value (`bg-[#xxx]`, `text-[oklch(...)]`) 정책**:
+  - 기본은 토큰 사용 권장
+  - **arbitrary value 사용 시 인접 라인에 일회성 의도를 명시하는 주석 필수**:
+    ```tsx
+    // 일회성: Notion API 임베드의 브랜드 색상 직접 매칭 (토큰화 불가)
+    <div className="bg-[#37352f]">
+    ```
+  - 주석 없는 arbitrary value는 코드 리뷰에서 토큰화 요구
+  - 같은 색상이 **3회 이상 반복**되면 일회성이 아니므로 `design-tokens.ts`에 등록 강제
+  - `/design-audit`가 주석 없는 arbitrary value 사용을 추적
 - 예외: `tailwind.config.ts`, `design-tokens.ts`, `globals.css`의 CSS 변수 정의부
 
 ## 공통 컴포넌트
@@ -68,6 +77,48 @@ export const shadows = {
   dropdown: '0 4px 6px rgba(0,0,0,0.1)',
 } as const;
 ```
+
+## 다크 모드 토큰 분리
+
+다크 모드를 지원하는 프로젝트는 토큰을 light/dark **두 세트로 분리**한다. 컴포넌트는 토큰 이름만 참조하고, 실제 값은 CSS 변수로 런타임 전환:
+
+```typescript
+// src/lib/design-tokens.ts
+export const lightColors = {
+  background: 'oklch(1 0 0)',
+  foreground: 'oklch(0.15 0 0)',
+  primary: 'oklch(0.55 0.2 240)',
+} as const;
+
+export const darkColors = {
+  background: 'oklch(0.12 0 0)',
+  foreground: 'oklch(0.95 0 0)',
+  primary: 'oklch(0.7 0.15 240)',
+} as const;
+```
+
+```css
+/* globals.css — CSS 변수로 토큰 노출 */
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.15 0 0);
+}
+.dark {
+  --background: oklch(0.12 0 0);
+  --foreground: oklch(0.95 0 0);
+}
+```
+
+```tsx
+// 컴포넌트 — 토큰 이름만 참조 (Tailwind v4 + CSS 변수)
+<div className="bg-background text-foreground">
+```
+
+### 다크 모드 작성 규칙
+
+- 컴포넌트에서 `dark:bg-[#000]` 같은 arbitrary value 절대 금지 — 항상 `--background` 같은 토큰 변수 사용
+- 두 토큰 세트의 키 이름은 동일해야 함 (`lightColors.primary` ↔ `darkColors.primary`)
+- 색상 외 다른 토큰(spacing, typography)은 일반적으로 모드별 분리 불필요
 
 ## 안티-제네릭 가드레일
 

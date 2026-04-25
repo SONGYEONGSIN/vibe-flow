@@ -67,7 +67,18 @@ if [ -f "$SUMMARY_FILE" ] && [ -s "$SUMMARY_FILE" ]; then
   SUMMARY_SIZE=$(wc -c < "$SUMMARY_FILE" | tr -d ' ')
 
   if [ "$SUMMARY_SIZE" -gt "$MAX_CHARS" ]; then
-    CONTENT=$(tail -c "$MAX_CHARS" "$SUMMARY_FILE")
+    # 줄 단위로 자르기 — tail -c는 첫 줄을 중간에서 잘라 JSONL/요약 라인을 깨뜨림
+    CONTENT=$(awk -v max="$MAX_CHARS" '
+      { lines[NR]=$0; bytes[NR]=length($0)+1 }
+      END {
+        total=0; start=1
+        for (i=NR; i>=1; i--) {
+          total += bytes[i]
+          if (total > max) { start = i+1; break }
+        }
+        for (j=start; j<=NR; j++) print lines[j]
+      }
+    ' "$SUMMARY_FILE")
   else
     CONTENT=$(cat "$SUMMARY_FILE")
   fi

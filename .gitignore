@@ -23,14 +23,19 @@ coverage/
 # Logs
 *.log
 
-# Claude Code (프로젝트별 자동 생성 데이터)
+# Claude Code — 휘발성/머신별 데이터만 무시
 .claude/session-logs/
 .claude/metrics/
-.claude/memory/
 .claude/messages/inbox/
 .claude/messages/archive/
 .claude/messages/broadcast/
 .claude/messages/.last-debate-trigger
+.claude/events.jsonl
+.claude/store.db
+# 다음은 추적 대상 (의도적으로 ignore하지 않음):
+#   .claude/memory/             — 팀 공유 학습 데이터 (patterns.md, project-profile.md, improvements.md, brainstorms/)
+#   .claude/messages/debates/   — 토론 합의 기록 (영구 보관)
+#   .claude/plans/              — 멀티스텝 작업 계획 (사용자 합의 후 추적)
 
 # Sync (머신별 설정)
 sync-memory.conf

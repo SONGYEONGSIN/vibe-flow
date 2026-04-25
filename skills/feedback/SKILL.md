@@ -57,3 +57,10 @@ description: 최근 변경사항에 대한 코드 품질 분석과 개선 제안
 
 - ...
 ```
+
+## events.jsonl 기록
+
+분석 완료 후 기록:
+```bash
+echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"feedback\",\"score\":$SCORE,\"items\":$ITEMS,\"files\":$FILES}" >> .claude/events.jsonl
+```

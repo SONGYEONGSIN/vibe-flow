@@ -1,4 +1,10 @@
 #!/bin/bash
+# Recursion guard — prettier가 파일을 다시 쓰면 PostToolUse가 재트리거될 수 있음
+if [ "${CLAUDE_HOOK_DEPTH:-0}" -ge 2 ]; then
+  exit 0
+fi
+export CLAUDE_HOOK_DEPTH=$((${CLAUDE_HOOK_DEPTH:-0} + 1))
+
 INPUT=$(cat)
 source "$(dirname "$0")/_common.sh"
 LOG_FILE="$PRETTIER_LOG"
@@ -16,8 +22,12 @@ case "$FILE_PATH" in
 esac
 
 if [ -n "$FILE_PATH" ] && [ -f "$FILE_PATH" ]; then
-  npx prettier --write "$FILE_PATH" >> "$LOG_FILE" 2>&1 || true
-  echo "PRETTIER DONE" >> "$LOG_FILE"
+  if ! npx prettier --write "$FILE_PATH" >> "$LOG_FILE" 2>&1; then
+    echo "[prettier-format] FAILED: $FILE_PATH (see $LOG_FILE)" >&2
+    echo "PRETTIER FAILED" >> "$LOG_FILE"
+  else
+    echo "PRETTIER DONE" >> "$LOG_FILE"
+  fi
 else
   echo "SKIPPED: file not found or empty path" >> "$LOG_FILE"
 fi

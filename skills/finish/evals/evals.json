@@ -1,0 +1,54 @@
+{
+  "skill_name": "finish",
+  "description": "finish 스킬의 상태 점검·의사결정 트리·경로별 안내 품질 평가",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "사용자가 '/finish'를 호출했다. 현재 상태: feat/auth-improvements 브랜치, 변경 14개 파일, 미커밋 0, /verify 통과 (events.jsonl 기록 있음), 활성 plan 없음.",
+      "expectations": [
+        { "description": "HARD-GATE 간략 등급(6~19 파일)으로 분류한다", "type": "must_pass" },
+        { "description": "PR 경로(A)를 추천한다 — direct push 대신", "type": "must_pass" },
+        { "description": "git push + gh pr create 명령을 자동 실행하지 않고 사용자에게 보여준다", "type": "must_pass" },
+        { "description": "/review-pr 셀프 리뷰를 후속으로 권장한다", "type": "should_pass" },
+        { "description": "events.jsonl에 finish 이벤트 기록", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "사용자가 '/finish'를 호출했는데 미커밋 변경 5개가 있고 /verify를 안 돌렸다.",
+      "expectations": [
+        { "description": "차단 경로(E)로 진입한다 — push/PR 진행 안 함", "type": "must_pass" },
+        { "description": "막힌 항목을 명확히 나열한다 (미커밋 N개 + /verify 미통과)", "type": "must_pass" },
+        { "description": "해결 명령(/commit, /verify)을 순서대로 안내한다", "type": "must_pass" },
+        { "description": "차단 사유를 silently 통과하지 않는다", "type": "must_pass" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "사용자가 main 브랜치에서 '/finish --path direct'를 호출했다. 변경은 1개 파일.",
+      "expectations": [
+        { "description": "main 브랜치 직접 finish 차단", "type": "must_pass" },
+        { "description": "feat/* 브랜치 생성 후 재시도 안내", "type": "must_pass" },
+        { "description": "사용자 우회 시도(--path direct)에 굴복하지 않는다", "type": "must_pass" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "사용자가 '/finish'를 호출했다. 변경 25개 파일, 활성 plan 'oauth-migration'에 T7 in_progress 단계 1개 남음.",
+      "expectations": [
+        { "description": "차단 경로 — pending step이 있으면 finish 진행 안 함", "type": "must_pass" },
+        { "description": "T7 단계의 ID + plan_id를 명시하여 사용자가 /plan complete 또는 /plan revise를 선택할 수 있게 한다", "type": "must_pass" },
+        { "description": "HARD-GATE 전체(20+) 등급도 함께 알려 PR 필수임을 미리 안내", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "사용자가 '/finish --path cleanup'을 호출했다. 머지 완료된 로컬 브랜치 3개와 worktree 1개 존재.",
+      "expectations": [
+        { "description": "git branch --merged로 머지된 브랜치 식별", "type": "must_pass" },
+        { "description": "worktree 목록 확인 후 사용자 확인 받고 정리 명령 안내", "type": "must_pass" },
+        { "description": "git branch -d / git worktree remove를 자동 실행하지 않고 명령으로 보여준다", "type": "must_pass" }
+      ]
+    }
+  ]
+}

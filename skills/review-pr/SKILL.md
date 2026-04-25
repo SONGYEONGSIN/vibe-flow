@@ -62,3 +62,12 @@ GitHub PR #$ARGUMENTS 를 코드 리뷰한다.
 
 [승인/수정 요청/논의 필요]
 ```
+
+## events.jsonl 기록
+
+리뷰 완료 후 기록 (`/finish path=pr` 후 같은 세션 follow-through 추적):
+```bash
+echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"review_pr\",\"pr\":$PR_NUMBER,\"score\":$SCORE,\"verdict\":\"$VERDICT\"}" >> .claude/events.jsonl
+```
+
+`verdict`: `approve` | `request_changes` | `discuss`

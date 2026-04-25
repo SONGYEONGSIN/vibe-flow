@@ -40,13 +40,37 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(pwd)"
 PROJECT_NAME="$(basename "$PROJECT_DIR")"
 
+# 경로 안전성 검증 — 개행/탭 등 sed 치환을 깨뜨리는 문자 차단
+case "$PROJECT_DIR" in
+  *$'\n'*|*$'\t'*)
+    echo "ERROR: PROJECT_DIR contains whitespace control characters: $PROJECT_DIR" >&2
+    echo "  setup.sh의 sed 기반 경로 치환이 깨질 수 있습니다." >&2
+    exit 1
+    ;;
+esac
+
 # 옵션 파싱
 WITH_ORCHESTRATORS=false
+FORCE=false
 for arg in "$@"; do
   case "$arg" in
     --with-orchestrators) WITH_ORCHESTRATORS=true ;;
+    --force) FORCE=true ;;
   esac
 done
+
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+# 사용자 수정본 보존: 대상 파일이 소스와 다르면 .bak.<timestamp>로 백업 후 덮어씀
+# --force: 백업 없이 그냥 덮어씀 (CI 등 깨끗한 업데이트 시 사용)
+safe_copy() {
+  local src="$1" dst="$2"
+  if [ -f "$dst" ] && [ "$FORCE" != true ] && ! cmp -s "$src" "$dst"; then
+    cp "$dst" "${dst}.bak.${TIMESTAMP}"
+    echo "  ↻ backup: ${dst#$PROJECT_DIR/}.bak.${TIMESTAMP}"
+  fi
+  cp "$src" "$dst"
+}
 
 if [ "$WITH_ORCHESTRATORS" = true ]; then
   TOTAL_STEPS=8
@@ -61,11 +85,19 @@ echo "Target:  $PROJECT_DIR"
 echo ""
 
 # .claude 디렉토리 생성
-mkdir -p "$PROJECT_DIR/.claude"/{agents,hooks,rules,skills,session-logs,memory,metrics}
+mkdir -p "$PROJECT_DIR/.claude"/{agents,hooks,rules,skills,session-logs,memory,metrics,plans}
+mkdir -p "$PROJECT_DIR/.claude/memory/brainstorms"
+mkdir -p "$PROJECT_DIR/.claude/memory/reviews"
+
+# 빈 디렉토리도 git에서 추적되도록 .gitkeep (워크플로우 시작 전 디렉토리 부재로 인한 silent fail 방지)
+for d in plans memory/brainstorms memory/reviews messages/debates; do
+  [ -f "$PROJECT_DIR/.claude/$d/.gitkeep" ] || touch "$PROJECT_DIR/.claude/$d/.gitkeep"
+done
+
 # 디자인 레퍼런스 폴더 생성
 mkdir -p "$PROJECT_DIR/design-ref"
 # 에이전트 목록 단일 소스 배포 (agents.json)
-cp "$SCRIPT_DIR/agents.json" "$PROJECT_DIR/.claude/agents.json"
+safe_copy "$SCRIPT_DIR/agents.json" "$PROJECT_DIR/.claude/agents.json"
 # 메시지 버스 디렉토리
 AGENTS_LIST=$(jq -r '.agents[]' "$SCRIPT_DIR/agents.json" | tr '\n' ' ')
 mkdir -p "$PROJECT_DIR/.claude/messages"/{archive,debates,broadcast}
@@ -75,11 +107,15 @@ done
 
 # Agents 복사
 echo "[1/$TOTAL_STEPS] Agents..."
-cp "$SCRIPT_DIR/agents/"*.md "$PROJECT_DIR/.claude/agents/"
+for src in "$SCRIPT_DIR/agents/"*.md; do
+  safe_copy "$src" "$PROJECT_DIR/.claude/agents/$(basename "$src")"
+done
 
 # Hooks 복사 + 실행 권한
 echo "[2/$TOTAL_STEPS] Hooks..."
-cp "$SCRIPT_DIR/hooks/"*.sh "$PROJECT_DIR/.claude/hooks/"
+for src in "$SCRIPT_DIR/hooks/"*.sh; do
+  safe_copy "$src" "$PROJECT_DIR/.claude/hooks/$(basename "$src")"
+done
 chmod +x "$PROJECT_DIR/.claude/hooks/"*.sh
 
 # Skills 복사 (하위 디렉토리 포함)
@@ -87,7 +123,7 @@ echo "[3/$TOTAL_STEPS] Skills..."
 for skill_dir in "$SCRIPT_DIR/skills"/*/; do
   skill_name="$(basename "$skill_dir")"
   mkdir -p "$PROJECT_DIR/.claude/skills/$skill_name"
-  cp "$skill_dir/SKILL.md" "$PROJECT_DIR/.claude/skills/$skill_name/SKILL.md"
+  safe_copy "$skill_dir/SKILL.md" "$PROJECT_DIR/.claude/skills/$skill_name/SKILL.md"
   # references/, scripts/, evals/ 등 하위 디렉토리 복사
   for sub_dir in "$skill_dir"*/; do
     [ -d "$sub_dir" ] || continue
@@ -99,7 +135,9 @@ done
 
 # Rules 복사
 echo "[4/$TOTAL_STEPS] Rules..."
-cp "$SCRIPT_DIR/rules/"*.md "$PROJECT_DIR/.claude/rules/"
+for src in "$SCRIPT_DIR/rules/"*.md; do
+  safe_copy "$src" "$PROJECT_DIR/.claude/rules/$(basename "$src")"
+done
 
 # Settings 템플릿 복사 (기존 파일이 없을 때만)
 echo "[5/$TOTAL_STEPS] Settings..."

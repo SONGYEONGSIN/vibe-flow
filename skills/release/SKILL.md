@@ -95,6 +95,14 @@ git push origin main --tags
 - 푸시: origin/main + tags
 ```
 
+### 7. events.jsonl 기록
+
+```bash
+echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"release\",\"version\":\"$VERSION\",\"semver_type\":\"$SEMVER_TYPE\",\"commits\":$N}" >> .claude/events.jsonl
+```
+
+`semver_type`: `major` | `minor` | `patch`. retrospective의 릴리즈 빈도 분석 입력.
+
 ## 규칙
 
 - 사용자 확인 없이 태그/푸시 절대 금지

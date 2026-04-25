@@ -4,6 +4,12 @@ set -u  # 미정의 변수 사용 시 즉시 에러
 # agents/, hooks/, skills/, rules/ 파일이 변경되면 수치를 갱신한다
 # 비차단 — 실패해도 exit 0
 
+# Recursion guard — sync-readme.sh가 README.md를 수정하면 PostToolUse 재트리거 가능
+if [ "${CLAUDE_HOOK_DEPTH:-0}" -ge 2 ]; then
+  exit 0
+fi
+export CLAUDE_HOOK_DEPTH=$((${CLAUDE_HOOK_DEPTH:-0} + 1))
+
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null)
 

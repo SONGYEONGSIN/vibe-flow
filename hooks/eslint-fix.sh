@@ -40,4 +40,10 @@ EXIT_CODE=$?
 echo "$OUTPUT" >> "$LOG_FILE"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] eslint exit=$EXIT_CODE" >> "$LOG_FILE"
 
+if [ $EXIT_CODE -ne 0 ]; then
+  echo "[eslint-fix] FAILED: $REL_PATH (exit=$EXIT_CODE)" >&2
+  echo "$OUTPUT" >&2
+  # PostToolUse 훅은 항상 exit 0 — 차단하지 않고 결과만 기록
+fi
+
 exit 0

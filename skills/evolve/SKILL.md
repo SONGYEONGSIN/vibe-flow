@@ -60,11 +60,13 @@ node .claude/scripts/store.js query error-classes 7
 
 | # | 게이트 | 기준 | 검증 방법 |
 |---|--------|------|-----------|
-| 1 | 크기 제한 | ≤15KB | `wc -c candidate-SKILL.md` |
+| 1 | 크기 제한 | ≤15KB **또는** baseline 대비 ≤50% 성장 (둘 중 하나 충족) | `wc -c candidate-SKILL.md` + baseline 크기 비교 |
 | 2 | 목적 보존 | 원래 name/description 유지 | YAML frontmatter 비교 |
 | 3 | 구조 보존 | 주요 `## ` 섹션 헤더 유지 | 원본과 후보의 `## ` 라인 비교 |
 | 4 | 구문 유효 | YAML frontmatter 파싱 가능 | `---` 구분자 존재 확인 |
 | 5 | Eval 통과 | pass rate ≥ baseline | 후보로 eval 재실행 |
+
+> Gate 1 상대화 의도: 일부 스킬(design-sync 등)은 합법적으로 14KB+. 절대 캡으로는 정당한 추가 정보까지 차단하지만, baseline 대비 50% 이내 성장이면 "전면 재작성"이 아닌 "점진적 개선"으로 판단. 진짜 막는 건 무분별한 팽창이지 절대 크기 아님.
 
 #### 게이트 5 실행 절차:
 

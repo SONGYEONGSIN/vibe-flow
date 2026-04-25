@@ -1,6 +1,7 @@
 ---
 name: discuss
 description: 에이전트 간 구조화된 토론을 개시하여 기술적 의견 차이를 해결한다. 사용법: /discuss <topic> [--agents agent1,agent2,...] [--rounds N]
+effort: medium
 ---
 
 에이전트 간 토론을 개시하고, moderator가 중재하여 합의를 도출한다.
@@ -129,6 +130,15 @@ moderator가 최종 판정:
 ### 메모리 업데이트
 - [추가된 내용]
 ```
+
+## events.jsonl 기록
+
+토론 종료 시 기록 — retrospective의 토론 빈도/유형 분석 입력:
+```bash
+echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"discuss\",\"debate_id\":\"$DEBATE_ID\",\"topic\":\"$TOPIC\",\"participants\":$P,\"rounds\":$R,\"verdict_type\":\"$VERDICT_TYPE\"}" >> .claude/events.jsonl
+```
+
+`verdict_type`: `consensus` | `strong_majority` | `moderator_decision` | `needs_human_input`
 
 ## 규칙
 

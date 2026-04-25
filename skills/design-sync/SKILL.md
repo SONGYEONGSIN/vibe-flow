@@ -1,6 +1,7 @@
 ---
 name: design-sync
 description: 참고 디자인 URL, 캡처 이미지, 또는 로컬 파일(readme.md/HTML)에서 CSS를 추출하여 현재 코드베이스와 비교/적용한다. 사용법: /design-sync <URL|이미지경로|--from-file [폴더]> [페이지경로]
+effort: high
 ---
 
 참고 디자인 URL 또는 캡처 이미지를 받아 체계적 워크플로우로 CSS를 추출·비교·적용하고, 정량적 싱크율로 검증한다.
@@ -12,6 +13,35 @@ description: 참고 디자인 URL, 캡처 이미지, 또는 로컬 파일(readme
 - `/design-sync --from-file [폴더경로]` — 로컬 파일(readme.md/HTML) 기반 워크플로우 (6단계)
 - `/design-sync --verify-only` — 시각적 회귀 테스트만
 - `/design-sync --tokens-only` — 토큰 추출만
+
+## 사전 요구사항 (fail-closed 게이트)
+
+워크플로우 시작 전에 **반드시** 의존성을 검증한다. 누락 시 즉시 종료하고 사용자에게 설치 명령을 안내한다.
+
+```bash
+# 모드별 필수 의존성
+case "$MODE" in
+  url|from-file|verify-only|tokens-only)
+    node -e "require('playwright')" 2>/dev/null || MISSING="$MISSING playwright"
+    node -e "require('pixelmatch')" 2>/dev/null || MISSING="$MISSING pixelmatch"
+    node -e "require('pngjs')" 2>/dev/null || MISSING="$MISSING pngjs"
+    ;;
+  from-image)
+    node -e "require('sharp')" 2>/dev/null || MISSING="$MISSING sharp"
+    node -e "require('pixelmatch')" 2>/dev/null || MISSING="$MISSING pixelmatch"
+    node -e "require('pngjs')" 2>/dev/null || MISSING="$MISSING pngjs"
+    ;;
+esac
+
+if [ -n "$MISSING" ]; then
+  echo "ERROR: design-sync 필수 의존성 누락:$MISSING" >&2
+  echo "  설치: npm install -D$MISSING" >&2
+  echo "  Playwright 브라우저: npx playwright install chromium" >&2
+  exit 1
+fi
+```
+
+→ silent fail 금지. 의존성이 없는 채로 일부만 진행하면 잘못된 싱크율이 보고되어 신뢰가 깨진다.
 
 ## 핵심 원칙
 
@@ -254,6 +284,17 @@ Step I-5 → 최종 검증 + 정리 (Phase 3 재실행 + Phase 5)
 - **8 카테고리 × 21 속성** 모두 동일 깊이로 추출·비교
 - 시각적 회귀 테스트는 **수정 전후** 두 번 실행하여 개선을 정량화
 - 로컬 개발 서버(`localhost:3000`)가 실행 중이어야 시각적 회귀 테스트 가능
+
+---
+
+## events.jsonl 기록
+
+워크플로우 완료(또는 부분 완료) 후 기록 — retrospective의 디자인 시스템 추이(섹션 3-1) 입력:
+```bash
+echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"design_sync\",\"mode\":\"$MODE\",\"sync_rate_initial\":$INIT,\"sync_rate_final\":$FINAL,\"target_rate\":$TARGET}" >> .claude/events.jsonl
+```
+
+`mode`: `url` | `image` | `file` | `verify-only` | `tokens-only`. 싱크율 회귀 추적용 핵심 이벤트.
 
 ---
 

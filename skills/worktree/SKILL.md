@@ -1,6 +1,7 @@
 ---
 name: worktree
 description: Git worktree 기반 격리 작업 환경을 생성/관리한다. 대규모 기능 개발 시 메인 브랜치에 영향 없이 병렬 작업한다.
+effort: low
 ---
 
 Git worktree로 격리된 작업 환경을 관리한다.

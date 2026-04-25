@@ -87,6 +87,20 @@ npx playwright show-report
 
 실패한 항목이 있으면 상세 에러 메시지를 함께 출력한다.
 
+## events.jsonl 기록
+
+검증 완료 후 (PASS/FAIL 무관) 결과를 기록 — `/finish`가 이 이벤트를 읽어 "verify 통과 여부"를 판단한다:
+
+```bash
+PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
+echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"verify_complete\",\"results\":{\"lint\":\"$LINT_STATUS\",\"typecheck\":\"$TS_STATUS\",\"test\":\"$TEST_STATUS\",\"e2e\":\"$E2E_STATUS\",\"console\":\"$CONSOLE_STATUS\"},\"overall\":\"$OVERALL\"}" >> "$PROJECT_ROOT/.claude/events.jsonl"
+```
+
+`overall` 필드 값:
+- `pass`: 모든 단계 PASS
+- `fail`: 1개 이상 FAIL
+- `warn`: FAIL 없으나 콘솔 에러만 WARN
+
 ## 증거 기반 완료 선언
 
 - 모든 단계가 PASS일 때만 `VERIFIED` 상태를 출력한다

@@ -36,20 +36,57 @@ fi
 
 # 2차: 프로젝트 컨텍스트 기반 검증
 # .claude/memory/patterns.md에서 프로젝트별 금지 패턴 로드
+#
+# 형식:
+#   금지: <pattern>                — 날짜 없음, 영구 차단 (legacy)
+#   금지[2026-04-25]: <pattern>    — 날짜 있음, staleness 적용
+#
+# Staleness 정책 (날짜 있는 패턴):
+#   - 0~30일: 차단 (block, exit 2)
+#   - 31~90일: 경고 후 통과 (warn, exit 0 + stderr)
+#   - 91일+:   비활성화 (silent skip)
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
 [ -z "$PROJECT_ROOT" ] && exit 0
 PATTERNS_FILE="${PROJECT_ROOT}/.claude/memory/patterns.md"
 if [ -f "$PATTERNS_FILE" ]; then
-  # patterns.md에서 "금지:" 또는 "DENY:" 라인 추출
-  DENIED=$(grep -iE "^(금지|deny|block):" "$PATTERNS_FILE" 2>/dev/null | sed 's/^[^:]*: *//')
-  while IFS= read -r deny_pattern; do
+  NOW_EPOCH=$(date +%s)
+  # 금지/deny/block 라인을 모두 추출 (대소문자 무시)
+  DENIED_LINES=$(grep -iE "^(금지|deny|block)" "$PATTERNS_FILE" 2>/dev/null)
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+
+    # 날짜 추출 시도: [YYYY-MM-DD]
+    DATE_PART=$(echo "$line" | grep -oE '\[[0-9]{4}-[0-9]{2}-[0-9]{2}\]' | head -1 | tr -d '[]')
+    # pattern 추출 (": " 이후 부분)
+    deny_pattern=$(echo "$line" | sed 's/^[^:]*: *//')
     [ -z "$deny_pattern" ] && continue
+
+    # 매칭 확인
     if echo "$COMMAND" | grep -qiF "$deny_pattern"; then
-      echo "BLOCKED: 프로젝트 학습 패턴에 의한 차단 — $deny_pattern"
-      echo "  참조: $PATTERNS_FILE"
-      exit 2
+      AGE_DAYS=0
+      if [ -n "$DATE_PART" ]; then
+        # macOS BSD date와 GNU date 모두 시도
+        PATTERN_EPOCH=$(date -j -f "%Y-%m-%d" "$DATE_PART" +%s 2>/dev/null || date -d "$DATE_PART" +%s 2>/dev/null || echo "$NOW_EPOCH")
+        AGE_DAYS=$(( (NOW_EPOCH - PATTERN_EPOCH) / 86400 ))
+      fi
+
+      if [ "$AGE_DAYS" -gt 90 ]; then
+        # 91일+ 비활성화 — 통과
+        continue
+      elif [ "$AGE_DAYS" -gt 30 ]; then
+        # 31~90일 경고 후 통과
+        echo "[smart-guard] WARN: 학습 패턴 매칭 (${AGE_DAYS}일 경과 — 검토 필요)" >&2
+        echo "  패턴: $deny_pattern" >&2
+        echo "  참조: $PATTERNS_FILE" >&2
+        continue
+      else
+        # 0~30일 또는 날짜 없음 — 차단
+        echo "BLOCKED: 프로젝트 학습 패턴에 의한 차단 — $deny_pattern" >&2
+        echo "  참조: $PATTERNS_FILE" >&2
+        exit 2
+      fi
     fi
-  done <<< "$DENIED"
+  done <<< "$DENIED_LINES"
 fi
 
 # 통과
