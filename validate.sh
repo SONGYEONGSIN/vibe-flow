@@ -59,9 +59,47 @@ for cmd in jq git node npx; do
   fi
 done
 
-# 3. 훅 파일 존재 + 실행 권한
+# 3. State file 무결성
 echo ""
-echo "[3/10] 훅 파일 검증"
+echo "[3/10] State file (.vibe-flow.json)"
+STATE="$CLAUDE_DIR/.vibe-flow.json"
+if [ -f "$STATE" ]; then
+  if jq empty "$STATE" 2>/dev/null; then
+    ok ".vibe-flow.json 유효 JSON"
+
+    SCHEMA_FAIL=0
+    for field in vibe_flow_version installed_at extensions; do
+      if ! jq -e --arg f "$field" 'has($f)' "$STATE" >/dev/null 2>&1; then
+        err "필수 필드 누락: $field"
+        SCHEMA_FAIL=$((SCHEMA_FAIL+1))
+      fi
+    done
+    [ "$SCHEMA_FAIL" = 0 ] && ok "필수 필드 (vibe_flow_version, installed_at, extensions) 존재"
+
+    EXT_FAIL=0
+    while IFS= read -r line; do
+      ext=$(echo "$line" | cut -d'|' -f1)
+      file=$(echo "$line" | cut -d'|' -f2)
+      full="$TARGET_DIR/$file"
+      if [ ! -e "$full" ]; then
+        err "ext '$ext' 파일 누락: $file"
+        EXT_FAIL=$((EXT_FAIL+1))
+      fi
+    done < <(jq -r '.extensions | to_entries[] | .key as $k | .value.files[] | "\($k)|\(.)"' "$STATE" 2>/dev/null)
+    [ "$EXT_FAIL" = 0 ] && ok "모든 extension 파일 존재"
+
+    EXT_COUNT=$(jq '.extensions | length' "$STATE")
+    ok "설치된 extensions: ${EXT_COUNT}개"
+  else
+    err ".vibe-flow.json JSON 파싱 실패"
+  fi
+else
+  warn ".vibe-flow.json 없음 — 마이그레이션 또는 첫 setup 필요"
+fi
+
+# 4. 훅 파일 존재 + 실행 권한
+echo ""
+echo "[4/10] 훅 파일 검증"
 if [ -d "$CLAUDE_DIR/hooks" ]; then
   # 필수 훅 파일 목록
   REQUIRED_HOOKS="_common command-guard smart-guard prettier-format eslint-fix typecheck test-runner metrics-collector pattern-check design-lint debate-trigger message-bus readme-sync session-log session-review uncommitted-warn tool-failure-handler notify pre-compact tdd-enforce context-prune model-suggest"
@@ -88,7 +126,7 @@ fi
 
 # 4. agents.json 일관성
 echo ""
-echo "[4/10] agents.json 일관성"
+echo "[5/10] agents.json 일관성"
 AGENTS_JSON="$CLAUDE_DIR/agents.json"
 if [ -f "$AGENTS_JSON" ]; then
   EXPECTED=$(jq -r '.agents[]' "$AGENTS_JSON" 2>/dev/null | tr -d '\r')
@@ -111,7 +149,7 @@ fi
 
 # 5. settings.local.json 훅 경로
 echo ""
-echo "[5/10] settings.local.json 훅 경로"
+echo "[6/10] settings.local.json 훅 경로"
 SETTINGS="$CLAUDE_DIR/settings.local.json"
 if [ -f "$SETTINGS" ]; then
   if grep -q "\"command\".*\.claude/hooks/" "$SETTINGS" 2>/dev/null; then
@@ -129,7 +167,7 @@ fi
 
 # 6. 훅 bash 구문 검증
 echo ""
-echo "[6/10] 훅 bash 구문 검증"
+echo "[7/10] 훅 bash 구문 검증"
 if [ -d "$CLAUDE_DIR/hooks" ]; then
   SYNTAX_FAIL=0
   for hook in "$CLAUDE_DIR/hooks/"*.sh; do
@@ -144,7 +182,7 @@ fi
 
 # 7. agent / rule / skill frontmatter
 echo ""
-echo "[7/10] frontmatter 검증"
+echo "[8/10] frontmatter 검증"
 FRONTMATTER_FAIL=0
 
 # Agents: name + description + model 필수
@@ -176,7 +214,7 @@ fi
 
 # 8. settings.local.json JSON 유효성
 echo ""
-echo "[8/10] settings.local.json JSON 유효성"
+echo "[9/10] settings.local.json JSON 유효성"
 if [ -f "$SETTINGS" ] && command -v jq &>/dev/null; then
   if jq empty "$SETTINGS" 2>/dev/null; then
     ok "settings.local.json 유효한 JSON"
@@ -197,7 +235,7 @@ fi
 
 # 9. design-tokens.ts 검증 (선택적 — 파일이 있을 때만)
 echo ""
-echo "[9/10] design-tokens.ts 검증 (선택)"
+echo "[10/10] design-tokens.ts 검증 (선택)"
 TOKENS_FILE=""
 for cand in "$TARGET_DIR/src/lib/design-tokens.ts" "$TARGET_DIR/src/lib/design-tokens.tsx" "$TARGET_DIR/lib/design-tokens.ts"; do
   [ -f "$cand" ] && TOKENS_FILE="$cand" && break
