@@ -85,7 +85,7 @@
 
 #### 메이커 도구화
 - [x] telemetry 통합 (스킬별 사용 빈도 → 경량화 결정 데이터) — `/telemetry` 스킬
-- [ ] eval 자동 회귀 알림 (CI 통합)
+- [x] eval 자동 회귀 알림 (CI 통합) — `.github/workflows/eval-regression.yml`
 - [ ] 빌드 자체 메트릭 dashboard
 
 #### 새 Extensions 후보

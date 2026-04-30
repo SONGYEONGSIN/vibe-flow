@@ -9,6 +9,7 @@
 - **Statusline 강화** — Phase 2 statusline 3 항목 통합. `scripts/statusline.sh` 신설 + `settings.template.json`의 `statusLine` 항목. verify 결과 / 마지막 hook 결과 / 활성 plan 진행도를 한 줄로 합성 (`✓v · 🔧✓ · 📋N/M`). `VIBE_FLOW_STATUSLINE=off` 비활성 옵션, `VIBE_FLOW_STATUSLINE_VERBOSE=1` 자세한 형태. 단위 테스트 5 케이스 (10/10 PASS).
 - **`/budget` 스킬 + budget-warn hook (P5)** — 호출 카운트 기반 비용 예산 프레임워크. 5개 무거운 스킬(/pair, /discuss, /evolve, /design-sync, /retrospective) 일일/주간 한도 추적 + sparkline 추이. `.claude/budget.json` 사용자 편집 + `/budget set <skill> <daily> <weekly>` 명령. 정보만 (mechanical enforcement X). budget-warn.sh Notification hook이 80%+ 사용 시 비차단 경고 (15분 디바운스). setup.sh가 기본값 budget.json 자동 생성.
 - **`/telemetry` 스킬 (Phase 4 1번째)** — 본인 1 머신 30일 events.jsonl 분석. Top 5 + Active + Stale + 개선 후보 + 추세 (sparkline). 메이커 빌드 개선 결정 + 사용자 자가 진단. 4 모드: `all`/`skills`/`trends`/`--json`. jq 1패스 group_by로 27 스킬 카운트 캐시. Extension 미설치 식별 + 개선 후보 메시지 분기.
+- **eval 회귀 CI 통합 (Phase 4 2번째)** — `.github/workflows/eval-regression.yml` + `scripts/eval-regression-check.sh` 신설. PR + push to main 시 SKILL.md / agents.md frontmatter + evals.json 구조 + agents.json ↔ files 일치 + 카운트 자동 검증. LLM 호출 없음 (CI 비용 0). 두 스키마 (Phase 0/1 v1 / Phase 2+ v2) 모두 허용. 메이커 로컬에서도 동일 스크립트 호출 가능.
 
 ## [1.1.0] - 2026-04-30 — vibe-flow rename + Core/Extensions
 

@@ -1,0 +1,23 @@
+name: eval-regression
+
+on:
+  pull_request:
+    paths:
+      - 'core/skills/**'
+      - 'core/agents/**'
+      - 'extensions/**'
+      - 'core/agents.json'
+      - 'scripts/eval-regression-check.sh'
+      - '.github/workflows/eval-regression.yml'
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Run eval regression check
+        run: bash scripts/eval-regression-check.sh

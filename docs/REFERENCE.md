@@ -139,6 +139,21 @@ env 옵션:
 
 데이터 소스: `.claude/events.jsonl` (verify_complete, tool_result/failure 마지막) + `.claude/plans/*.md` (status:in_progress + step 카운트). 데이터 없으면 빈 출력.
 
+## CI / 회귀 검증
+
+`.github/workflows/eval-regression.yml`이 PR + push to main에서 자동 실행. `scripts/eval-regression-check.sh`가 구조 회귀를 검증.
+
+검증 항목:
+- SKILL.md / agents.md frontmatter (name + description ≥ 20자, model/effort)
+- evals.json 유효 JSON + (evals 또는 cases) 배열 ≥ 1
+- agents.json ↔ core/agents/*.md 일치
+- Core ≥ 19 + Extension ≥ 9 카운트
+
+LLM 호출 없음 (CI 비용 0). 메이커 로컬 사용:
+```bash
+bash scripts/eval-regression-check.sh
+```
+
 ## setup.sh CLI
 
 ```bash
