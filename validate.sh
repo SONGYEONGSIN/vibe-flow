@@ -285,6 +285,19 @@ else
   [ "$TOKEN_FAIL" = 0 ] && ok "design-tokens.ts 구조 정상 ($(basename "$TOKENS_FILE"))"
 fi
 
+# Extension dependencies (state에 design-system 있으면 playwright 등 검증)
+if [ -f "$STATE" ] && jq -e '.extensions["design-system"]' "$STATE" >/dev/null 2>&1; then
+  echo ""
+  echo "  design-system 의존성:"
+  for dep in playwright sharp pixelmatch pngjs; do
+    if (cd "$TARGET_DIR" && node -e "require('$dep')" 2>/dev/null); then
+      ok "  $dep 설치됨"
+    else
+      warn "  $dep 미설치 (npm i -D $dep)"
+    fi
+  done
+fi
+
 # 결과 요약
 echo ""
 echo "=== 결과 ==="
