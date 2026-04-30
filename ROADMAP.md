@@ -70,16 +70,17 @@
 - [x] 활성 plan 진행도 표시
 - [x] verify 결과 표시 (✓/✗/⊘)
 
-### 🟡 Phase 3 — UI 레이어 (장기)
+### 🟡 Phase 3 — UI 레이어
 
-- [ ] **vibe-flow-dashboard** (별도 npm 패키지)
-  - localhost:9999 — Next.js + WebSocket
-  - 현재 작업 / 자동 실행 / inbox / 메트릭 라이브 뷰
-  - events.jsonl 실시간 tail
-  - .claude/* 상태 시각화
-  - **Source 침범 0** — Layer 1/2 그대로
+- [x] **vibe-flow-dashboard** (별도 repo) — https://github.com/SONGYEONGSIN/vibe-flow-dashboard
+  - Next.js 16 + TypeScript 5 + Tailwind 4 + chokidar + SSE
+  - 5 영역: events stream (라이브) / 활성 plan / inbox / 메트릭 / .claude 구조
+  - `VIBE_FLOW_PROJECT` 환경변수로 vibe-flow 프로젝트 지정
+  - localhost:9999 (PORT env로 변경 가능)
+  - **Source 침범 0** — vibe-flow의 Layer 1/2 그대로, dashboard는 읽기 전용
+  - Phase A scaffold + B MVP (SSE) + C-1~C-4 (4영역) 모두 완료
 
-- [ ] **TUI 옵션** (vibe-flow-tui — 터미널 대시보드)
+- [ ] **TUI 옵션** (vibe-flow-tui — 터미널 대시보드) — 미정. 메이커 사용 패턴 누적 후 결정.
 
 ### 🔵 Phase 4 — 거버넌스 + 확장
 
