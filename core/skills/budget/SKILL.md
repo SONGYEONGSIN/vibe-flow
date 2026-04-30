@@ -116,7 +116,7 @@ count_today() {
   local type="$1"
   [ -f "$EVENTS" ] || { echo 0; return; }
   jq -r --arg t "$type" --arg today "$TODAY" \
-    'select(.type==$t and (.ts | startswith($today)))' \
+    'select(.type==$t and (.ts | startswith($today))) | .type' \
     "$EVENTS" 2>/dev/null | wc -l | tr -d ' '
 }
 
@@ -124,7 +124,7 @@ count_weekly() {
   local type="$1"
   [ -f "$EVENTS" ] || { echo 0; return; }
   jq -r --arg t "$type" --arg w "$WEEK_AGO" \
-    'select(.type==$t and .ts > $w)' \
+    'select(.type==$t and .ts > $w) | .type' \
     "$EVENTS" 2>/dev/null | wc -l | tr -d ' '
 }
 ```
@@ -153,7 +153,7 @@ sparkline_7d() {
         || date -u -d "$i days ago" +%Y-%m-%d)
     local c
     c=$(jq -r --arg t "$type" --arg d "$d" \
-      'select(.type==$t and (.ts | startswith($d)))' \
+      'select(.type==$t and (.ts | startswith($d))) | .type' \
       "$EVENTS" 2>/dev/null | wc -l | tr -d ' ')
     counts="$counts $c"
   done
@@ -181,7 +181,7 @@ trend_label() {
     d=$(date -u -v-${i}d +%Y-%m-%d 2>/dev/null \
         || date -u -d "$i days ago" +%Y-%m-%d)
     c=$(jq -r --arg t "$type" --arg d "$d" \
-      'select(.type==$t and (.ts | startswith($d)))' \
+      'select(.type==$t and (.ts | startswith($d))) | .type' \
       "$EVENTS" 2>/dev/null | wc -l | tr -d ' ')
     sum_first=$((sum_first + c))
   done
@@ -190,7 +190,7 @@ trend_label() {
     d=$(date -u -v-${i}d +%Y-%m-%d 2>/dev/null \
         || date -u -d "$i days ago" +%Y-%m-%d)
     c=$(jq -r --arg t "$type" --arg d "$d" \
-      'select(.type==$t and (.ts | startswith($d)))' \
+      'select(.type==$t and (.ts | startswith($d))) | .type' \
       "$EVENTS" 2>/dev/null | wc -l | tr -d ' ')
     sum_last=$((sum_last + c))
   done
