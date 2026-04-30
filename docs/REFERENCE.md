@@ -2,9 +2,9 @@
 
 전체 명령 / 에이전트 / 훅 / 규칙 레퍼런스.
 
-## Skills (24 — Core 15 + Extensions 9)
+## Skills (25 — Core 16 + Extensions 9)
 
-### Core 15
+### Core 16
 
 | 스킬 | 호출 | 설명 |
 |------|------|------|
@@ -23,6 +23,7 @@
 | status | `/status` | 프로젝트 상태 대시보드 |
 | learn | `/learn [save\|show]` | 메모리 관리 |
 | onboard | `/onboard [--refresh]` | 5단계 자가진단 + 다음 행동 추천 |
+| menu | `/menu [core\|extensions\|<category>]` | 24 스킬 카테고리별 + 사용 분포 + Stage 추천 |
 
 ### Extensions 9
 
