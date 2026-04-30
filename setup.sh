@@ -136,6 +136,7 @@ if [ "$CHECK_ONLY" = true ]; then
     exit 1
   fi
 fi
+# --remove-extension은 remove_extension() 정의 후에 처리 (아래)
 
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
@@ -194,6 +195,50 @@ update_state_extension() {
 
 # Extension 한 개 설치 (skills + agents 디렉토리 복사)
 # Args: $1 = extension name
+# Extension 제거 (state에 명시된 파일만 정확히 제거)
+# Args: $1 = ext name
+remove_extension() {
+  local ext="$1"
+  local state_file="$PROJECT_DIR/.claude/.vibe-flow.json"
+
+  if [ ! -f "$state_file" ]; then
+    echo "ERROR: .vibe-flow.json 없음 — 설치된 extension 없음" >&2
+    return 1
+  fi
+
+  if ! jq -e ".extensions[\"$ext\"]" "$state_file" >/dev/null; then
+    echo "ERROR: extension '$ext' 미설치" >&2
+    return 1
+  fi
+
+  echo "Extension: $ext 제거..."
+  jq -r ".extensions[\"$ext\"].files[]" "$state_file" | while read -r f; do
+    full="$PROJECT_DIR/$f"
+    if [ -d "$full" ]; then
+      rm -rf "$full"
+      echo "  [-] $f"
+    elif [ -f "$full" ]; then
+      rm "$full"
+      echo "  [-] $f"
+    fi
+  done
+
+  local now
+  now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+  jq --arg ext "$ext" --arg now "$now" \
+     'del(.extensions[$ext]) | .last_updated_at = $now' \
+     "$state_file" > "$state_file.tmp"
+  mv "$state_file.tmp" "$state_file"
+
+  echo "  ✓ $ext 제거됨"
+}
+
+# --remove-extension 처리 (조기 종료, remove_extension() 정의 후)
+if [ -n "$REMOVE_EXT" ]; then
+  remove_extension "$REMOVE_EXT"
+  exit $?
+fi
+
 install_extension() {
   local ext="$1"
   local src="$SCRIPT_DIR/extensions/$ext"
