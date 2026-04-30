@@ -52,11 +52,33 @@ esac
 # 옵션 파싱
 WITH_ORCHESTRATORS=false
 FORCE=false
-for arg in "$@"; do
-  case "$arg" in
+INSTALL_ALL=false
+LIST_EXTENSIONS=false
+INFO_EXT=""
+CHECK_ONLY=false
+REMOVE_EXT=""
+EXTENSIONS_TO_INSTALL=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
     --with-orchestrators) WITH_ORCHESTRATORS=true ;;
     --force) FORCE=true ;;
+    --all) INSTALL_ALL=true ;;
+    --list-extensions) LIST_EXTENSIONS=true ;;
+    --info) shift; INFO_EXT="$1" ;;
+    --check) CHECK_ONLY=true ;;
+    --remove-extension) shift; REMOVE_EXT="$1" ;;
+    --extensions)
+      shift
+      if [ -n "$EXTENSIONS_TO_INSTALL" ]; then
+        EXTENSIONS_TO_INSTALL="$EXTENSIONS_TO_INSTALL,$1"
+      else
+        EXTENSIONS_TO_INSTALL="$1"
+      fi
+      ;;
+    *) echo "ERROR: 알 수 없는 옵션: $1" >&2; exit 1 ;;
   esac
+  shift
 done
 
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
