@@ -150,6 +150,100 @@ safe_copy() {
   cp "$src" "$dst"
 }
 
+# State 파일이 없으면 초기 생성
+ensure_state_file() {
+  local state_file="$PROJECT_DIR/.claude/.vibe-flow.json"
+  if [ ! -f "$state_file" ]; then
+    local now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    jq -n --arg now "$now" '{
+      vibe_flow_version: "1.0.0",
+      installed_at: $now,
+      last_updated_at: $now,
+      core_files: [],
+      extensions: {}
+    }' > "$state_file"
+  fi
+}
+
+# State 파일에 extension 정보 추가/갱신
+# Args: $1 = ext name, $2... = file list
+update_state_extension() {
+  local ext="$1"
+  shift
+  local files=("$@")
+
+  local state_file="$PROJECT_DIR/.claude/.vibe-flow.json"
+  ensure_state_file
+
+  local files_json
+  files_json=$(printf '%s\n' "${files[@]}" | jq -R . | jq -s .)
+  local now
+  now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+  jq --arg ext "$ext" \
+     --argjson files "$files_json" \
+     --arg now "$now" \
+     '.extensions[$ext] = {
+        version: "1.0.0",
+        installed_at: $now,
+        files: $files
+      } | .last_updated_at = $now' \
+     "$state_file" > "$state_file.tmp"
+  mv "$state_file.tmp" "$state_file"
+}
+
+# Extension 한 개 설치 (skills + agents 디렉토리 복사)
+# Args: $1 = extension name
+install_extension() {
+  local ext="$1"
+  local src="$SCRIPT_DIR/extensions/$ext"
+  if [ ! -d "$src" ]; then
+    echo "  ✗ extension '$ext' 없음" >&2
+    return 1
+  fi
+
+  echo "  Extension: $ext 설치..."
+  local installed_files=()
+
+  # Skills 복사
+  if [ -d "$src/skills" ]; then
+    for skill_dir in "$src/skills"/*/; do
+      [ -d "$skill_dir" ] || continue
+      local skill_name
+      skill_name="$(basename "$skill_dir")"
+      mkdir -p "$PROJECT_DIR/.claude/skills/$skill_name"
+      safe_copy "$skill_dir/SKILL.md" "$PROJECT_DIR/.claude/skills/$skill_name/SKILL.md"
+      # 하위 디렉토리 (evals/, references/, scripts/)
+      for sub_dir in "$skill_dir"*/; do
+        [ -d "$sub_dir" ] || continue
+        local sub_name
+        sub_name="$(basename "$sub_dir")"
+        mkdir -p "$PROJECT_DIR/.claude/skills/$skill_name/$sub_name"
+        cp "$sub_dir"* "$PROJECT_DIR/.claude/skills/$skill_name/$sub_name/" 2>/dev/null || true
+      done
+      installed_files+=(".claude/skills/$skill_name/")
+      echo "    [+] .claude/skills/$skill_name/"
+    done
+  fi
+
+  # Agents 복사
+  if [ -d "$src/agents" ]; then
+    for agent_file in "$src/agents"/*.md; do
+      [ -f "$agent_file" ] || continue
+      local agent_name
+      agent_name="$(basename "$agent_file")"
+      safe_copy "$agent_file" "$PROJECT_DIR/.claude/agents/$agent_name"
+      installed_files+=(".claude/agents/$agent_name")
+      echo "    [+] .claude/agents/$agent_name"
+    done
+  fi
+
+  # state 파일 갱신
+  update_state_extension "$ext" "${installed_files[@]}"
+
+  echo "  ✓ $ext: ${#installed_files[@]} 파일 설치됨"
+}
+
 if [ "$WITH_ORCHESTRATORS" = true ]; then
   TOTAL_STEPS=8
 else
@@ -322,6 +416,33 @@ if [ "$WITH_ORCHESTRATORS" = true ]; then
     fi
   else
     echo "  Agent Orchestrator: ao 명령 미발견 → https://github.com/ComposioHQ/agent-orchestrator"
+  fi
+fi
+
+# Extensions 설치
+ensure_state_file
+
+if [ "$INSTALL_ALL" = true ]; then
+  echo ""
+  echo "=== Installing all extensions ==="
+  for ext in $(get_extensions_list); do
+    install_extension "$ext"
+  done
+elif [ -n "$EXTENSIONS_TO_INSTALL" ]; then
+  echo ""
+  echo "=== Installing extensions ==="
+  IFS=',' read -ra EXTS <<< "$EXTENSIONS_TO_INSTALL"
+  for ext in "${EXTS[@]}"; do
+    install_extension "$ext"
+  done
+elif [ -f "$PROJECT_DIR/.claude/.vibe-flow.json" ]; then
+  EXISTING=$(jq -r '.extensions | keys[]' "$PROJECT_DIR/.claude/.vibe-flow.json" 2>/dev/null)
+  if [ -n "$EXISTING" ]; then
+    echo ""
+    echo "=== Updating installed extensions ==="
+    for ext in $EXISTING; do
+      install_extension "$ext"
+    done
   fi
 fi
 
