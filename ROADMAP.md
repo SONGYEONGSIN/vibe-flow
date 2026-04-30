@@ -90,7 +90,7 @@
 
 #### 새 Extensions 후보
 - [x] **i18n** — `/i18n-audit` 스킬 (라이브러리 무관 누락/미사용/불일치 검출)
-- [ ] **k8s** — Kubernetes 배포 자동화
+- [x] **k8s** — `/k8s-audit` 스킬 (5 anti-pattern: resources / image:latest / securityContext / label-selector / Secret 평문)
 - [ ] **mobile** — React Native / Flutter 보강
 
 ### 🔵 P5 전략 공백: 토큰/비용 예산 프레임워크 ✅ 완료
