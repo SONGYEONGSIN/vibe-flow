@@ -63,7 +63,7 @@
 #### 신규 스킬
 - [x] `/onboard` — 인터랙티브 단계별 가이드 (실력 자가진단 + 추천) (PR #2)
 - [x] `/menu` — 24 스킬 카테고리별 발견성 (실력별 추천)
-- [ ] `/inbox` — 12 에이전트 inbox 통합 뷰
+- [x] `/inbox` — 12 에이전트 inbox 통합 뷰
 
 #### Statusline 강화
 - [ ] hook live status 표시 (마지막 실행 결과)
