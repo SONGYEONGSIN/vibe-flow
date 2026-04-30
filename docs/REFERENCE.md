@@ -2,7 +2,7 @@
 
 전체 명령 / 에이전트 / 훅 / 규칙 레퍼런스.
 
-## Skills (29 — Core 19 + Extensions 10)
+## Skills (30 — Core 19 + Extensions 11)
 
 ### Core 19
 
@@ -28,7 +28,7 @@
 | budget | `/budget [set\|reset\|--json]` | 호출 카운트 기반 비용 예산 (5 무거운 스킬) |
 | telemetry | `/telemetry [skills\|trends\|--json]` | 30일 분석 — Top 5/Stale/개선 후보/추세 |
 
-### Extensions 10
+### Extensions 11
 
 #### meta-quality
 | 스킬 | 호출 |
@@ -63,6 +63,11 @@
 | 스킬 | 호출 |
 |------|------|
 | i18n-audit | `/i18n-audit [<locale-dir>\|--json]` |
+
+#### k8s
+| 스킬 | 호출 |
+|------|------|
+| k8s-audit | `/k8s-audit [<manifest-dir>\|--json]` |
 
 ## Agents (12 — Core 10 + Extensions 2)
 

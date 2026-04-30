@@ -4,6 +4,7 @@
 
 ### 추가
 - **i18n Extension (Phase 4 새 Extension)** — 6번째 extension 카테고리. `/i18n-audit` 스킬 1개 — 번역 키 누락/미사용/locale 간 불일치 자동 검출. 라이브러리 무관 (next-intl, react-i18next, vue-i18n 등 5 패턴 정규식). 외부 의존 0 (jq + grep + comm). locale 자동 탐색 (messages/, public/locales/, locales/, src/i18n/). setup.sh `--list-extensions` / `--info i18n` / `--extensions i18n` 통합.
+- **k8s Extension (Phase 4 새 Extension)** — 7번째 extension 카테고리. `/k8s-audit` 스킬 1개 — Kubernetes manifest 5 anti-pattern 정적 검증 (resources 누락 / `image: :latest` / securityContext 미설정 / label-selector mismatch / Secret 평문). yq 가용 시 정확, 없으면 grep+awk fallback. manifest 자동 탐색 (k8s/, manifests/, deploy/, kustomize/, helm/templates/, .k8s/, deployment/).
 
 ## [1.2.0] - 2026-04-30 — Phase 2 + 4 + P5 (UX + 메이커 도구화)
 
