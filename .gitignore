@@ -48,3 +48,4 @@ sync-memory.conf
 .idea/
 *.swp
 *.swo
+.superpowers/
