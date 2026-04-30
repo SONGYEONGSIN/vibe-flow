@@ -147,9 +147,9 @@ else
   warn "agents.json 없음 (하위 호환 모드로 동작)"
 fi
 
-# 5. settings.local.json 훅 경로
+# 5. settings.local.json 훅 경로 + JSON 유효성
 echo ""
-echo "[6/10] settings.local.json 훅 경로"
+echo "[6/10] settings.local.json 훅 경로 + JSON 유효성"
 SETTINGS="$CLAUDE_DIR/settings.local.json"
 if [ -f "$SETTINGS" ]; then
   if grep -q "\"command\".*\.claude/hooks/" "$SETTINGS" 2>/dev/null; then
@@ -160,6 +160,24 @@ if [ -f "$SETTINGS" ]; then
     fi
   else
     warn "settings.local.json에 훅 설정 없음"
+  fi
+
+  # JSON 유효성 + hook 경로 실행 가능성 (이전 stage 8 → 통합)
+  if command -v jq &>/dev/null; then
+    if jq empty "$SETTINGS" 2>/dev/null; then
+      ok "settings.local.json 유효한 JSON"
+      BROKEN_PATHS=0
+      for cmd in $(jq -r '.. | .command? // empty' "$SETTINGS" 2>/dev/null); do
+        case "$cmd" in
+          */hooks/*.sh)
+            [ -x "$cmd" ] || { err "hook 경로 무효: $cmd"; BROKEN_PATHS=$((BROKEN_PATHS+1)); }
+            ;;
+        esac
+      done
+      [ "$BROKEN_PATHS" = 0 ] && ok "settings.local.json의 모든 hook 경로 실행 가능"
+    else
+      err "settings.local.json JSON 파싱 실패"
+    fi
   fi
 else
   warn "settings.local.json 없음"
@@ -212,25 +230,39 @@ fi
 
 [ "$FRONTMATTER_FAIL" = 0 ] && ok "agent/skill frontmatter 정상"
 
-# 8. settings.local.json JSON 유효성
+# 9. State ↔ Filesystem reconciliation
 echo ""
-echo "[9/10] settings.local.json JSON 유효성"
-if [ -f "$SETTINGS" ] && command -v jq &>/dev/null; then
-  if jq empty "$SETTINGS" 2>/dev/null; then
-    ok "settings.local.json 유효한 JSON"
-    # hook 경로가 실제 존재하는지
-    BROKEN_PATHS=0
-    for cmd in $(jq -r '.. | .command? // empty' "$SETTINGS" 2>/dev/null); do
-      case "$cmd" in
-        */hooks/*.sh)
-          [ -x "$cmd" ] || { err "hook 경로 무효: $cmd"; BROKEN_PATHS=$((BROKEN_PATHS+1)); }
-          ;;
-      esac
-    done
-    [ "$BROKEN_PATHS" = 0 ] && ok "settings.local.json의 모든 hook 경로 실행 가능"
-  else
-    err "settings.local.json JSON 파싱 실패"
-  fi
+echo "[9/10] State ↔ Filesystem reconciliation"
+if [ -f "$STATE" ]; then
+  ok "state 명시 파일 존재 (stage 3 결과)"
+
+  # orphan 검출 — extension 시그니처 디렉토리가 .claude/skills/에 있는데 state에는 없음
+  CORE_SKILLS="brainstorm plan finish release scaffold test worktree verify security commit review-pr receive-review status learn"
+  EXT_SIGNATURES="eval-skill evolve design-sync design-audit pair discuss metrics retrospective feedback"
+
+  ORPHAN_COUNT=0
+  for skill_dir in "$CLAUDE_DIR/skills"/*/; do
+    [ -d "$skill_dir" ] || continue
+    skill="$(basename "$skill_dir")"
+
+    # Core skill?
+    if echo "$CORE_SKILLS" | grep -qw "$skill"; then continue; fi
+
+    # state.extensions에 매칭?
+    if jq -r '.extensions | to_entries[] | .value.files[]' "$STATE" 2>/dev/null \
+        | grep -q "skills/$skill/"; then
+      continue
+    fi
+
+    # Orphan — Extension signature 일치하는데 state에 없음
+    if echo "$EXT_SIGNATURES" | grep -qw "$skill"; then
+      warn "orphan ext skill: $skill (state에 없음)"
+      ORPHAN_COUNT=$((ORPHAN_COUNT+1))
+    fi
+  done
+  [ "$ORPHAN_COUNT" = 0 ] && ok "orphan 파일 없음"
+else
+  warn "state 없음 — reconciliation 건너뜀"
 fi
 
 # 9. design-tokens.ts 검증 (선택적 — 파일이 있을 때만)
