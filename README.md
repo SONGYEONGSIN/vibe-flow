@@ -43,7 +43,7 @@ claude
 
 자세한 명령 → [docs/REFERENCE.md](docs/REFERENCE.md)
 
-## 🔌 Extensions 6 — opt-in
+## 🔌 Extensions 7 — opt-in
 
 ```bash
 bash setup.sh --list-extensions       # 사용 가능한 것 보기
@@ -59,6 +59,7 @@ bash setup.sh --all                   # 전체 설치
 | `learning-loop` | 장기 메트릭, 회고 (`/metrics`, `/retrospective`) |
 | `code-feedback` | git diff 기반 품질 분석 (`/feedback`) |
 | `i18n` | 번역 키 누락/미사용 자동 검출 (`/i18n-audit`) |
+| `k8s` | k8s manifest 5 anti-pattern audit (`/k8s-audit`) |
 
 각 extension 상세 → [extensions/](extensions/)
 
