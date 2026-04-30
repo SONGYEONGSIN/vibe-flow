@@ -102,7 +102,7 @@ if [ ! -d "$CLAUDE_HOME" ]; then
 fi
 
 if ! git -C "$SCRIPT_DIR" rev-parse --is-inside-work-tree &>/dev/null; then
-  err "claude-builds가 git 저장소가 아닙니다"
+  err "vibe-flow가 git 저장소가 아닙니다"
   exit 1
 fi
 

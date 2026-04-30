@@ -9,7 +9,7 @@
 
 ## 1. 요약
 
-`claude-builds` 빌드를 `vibe-flow`로 리브랜드하면서 23 스킬 / 12 에이전트 / 22 훅 / 6 규칙을 **Core(기본 설치) + Extensions(opt-in)** 두 단계로 재구성한다. 동일 repo 내 `core/` + `extensions/<name>/` 디렉토리 분할 방식. 단일 PR로 rename + restructure + migrate 모두 처리.
+`vibe-flow` 빌드를 `vibe-flow`로 리브랜드하면서 23 스킬 / 12 에이전트 / 22 훅 / 6 규칙을 **Core(기본 설치) + Extensions(opt-in)** 두 단계로 재구성한다. 동일 repo 내 `core/` + `extensions/<name>/` 디렉토리 분할 방식. 단일 PR로 rename + restructure + migrate 모두 처리.
 
 ## 2. 목표 + 성공 기준
 
@@ -23,7 +23,7 @@
 
 ### 2.2 정량 성공 기준
 
-| 지표 | Before (claude-builds) | After (vibe-flow) | 목표 |
+| 지표 | Before (vibe-flow) | After (vibe-flow) | 목표 |
 |------|----------------------|-------------------|------|
 | Core 스킬 수 | 23 | **14** | 첫날 학습 부담 ↓ |
 | Total 스킬 수 (extensions 포함) | 23 | **23** | 기능 손실 없음 |
@@ -132,7 +132,7 @@ vibe-flow/
 **용도**:
 1. 갱신 시 마지막 설정 replay (사용자 재선택 불필요)
 2. 제거 시 정확한 파일 식별
-3. 마이그레이션 감지 (없으면 claude-builds → vibe-flow 자동 추론)
+3. 마이그레이션 감지 (없으면 vibe-flow → vibe-flow 자동 추론)
 4. Validate 시 reconciliation 기준
 
 ## 5. 상세 설계
@@ -168,7 +168,7 @@ bash setup.sh --force                           # 백업 없이 덮어쓰기
 
 ### 5.2 마이그레이션 자동 감지
 
-setup.sh가 다음 조건에서 **claude-builds → vibe-flow 마이그레이션** 수행:
+setup.sh가 다음 조건에서 **vibe-flow → vibe-flow 마이그레이션** 수행:
 
 ```
 .claude/ 존재 + .claude/.vibe-flow.json 없음
@@ -220,7 +220,7 @@ README.md (180줄)            ← Quick Start 중심
 docs/
 ├─ REFERENCE.md              ← 전체 명령 레퍼런스 (NEW)
 ├─ ARCHITECTURE.md           ← self-improving 루프 + 데이터 흐름 (NEW)
-├─ MIGRATION.md              ← claude-builds → vibe-flow (NEW)
+├─ MIGRATION.md              ← vibe-flow → vibe-flow (NEW)
 ├─ ONBOARDING.md             ← 단계별 vibe coder 가이드 (NEW)
 ├─ architecture.png/html     ← 기존
 └─ claude-code-spec.md       ← 기존
@@ -235,7 +235,7 @@ ROADMAP.md / CHANGELOG.md / CLAUDE.md.template 갱신은 별도 항목.
 - `setup.sh` echo 메시지
 - 모든 `*.sh` hook 메시지 prefix
 - `validate.sh` 헤더
-- 단순 명사 참조 (`claude-builds` → `vibe-flow`)
+- 단순 명사 참조 (`vibe-flow` → `vibe-flow`)
 
 **수동 검토 필수**:
 - `README.md` (전면 재구성)
@@ -246,13 +246,13 @@ ROADMAP.md / CHANGELOG.md / CLAUDE.md.template 갱신은 별도 항목.
 
 **의도적 보존** (변경 금지):
 - `CHANGELOG.md` 1.0.0 이전 항목 — 역사적 사실
-- 출처 링크 — claude-builds 시기에 발생한 사건 정확히 표기
+- 출처 링크 — vibe-flow 시기에 발생한 사건 정확히 표기
 
 ## 6. 마이그레이션 실행 순서
 
 ```
 [메이커 본인 작업 — 단일 세션]
-1. GitHub UI에서 repo rename (claude-builds → vibe-flow)
+1. GitHub UI에서 repo rename (vibe-flow → vibe-flow)
 2. 로컬 디렉토리 mv + git remote set-url
 3. 새 구조 commit (이번 spec의 결과물 — 1 PR)
    - core/, extensions/ 디렉토리 분리

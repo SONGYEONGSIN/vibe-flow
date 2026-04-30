@@ -45,7 +45,7 @@ reactions:
 
 # --- 운영 워크플로우 ---
 #
-# claude-builds의 11개 에이전트를 단계별로 활용:
+# vibe-flow의 11개 에이전트를 단계별로 활용:
 #
 # 1. 기획 (planner)
 #    ao spawn {{PROJECT_NAME}} ISSUE-123

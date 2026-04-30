@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** `claude-builds` repo를 `vibe-flow`로 리브랜드하면서 23 스킬 / 12 에이전트 / 22 훅 / 6 규칙을 Core(14 스킬 / 10 에이전트 / 22 훅 / 6 규칙) + Extensions(5 카테고리, 9 스킬 / 2 에이전트) 두 단계로 재구성한다. 단일 PR.
+**Goal:** `vibe-flow` repo를 `vibe-flow`로 리브랜드하면서 23 스킬 / 12 에이전트 / 22 훅 / 6 규칙을 Core(14 스킬 / 10 에이전트 / 22 훅 / 6 규칙) + Extensions(5 카테고리, 9 스킬 / 2 에이전트) 두 단계로 재구성한다. 단일 PR.
 
-**Architecture:** 동일 git repo 내 `core/` + `extensions/<name>/` 디렉토리 분할. setup.sh CLI가 state 파일(`.claude/.vibe-flow.json`)을 읽고 갱신/추가/제거 처리. claude-builds → vibe-flow 마이그레이션 자동 감지(state 파일 부재 시 디렉토리 시그니처로 추론). validate.sh 9 → 10 stages.
+**Architecture:** 동일 git repo 내 `core/` + `extensions/<name>/` 디렉토리 분할. setup.sh CLI가 state 파일(`.claude/.vibe-flow.json`)을 읽고 갱신/추가/제거 처리. vibe-flow → vibe-flow 마이그레이션 자동 감지(state 파일 부재 시 디렉토리 시그니처로 추론). validate.sh 9 → 10 stages.
 
 **Tech Stack:** bash, jq (JSON parsing), git, awk/sed (text processing), Playwright (design-system extension dependency, 별도)
 
@@ -12,15 +12,15 @@
 
 ## Pre-execution Notes
 
-**작업 디렉토리**: `/Users/yss/개발/build/claude-builds` (rename 전), Task 3 이후 `/Users/yss/개발/build/vibe-flow`.
+**작업 디렉토리**: `/Users/yss/개발/build/vibe-flow` (rename 전), Task 3 이후 `/Users/yss/개발/build/vibe-flow`.
 
 **Spec 참조**: `docs/superpowers/specs/2026-04-30-vibe-flow-phase-1-rebrand-lighten-design.md` (커밋 8feb02d).
 
 **전제 조건**:
 - 현재 `main` 브랜치, working tree clean (`git status` 확인)
 - jq, git, node, npx 설치
-- GitHub repo `SONGYEONGSIN/claude-builds`에 push 권한
-- 글로벌 심볼릭 (`~/.claude/{skills,agents,rules}`)이 claude-builds로 활성 (이번 세션에서 옵션 A로 설정함)
+- GitHub repo `SONGYEONGSIN/vibe-flow`에 push 권한
+- 글로벌 심볼릭 (`~/.claude/{skills,agents,rules}`)이 vibe-flow로 활성 (이번 세션에서 옵션 A로 설정함)
 
 **Big Bang 정책**: 단계 commit은 logical하게 분리하되, 최종 1 PR로 머지. 각 commit은 atomic.
 
@@ -33,7 +33,7 @@
 - [ ] **Step 1: 현재 상태 확인**
 
 ```bash
-cd /Users/yss/개발/build/claude-builds
+cd /Users/yss/개발/build/vibe-flow
 git status
 git log --oneline -3
 git branch
@@ -97,14 +97,14 @@ Rules: 6
 
 브라우저에서:
 ```
-https://github.com/SONGYEONGSIN/claude-builds/settings
-→ Repository name 필드: "claude-builds" 지우고 "vibe-flow" 입력
+https://github.com/SONGYEONGSIN/vibe-flow/settings
+→ Repository name 필드: "vibe-flow" 지우고 "vibe-flow" 입력
 → [Rename] 버튼 클릭
 ```
 
 GitHub auto-redirect 활성화 확인:
 ```bash
-curl -sI https://github.com/SONGYEONGSIN/claude-builds | grep -i location
+curl -sI https://github.com/SONGYEONGSIN/vibe-flow | grep -i location
 ```
 
 Expected: `location: https://github.com/SONGYEONGSIN/vibe-flow`
@@ -127,11 +127,11 @@ Expected: `HTTP/2 200`
 
 ```bash
 cd /Users/yss/개발/build
-mv claude-builds vibe-flow
-ls -la | grep -E "claude-builds|vibe-flow"
+mv vibe-flow vibe-flow
+ls -la | grep -E "vibe-flow|vibe-flow"
 ```
 
-Expected: `vibe-flow` 디렉토리만 보임 (claude-builds 없음)
+Expected: `vibe-flow` 디렉토리만 보임 (vibe-flow 없음)
 
 - [ ] **Step 2: git remote URL 갱신**
 
@@ -172,14 +172,14 @@ Expected: `/Users/yss/개발/build/vibe-flow`
 ## Task 4: Self-reference 일괄 갱신
 
 **Files:**
-- Modify: 다수 (`claude-builds` 단순 명사 출현 위치)
+- Modify: 다수 (`vibe-flow` 단순 명사 출현 위치)
 - Skip: `CHANGELOG.md` (역사 기록), `.git/`
 
 - [ ] **Step 1: 현재 출현 위치 inventory**
 
 ```bash
 cd /Users/yss/개발/build/vibe-flow
-grep -rln "claude-builds" --exclude-dir=.git --exclude=CHANGELOG.md > /tmp/cb-refs.txt
+grep -rln "vibe-flow" --exclude-dir=.git --exclude=CHANGELOG.md > /tmp/cb-refs.txt
 wc -l /tmp/cb-refs.txt
 cat /tmp/cb-refs.txt
 ```
@@ -190,7 +190,7 @@ Expected: ~15-25개 파일. 주요 후보: README.md, ROADMAP.md, setup.sh, vali
 
 ```bash
 while read f; do
-  sed -i.tmp 's/claude-builds/vibe-flow/g' "$f" && rm "${f}.tmp"
+  sed -i.tmp 's/vibe-flow/vibe-flow/g' "$f" && rm "${f}.tmp"
   echo "  ✓ $f"
 done < /tmp/cb-refs.txt
 ```
@@ -200,14 +200,14 @@ Expected: 모든 파일에 `✓` 마크.
 - [ ] **Step 3: 결과 검증 — 잔여 출현 확인**
 
 ```bash
-grep -rln "claude-builds" --exclude-dir=.git --exclude=CHANGELOG.md
+grep -rln "vibe-flow" --exclude-dir=.git --exclude=CHANGELOG.md
 ```
 
 Expected: 출력 없음 (모두 vibe-flow로 치환).
 
 CHANGELOG.md만 의도적으로 보존 — 역사 사실:
 ```bash
-grep -c "claude-builds" CHANGELOG.md
+grep -c "vibe-flow" CHANGELOG.md
 ```
 
 Expected: > 0 (역사 항목에서 보존됨)
@@ -225,7 +225,7 @@ git diff --stat | tail -5
 
 ```bash
 git add -u
-git commit -m "chore: claude-builds → vibe-flow 자체 참조 일괄 갱신
+git commit -m "chore: vibe-flow → vibe-flow 자체 참조 일괄 갱신
 
 CHANGELOG.md는 역사 기록이라 의도적 보존."
 ```
@@ -1354,7 +1354,7 @@ state.extensions[name].files 배열을 정확히 제거 + state 갱신.
 
 ---
 
-## Task 18: setup.sh — 마이그레이션 자동 감지 (claude-builds → vibe-flow)
+## Task 18: setup.sh — 마이그레이션 자동 감지 (vibe-flow → vibe-flow)
 
 **Files:**
 - Modify: `setup.sh`
@@ -1362,7 +1362,7 @@ state.extensions[name].files 배열을 정확히 제거 + state 갱신.
 - [ ] **Step 1: 마이그레이션 감지 함수 추가**
 
 ```bash
-# claude-builds → vibe-flow 마이그레이션 감지 및 처리
+# vibe-flow → vibe-flow 마이그레이션 감지 및 처리
 # .claude/ 존재하지만 .vibe-flow.json 없으면 마이그레이션
 detect_and_migrate() {
   local claude_dir="$PROJECT_DIR/.claude"
@@ -1372,7 +1372,7 @@ detect_and_migrate() {
   [ -f "$state_file" ] && return 0      # 이미 vibe-flow
 
   echo ""
-  echo "=== Migration: claude-builds → vibe-flow 감지 ==="
+  echo "=== Migration: vibe-flow → vibe-flow 감지 ==="
 
   # 시그니처 스킬 디렉토리 존재로 extensions 추론
   local detected=()
@@ -1405,14 +1405,14 @@ detect_and_migrate() {
 setup.sh 메인 흐름의 `# .claude 디렉토리 생성` 블록 직전에:
 
 ```bash
-# 마이그레이션 감지 (.claude/ 존재 + state 없음 = claude-builds 출신)
+# 마이그레이션 감지 (.claude/ 존재 + state 없음 = vibe-flow 출신)
 detect_and_migrate
 ```
 
-- [ ] **Step 3: 단위 테스트 — claude-builds 시뮬레이션**
+- [ ] **Step 3: 단위 테스트 — vibe-flow 시뮬레이션**
 
 ```bash
-# claude-builds 형태로 .claude/ 만들기
+# vibe-flow 형태로 .claude/ 만들기
 rm -rf /tmp/vibe-flow-test-5
 mkdir /tmp/vibe-flow-test-5
 cd /tmp/vibe-flow-test-5
@@ -1424,7 +1424,7 @@ bash /Users/yss/개발/build/vibe-flow/setup.sh 2>&1 | grep -A5 "Migration"
 
 Expected output 포함:
 ```
-=== Migration: claude-builds → vibe-flow 감지 ===
+=== Migration: vibe-flow → vibe-flow 감지 ===
   감지된 extensions: meta-quality design-system deep-collaboration
   ✓ state 파일 생성: .claude/.vibe-flow.json
 ```
@@ -1442,7 +1442,7 @@ Expected: `["deep-collaboration", "design-system", "meta-quality"]`
 ```bash
 cd /Users/yss/개발/build/vibe-flow
 git add setup.sh
-git commit -m "feat(setup): claude-builds → vibe-flow 마이그레이션 자동 감지
+git commit -m "feat(setup): vibe-flow → vibe-flow 마이그레이션 자동 감지
 
 .claude/ 존재 + .vibe-flow.json 부재 시 트리거.
 시그니처 스킬 디렉토리(eval-skill, design-sync, pair, metrics, feedback)로
@@ -1497,7 +1497,7 @@ Expected: 16, 14
 
 ```bash
 rm -rf /tmp/vf-mig && mkdir /tmp/vf-mig && cd /tmp/vf-mig
-# claude-builds 시뮬: .claude/skills/ 평면 구조에 ext 시그니처 포함
+# vibe-flow 시뮬: .claude/skills/ 평면 구조에 ext 시그니처 포함
 mkdir -p .claude/skills/{brainstorm,commit,verify,eval-skill,pair}
 mkdir -p .claude/agents
 echo '{}' > .claude/agents.json   # 더미
@@ -1551,7 +1551,7 @@ done
 if [ -f "$CLAUDE_DIR/.vibe-flow.json" ]; then
   ok ".vibe-flow.json 존재"
 else
-  warn ".vibe-flow.json 없음 — claude-builds 출신이거나 초기 설치 미완료"
+  warn ".vibe-flow.json 없음 — vibe-flow 출신이거나 초기 설치 미완료"
 fi
 ```
 
@@ -1961,7 +1961,7 @@ cd /your/project && bash /path/to/vibe-flow/setup.sh
 
 - [docs/REFERENCE.md](docs/REFERENCE.md) — 전체 명령/규칙 레퍼런스
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — self-improving 루프 상세
-- [docs/MIGRATION.md](docs/MIGRATION.md) — claude-builds에서 마이그레이션
+- [docs/MIGRATION.md](docs/MIGRATION.md) — vibe-flow에서 마이그레이션
 - [docs/ONBOARDING.md](docs/ONBOARDING.md) — vibe coder 단계별 가이드
 - [extensions/](extensions/) — 각 extension 사용법
 
@@ -2452,9 +2452,9 @@ memory context fencing 다이어그램으로 설명."
 
 ```bash
 cat > docs/MIGRATION.md <<'MIGEOF'
-# claude-builds → vibe-flow 마이그레이션 가이드
+# vibe-flow → vibe-flow 마이그레이션 가이드
 
-claude-builds 사용자가 vibe-flow로 전환하는 절차.
+vibe-flow 사용자가 vibe-flow로 전환하는 절차.
 
 ## 한 줄 요약
 
@@ -2466,7 +2466,7 @@ cd /your/project && bash /Users/yss/개발/build/vibe-flow/setup.sh
 
 ## 변경된 점
 
-| 항목 | claude-builds | vibe-flow |
+| 항목 | vibe-flow | vibe-flow |
 |------|--------------|-----------|
 | 디렉토리 구조 | 평면 (skills/agents/hooks/rules/) | core/ + extensions/<name>/ 두 단계 |
 | 기본 설치 | 모든 23 스킬 | Core 14만 |
@@ -2511,7 +2511,7 @@ bash /Users/yss/개발/build/vibe-flow/setup.sh
 
 출력 예시:
 ```
-=== Migration: claude-builds → vibe-flow 감지 ===
+=== Migration: vibe-flow → vibe-flow 감지 ===
   감지된 extensions: meta-quality, design-system
   ✓ state 파일 생성: .claude/.vibe-flow.json
   → 감지된 extensions 재설치 진행...
@@ -2563,7 +2563,7 @@ bash .claude/validate.sh
 ### 1. 글로벌 심볼릭 갱신
 
 ```bash
-# 기존 dead 심볼릭 제거 (claude-builds → 옛 경로)
+# 기존 dead 심볼릭 제거 (vibe-flow → 옛 경로)
 for link in skills agents rules; do
   [ -L "$HOME/.claude/$link" ] && rm "$HOME/.claude/$link"
 done
@@ -2629,8 +2629,8 @@ bash /path/to/vibe-flow/setup.sh
 # git 롤백 (메이커)
 cd /Users/yss/개발/build/vibe-flow
 git reset --hard pre-vibe-flow-phase-1   # 사전 태그
-mv /Users/yss/개발/build/vibe-flow /Users/yss/개발/build/claude-builds
-git remote set-url origin https://github.com/SONGYEONGSIN/claude-builds.git
+mv /Users/yss/개발/build/vibe-flow /Users/yss/개발/build/vibe-flow
+git remote set-url origin https://github.com/SONGYEONGSIN/vibe-flow.git
 
 # 또는 사용자 측 단순 복구
 cp .claude/.bak.* / .claude/    # safe_copy로 백업된 사용자 수정본 복구
@@ -2644,7 +2644,7 @@ wc -l docs/MIGRATION.md
 
 ```bash
 git add docs/MIGRATION.md
-git commit -m "docs: MIGRATION.md — claude-builds → vibe-flow 가이드
+git commit -m "docs: MIGRATION.md — vibe-flow → vibe-flow 가이드
 
 자동 감지 메커니즘, 사용자 절차, 메이커 본인 글로벌 갱신, 트러블슈팅, 롤백."
 ```
@@ -2877,7 +2877,7 @@ cat > ROADMAP.md <<'ROADEOF'
 
 ## 완료
 
-### Phase 0 — claude-builds 시기 (1.0.0 이전)
+### Phase 0 — vibe-flow 시기 (1.0.0 이전)
 
 #### 디자인 시스템
 - [x] DESIGN.md 9섹션 포맷 지원 (VoltAgent/Google Stitch)
@@ -2911,7 +2911,7 @@ cat > ROADMAP.md <<'ROADEOF'
 
 ### Phase 1 — vibe-flow 리브랜드 + 경량화 (1.0.0)
 
-- [x] **Repo rename**: claude-builds → vibe-flow
+- [x] **Repo rename**: vibe-flow → vibe-flow
 - [x] **Core/Extensions 분리**: 14 스킬 core / 9 스킬 extensions / 모든 hook core
 - [x] **setup.sh CLI**: --extensions, --all, --list, --info, --remove, --check
 - [x] **State 파일** (.vibe-flow.json) 도입
@@ -2947,7 +2947,7 @@ cat > ROADMAP.md <<'ROADEOF'
   - .claude/* 상태 시각화
   - **Source 침범 0** — Layer 1/2 그대로
 
-- [ ] **TUI 옵션** (claude-builds-tui — 터미널 대시보드)
+- [ ] **TUI 옵션** (vibe-flow-tui — 터미널 대시보드)
 
 ### 🔵 Phase 4 — 거버넌스 + 확장
 
@@ -2999,7 +2999,7 @@ ROADEOF
 git add ROADMAP.md
 git commit -m "docs(roadmap): vibe-flow 1.0.0 기준 재구성
 
-Phase 0 (claude-builds 시기 완료) / Phase 1 (이번 vibe-flow rename, 완료) /
+Phase 0 (vibe-flow 시기 완료) / Phase 1 (이번 vibe-flow rename, 완료) /
 Phase 2 (UX 개선, 다음) / Phase 3 (UI 레이어) / Phase 4 (거버넌스) /
 P5 (토큰 예산)."
 ```
@@ -3025,9 +3025,9 @@ P5 (토큰 예산)."
 
 ## [1.0.0] - 2026-04-30 — vibe-flow
 
-### 변경 (Breaking — claude-builds 사용자에게)
+### 변경 (Breaking — vibe-flow 사용자에게)
 
-- **Repo rename**: `claude-builds` → `vibe-flow`. GitHub auto-redirect 작동.
+- **Repo rename**: `vibe-flow` → `vibe-flow`. GitHub auto-redirect 작동.
 - **디렉토리 구조**: 평면 → `core/` + `extensions/<name>/` 두 단계.
 - **setup.sh 기본 동작 변경**: 이전엔 모든 스킬 설치, 이제 Core 14만. `--all` 또는 `--extensions <name>`로 확장.
 - **State 파일 도입**: `.claude/.vibe-flow.json` — 설치 추적/갱신/제거.
@@ -3061,11 +3061,11 @@ P5 (토큰 예산)."
 - DESIGN.md 9섹션 포맷: VoltAgent/awesome-design-md
 ```
 
-기존 `## [1.0.0] - 2026-04-16` (claude-builds 시절) 항목은 `## [0.x.0] - 2026-04-16` 등으로 demote — vibe-flow 1.0.0이 새 첫 안정 릴리즈로 표시:
+기존 `## [1.0.0] - 2026-04-16` (vibe-flow 시절) 항목은 `## [0.x.0] - 2026-04-16` 등으로 demote — vibe-flow 1.0.0이 새 첫 안정 릴리즈로 표시:
 
 실제로 이 부분은 정책 결정. 권장:
-- **claude-builds 1.0.0 (2026-04-16)을 0.9.0으로 demote**: vibe-flow가 새 1.0.0
-- 또는 **유지**: 같은 line의 1.0.0 두 개 (claude-builds 시기 + vibe-flow 시기)
+- **vibe-flow 1.0.0 (2026-04-16)을 0.9.0으로 demote**: vibe-flow가 새 1.0.0
+- 또는 **유지**: 같은 line의 1.0.0 두 개 (vibe-flow 시기 + vibe-flow 시기)
 
 후자 안전. CHANGELOG는 역사 기록.
 
@@ -3075,12 +3075,12 @@ P5 (토큰 예산)."
 ### 변경 (Breaking)
 [위와 동일]
 
-## [1.0.0-claude-builds] - 2026-04-16
+## [1.0.0-vibe-flow] - 2026-04-16
 
-[claude-builds 시기 1.0.0 항목 그대로 보존 — 역사]
+[vibe-flow 시기 1.0.0 항목 그대로 보존 — 역사]
 ```
 
-또는 단순화 — 새 vibe-flow 항목만 추가하고 claude-builds 1.0.0은 그대로 두기. 컨텍스트가 명확하므로 후자도 OK.
+또는 단순화 — 새 vibe-flow 항목만 추가하고 vibe-flow 1.0.0은 그대로 두기. 컨텍스트가 명확하므로 후자도 OK.
 
 여기서는 후자 채택 (단순):
 
@@ -3090,10 +3090,10 @@ P5 (토큰 예산)."
 [위 변경 내용]
 
 ## [1.0.0] - 2026-04-16
-[claude-builds 시기 그대로]
+[vibe-flow 시기 그대로]
 ```
 
-claude-builds 1.0.0은 첫 안정, vibe-flow 1.1.0은 minor (rename은 breaking이지만 semver는 사용자 1명의 단일 환경 변경이라 minor로 처리).
+vibe-flow 1.0.0은 첫 안정, vibe-flow 1.1.0은 minor (rename은 breaking이지만 semver는 사용자 1명의 단일 환경 변경이라 minor로 처리).
 
 - [ ] **Step 2: 검증 + commit**
 
@@ -3119,13 +3119,13 @@ docs/* 4개 신설, extensions README 5개."
 - [ ] **Step 1: 잔여 출현 재검색**
 
 ```bash
-grep -rln "claude-builds" --exclude-dir=.git --exclude=CHANGELOG.md
+grep -rln "vibe-flow" --exclude-dir=.git --exclude=CHANGELOG.md
 ```
 
 만약 출현 있으면 (Task 4에서 sed 적용 안 됐을 수도):
 ```bash
-grep -rln "claude-builds" --exclude-dir=.git --exclude=CHANGELOG.md | while read f; do
-  sed -i.tmp 's/claude-builds/vibe-flow/g' "$f" && rm "${f}.tmp"
+grep -rln "vibe-flow" --exclude-dir=.git --exclude=CHANGELOG.md | while read f; do
+  sed -i.tmp 's/vibe-flow/vibe-flow/g' "$f" && rm "${f}.tmp"
 done
 ```
 
@@ -3209,7 +3209,7 @@ Expected:
 
 - [ ] **Step 1: 기존 사용 프로젝트 식별**
 
-(어떤 프로젝트가 claude-builds로 setup됐는지 사용자가 안내)
+(어떤 프로젝트가 vibe-flow로 setup됐는지 사용자가 안내)
 
 ```bash
 # 예시
@@ -3346,7 +3346,7 @@ git push -u origin feat/vibe-flow-phase-1
 gh pr create --title "feat: vibe-flow Phase 1 — rebrand + Core/Extensions 분리" --body "$(cat <<'PRBODY'
 ## Summary
 
-- claude-builds → vibe-flow 리브랜드
+- vibe-flow → vibe-flow 리브랜드
 - 23 스킬 / 12 에이전트 / 22 훅 / 6 규칙을 Core(14/10/22/6) + Extensions(9 스킬 / 2 에이전트, 5 카테고리)로 재구성
 - setup.sh CLI 신설 (--list/--info/--extensions/--all/--remove/--check)
 - state 파일 (.vibe-flow.json) 도입
@@ -3452,7 +3452,7 @@ Phase 1 완료 시:
 (작성자가 plan 완료 후 자체 점검)
 
 - [ ] **Spec coverage**: spec의 모든 섹션이 적어도 1 task에 매핑되는가?
-  - Section 1 (스킬 이름 정책 = 유지) → Task 4 (sed에 ~/.claude-builds → vibe-flow만, 스킬 이름 변경 없음)
+  - Section 1 (스킬 이름 정책 = 유지) → Task 4 (sed에 ~/.vibe-flow → vibe-flow만, 스킬 이름 변경 없음)
   - Section 2 (디렉토리 레이아웃) → Task 5-12
   - Section 3 (setup.sh CLI) → Task 13-19
   - Section 4 (마이그레이션) → Task 18, 32, 33
@@ -3461,6 +3461,6 @@ Phase 1 완료 시:
 
 - [ ] **Placeholder scan**: TBD/TODO/FIXME 없는지
 - [ ] **Type consistency**: extension 이름 (meta-quality 등) 모든 task에서 동일하게 표기
-- [ ] **Path consistency**: `/Users/yss/개발/build/vibe-flow` (Task 3 이후)와 `/Users/yss/개발/build/claude-builds` (Task 3 이전) 정확히 구분
+- [ ] **Path consistency**: `/Users/yss/개발/build/vibe-flow` (Task 3 이후)와 `/Users/yss/개발/build/vibe-flow` (Task 3 이전) 정확히 구분
 
 </content>

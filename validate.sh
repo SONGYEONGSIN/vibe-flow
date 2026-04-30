@@ -1,10 +1,10 @@
 #!/bin/bash
-# claude-builds validate.sh — setup 후 프로젝트 .claude/ 구조 검증
+# vibe-flow validate.sh — setup 후 프로젝트 .claude/ 구조 검증
 #
 # 사용법:
 #   cd /your/project
 #   bash .claude/validate.sh
-#   (또는 claude-builds 레포에서 직접: bash /path/to/claude-builds/validate.sh <project-dir>)
+#   (또는 vibe-flow 레포에서 직접: bash /path/to/vibe-flow/validate.sh <project-dir>)
 
 set -u
 
@@ -19,7 +19,7 @@ ok()   { echo "  ✓ $1";   PASS=$((PASS+1)); }
 err()  { echo "  ✗ $1";   FAIL=$((FAIL+1)); }
 warn() { echo "  ⚠ $1";   WARN=$((WARN+1)); }
 
-echo "=== claude-builds validate ==="
+echo "=== vibe-flow validate ==="
 echo "Target: $TARGET_DIR"
 echo ""
 

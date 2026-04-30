@@ -1,11 +1,11 @@
 #!/bin/bash
-# claude-builds setup script
+# vibe-flow setup script
 # 새 프로젝트에 Claude Code 설정을 적용한다
 #
 # 사용법:
 #   cd /your/project
-#   bash /path/to/claude-builds/setup.sh
-#   bash /path/to/claude-builds/setup.sh --with-orchestrators
+#   bash /path/to/vibe-flow/setup.sh
+#   bash /path/to/vibe-flow/setup.sh --with-orchestrators
 
 set -e
 
@@ -78,7 +78,7 @@ else
   TOTAL_STEPS=7
 fi
 
-echo "=== claude-builds setup ==="
+echo "=== vibe-flow setup ==="
 echo "Project: $PROJECT_NAME"
 echo "Target:  $PROJECT_DIR"
 [ "$WITH_ORCHESTRATORS" = true ] && echo "Mode:    with orchestrators"
