@@ -2,6 +2,13 @@
 
 > vibe coder의 작업 흐름 — 초보부터 상급자까지, mechanical enforcement로
 
+[![CI](https://github.com/SONGYEONGSIN/vibe-flow/actions/workflows/eval-regression.yml/badge.svg)](https://github.com/SONGYEONGSIN/vibe-flow/actions)
+[![Core](https://img.shields.io/badge/Core-19_skills-blue)](docs/REFERENCE.md)
+[![Extensions](https://img.shields.io/badge/Extensions-9_skills-purple)](extensions/)
+[![Hooks](https://img.shields.io/badge/Hooks-23-orange)](docs/REFERENCE.md)
+[![Agents](https://img.shields.io/badge/Agents-12-green)](docs/REFERENCE.md)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+
 ## ⚡ 30초 시작
 
 ```bash

@@ -2,14 +2,34 @@
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-04-30 — Phase 2 + 4 + P5 (UX + 메이커 도구화)
+
 ### 추가
-- **`/onboard` 스킬** — Phase 2 첫 항목. 사용자 단계 자가진단(Stage 0 신규 ~ Stage 4 자가 진화) + 단계별 다음 행동 추천. 데이터 우선 (events.jsonl + .vibe-flow.json + memory/), 부족 시 자가보고 3 질문 폴백. 24h cache (--refresh로 무효화). docs/ONBOARDING.md(정적)를 보완하는 daily 인터랙티브 도구.
-- **`/menu` 스킬** — Phase 2 두 번째 항목. 24 스킬 카테고리별 발견성 + events.jsonl 사용 분포 + onboard-state.json 기반 Stage 추천 강조. 필터: `/menu core|extensions|<category>`. /onboard와 보완 (좁은 학습 경로 vs 넓은 카탈로그).
-- **`/inbox` 스킬** — Phase 2 세 번째 항목. 12 에이전트 inbox + broadcast + debates 통합 뷰. message-bus.sh CLI 호환 (read/archive는 그대로 위임). Active/Quiet 분류 + 최근 unread 미리보기 3. 필터: `/inbox <agent>|--unread-only|--broadcast`.
-- **Statusline 강화** — Phase 2 statusline 3 항목 통합. `scripts/statusline.sh` 신설 + `settings.template.json`의 `statusLine` 항목. verify 결과 / 마지막 hook 결과 / 활성 plan 진행도를 한 줄로 합성 (`✓v · 🔧✓ · 📋N/M`). `VIBE_FLOW_STATUSLINE=off` 비활성 옵션, `VIBE_FLOW_STATUSLINE_VERBOSE=1` 자세한 형태. 단위 테스트 5 케이스 (10/10 PASS).
-- **`/budget` 스킬 + budget-warn hook (P5)** — 호출 카운트 기반 비용 예산 프레임워크. 5개 무거운 스킬(/pair, /discuss, /evolve, /design-sync, /retrospective) 일일/주간 한도 추적 + sparkline 추이. `.claude/budget.json` 사용자 편집 + `/budget set <skill> <daily> <weekly>` 명령. 정보만 (mechanical enforcement X). budget-warn.sh Notification hook이 80%+ 사용 시 비차단 경고 (15분 디바운스). setup.sh가 기본값 budget.json 자동 생성.
-- **`/telemetry` 스킬 (Phase 4 1번째)** — 본인 1 머신 30일 events.jsonl 분석. Top 5 + Active + Stale + 개선 후보 + 추세 (sparkline). 메이커 빌드 개선 결정 + 사용자 자가 진단. 4 모드: `all`/`skills`/`trends`/`--json`. jq 1패스 group_by로 27 스킬 카운트 캐시. Extension 미설치 식별 + 개선 후보 메시지 분기.
-- **eval 회귀 CI 통합 (Phase 4 2번째)** — `.github/workflows/eval-regression.yml` + `scripts/eval-regression-check.sh` 신설. PR + push to main 시 SKILL.md / agents.md frontmatter + evals.json 구조 + agents.json ↔ files 일치 + 카운트 자동 검증. LLM 호출 없음 (CI 비용 0). 두 스키마 (Phase 0/1 v1 / Phase 2+ v2) 모두 허용. 메이커 로컬에서도 동일 스크립트 호출 가능.
+
+#### Phase 2 — UX 개선
+- **`/onboard` 스킬** — 사용자 단계 자가진단(Stage 0 신규 ~ Stage 4 자가 진화) + 단계별 다음 행동 추천. 데이터 우선 (events.jsonl + .vibe-flow.json + memory/), 부족 시 자가보고 3 질문 폴백. 24h cache. (PR #2)
+- **`/menu` 스킬** — 24 스킬 카테고리별 발견성 + events.jsonl 사용 분포 + onboard-state.json 기반 Stage 추천. 필터: `/menu core|extensions|<category>`. (PR #3)
+- **`/inbox` 스킬** — 12 에이전트 inbox + broadcast + debates 통합 뷰. message-bus.sh CLI 호환 (read/archive 위임). 필터: `<agent>|--unread-only|--broadcast`. (PR #4)
+- **Statusline 강화** — `scripts/statusline.sh` + `settings.template.json` `statusLine`. verify / 마지막 hook / 활성 plan 합성 (`✓v · 🔧✓ · 📋N/M`). `VIBE_FLOW_STATUSLINE=off|VERBOSE=1`. (PR #5)
+
+#### P5 — 비용 예산
+- **`/budget` 스킬 + `budget-warn` hook** — 호출 카운트 기반 (5 무거운 스킬). `.claude/budget.json` + `/budget set` + sparkline 추이. budget-warn Notification hook 80%+ 비차단 경고 (15분 디바운스). (PR #6)
+
+#### Phase 4 — 메이커 도구화
+- **`/telemetry` 스킬** — 본인 1 머신 30일 events.jsonl 분석. Top 5 + Active + Stale + 개선 후보 + 추세. 4 모드. (PR #7)
+- **eval 회귀 CI** — `.github/workflows/eval-regression.yml` + `scripts/eval-regression-check.sh`. SKILL.md / agents.md / evals.json 구조 + agents.json 일치 자동 검증. LLM 호출 0. (PR #8)
+- **README 배지 + 자동 갱신** — shields.io 배지 (CI / Core / Ext / Hooks / Agents / License) + `scripts/sync-readme-badges.sh` 카운트 갱신. (본 PR)
+
+### 변경
+- README 상단에 메트릭 배지 6개 추가
+- Core 17 → 19 (`/onboard` `/menu` `/inbox` `/budget` `/telemetry`)
+- Hooks 22 → 23 (`budget-warn.sh`)
+- 신규 명령: `/onboard`, `/menu`, `/inbox`, `/budget`, `/telemetry`, statusLine 활성
+
+### 호환
+- ✓ 기존 17 Core + 9 Extension 스킬 모두 유지
+- ✓ settings.local.json 호환 (statusLine + Notification 추가만)
+- ✓ vibe-flow 1.1.0에서 `bash setup.sh`로 자동 마이그레이션
 
 ## [1.1.0] - 2026-04-30 — vibe-flow rename + Core/Extensions
 
