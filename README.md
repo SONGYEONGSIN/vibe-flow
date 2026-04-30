@@ -10,7 +10,7 @@ cd /your/project
 bash /path/to/vibe-flow/setup.sh
 ```
 
-→ Core 16 스킬 + 22 훅 + 10 에이전트 + 6 규칙 즉시 활성화
+→ Core 17 스킬 + 22 훅 + 10 에이전트 + 6 규칙 즉시 활성화
 
 ## 🎯 첫 사이클 (5분)
 
@@ -24,7 +24,7 @@ claude
 > /finish                                # PR/머지 결정 트리
 ```
 
-## 📦 Core 16 — 기본 설치
+## 📦 Core 17 — 기본 설치
 
 | 카테고리 | 스킬 |
 |---------|------|
@@ -32,7 +32,7 @@ claude
 | 작업 | `/scaffold` `/test` `/worktree` |
 | 검증 | `/verify` `/security` |
 | Git | `/commit` `/review-pr` `/receive-review` |
-| 메타 | `/status` `/learn` `/onboard` `/menu` |
+| 메타 | `/status` `/learn` `/onboard` `/menu` `/inbox` |
 
 자세한 명령 → [docs/REFERENCE.md](docs/REFERENCE.md)
 

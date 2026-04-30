@@ -1,0 +1,95 @@
+{
+  "skill": "inbox",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "empty-inbox",
+      "description": "모든 에이전트 0 unread — Quiet 12, broadcast/debates 0",
+      "setup": {
+        "files": {
+          ".claude/agents.json": "{\"agents\":[\"comparator\",\"designer\",\"developer\",\"feedback\",\"moderator\",\"planner\",\"qa\",\"retrospective\",\"security\",\"validator\"]}",
+          ".claude/messages/inbox/<empty>": true
+        }
+      },
+      "input": "/inbox",
+      "expected": {
+        "active_count": 0,
+        "quiet_count_min": 10,
+        "shows_broadcast_zero": true
+      }
+    },
+    {
+      "id": "mixed-activity",
+      "description": "developer 3 unread, validator 1 unread → Active 2 + Quiet 8",
+      "setup": {
+        "files": {
+          ".claude/messages/inbox/developer/m1.json": "{\"type\":\"request\",\"from\":\"qa\",\"to\":\"developer\",\"subject\":\"코드 리뷰 요청\",\"ts\":\"<-1d>\",\"status\":\"unread\",\"msg_id\":\"m1\"}",
+          ".claude/messages/inbox/developer/m2.json": "{\"type\":\"alert\",\"from\":\"security\",\"to\":\"developer\",\"subject\":\"OWASP 위반 발견\",\"ts\":\"<-2h>\",\"status\":\"unread\",\"msg_id\":\"m2\"}",
+          ".claude/messages/inbox/developer/m3.json": "{\"type\":\"reply\",\"from\":\"moderator\",\"to\":\"developer\",\"subject\":\"토론 verdict\",\"ts\":\"<-5h>\",\"status\":\"unread\",\"msg_id\":\"m3\"}",
+          ".claude/messages/inbox/validator/v1.json": "{\"type\":\"request\",\"from\":\"developer\",\"to\":\"validator\",\"subject\":\"pair iter 검토\",\"ts\":\"<-30m>\",\"status\":\"unread\",\"msg_id\":\"v1\"}"
+        }
+      },
+      "input": "/inbox",
+      "expected": {
+        "active_count": 2,
+        "shows_active_agents": ["developer", "validator"],
+        "developer_unread": 3,
+        "preview_count_per_active_max": 3,
+        "shows_relative_time": true
+      }
+    },
+    {
+      "id": "single-agent-list",
+      "description": "/inbox developer — message-bus list 형태로 풀 리스트",
+      "setup": {
+        "files": {
+          ".claude/messages/inbox/developer/m1.json": "{\"type\":\"request\",\"from\":\"qa\",\"to\":\"developer\",\"subject\":\"리뷰 요청\",\"ts\":\"<-1h>\",\"status\":\"read\",\"msg_id\":\"m1\"}",
+          ".claude/messages/inbox/developer/m2.json": "{\"type\":\"alert\",\"from\":\"security\",\"to\":\"developer\",\"subject\":\"alert\",\"ts\":\"<-30m>\",\"status\":\"unread\",\"msg_id\":\"m2\"}",
+          ".claude/hooks/message-bus.sh": "exists"
+        }
+      },
+      "input": "/inbox developer",
+      "expected": {
+        "delegates_to": "message-bus.sh list developer",
+        "shows_both_messages": true
+      }
+    },
+    {
+      "id": "unread-only-filter",
+      "description": "--unread-only — Active 섹션만, broadcast/debates 없음",
+      "setup": {
+        "files": {
+          ".claude/messages/inbox/developer/m1.json": "{\"status\":\"unread\",\"subject\":\"x\",\"from\":\"qa\",\"ts\":\"<-1h>\",\"msg_id\":\"m1\"}",
+          ".claude/messages/inbox/qa/m2.json": "{\"status\":\"read\",\"subject\":\"y\",\"from\":\"developer\",\"ts\":\"<-1h>\",\"msg_id\":\"m2\"}"
+        }
+      },
+      "input": "/inbox --unread-only",
+      "expected": {
+        "shows_section": "Unread Only",
+        "missing_section": "Quiet",
+        "missing_section_2": "Broadcast",
+        "shows_agents_with_unread": ["developer"],
+        "missing_agents_with_no_unread": ["qa"]
+      }
+    },
+    {
+      "id": "broadcast-filter",
+      "description": "--broadcast — broadcast + debates 섹션만",
+      "setup": {
+        "files": {
+          ".claude/messages/broadcast/b1.json": "{\"type\":\"info\",\"from\":\"system\",\"subject\":\"공지\",\"ts\":\"<-1d>\",\"msg_id\":\"b1\"}",
+          ".claude/messages/debates/d-042.json": "{\"debate_id\":\"d-042\",\"topic\":\"API 설계\",\"verdict_type\":\"needs_human\",\"rounds\":3}"
+        }
+      },
+      "input": "/inbox --broadcast",
+      "expected": {
+        "shows_section": "Broadcast",
+        "missing_section": "Active",
+        "missing_section_2": "Quiet",
+        "broadcast_count": 1,
+        "debates_count": 1,
+        "shows_debate_verdict": "needs_human"
+      }
+    }
+  ]
+}
