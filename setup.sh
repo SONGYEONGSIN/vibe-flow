@@ -98,9 +98,9 @@ done
 # 디자인 레퍼런스 폴더 생성
 mkdir -p "$PROJECT_DIR/design-ref"
 # 에이전트 목록 단일 소스 배포 (agents.json)
-safe_copy "$SCRIPT_DIR/agents.json" "$PROJECT_DIR/.claude/agents.json"
+safe_copy "$SCRIPT_DIR/core/agents.json" "$PROJECT_DIR/.claude/agents.json"
 # 메시지 버스 디렉토리
-AGENTS_LIST=$(jq -r '.agents[]' "$SCRIPT_DIR/agents.json" | tr '\n' ' ')
+AGENTS_LIST=$(jq -r '.agents[]' "$SCRIPT_DIR/core/agents.json" | tr '\n' ' ')
 mkdir -p "$PROJECT_DIR/.claude/messages"/{archive,debates,broadcast}
 for agent in $AGENTS_LIST; do
   mkdir -p "$PROJECT_DIR/.claude/messages/inbox/$agent"
@@ -108,20 +108,20 @@ done
 
 # Agents 복사
 echo "[1/$TOTAL_STEPS] Agents..."
-for src in "$SCRIPT_DIR/agents/"*.md; do
+for src in "$SCRIPT_DIR/core/agents/"*.md; do
   safe_copy "$src" "$PROJECT_DIR/.claude/agents/$(basename "$src")"
 done
 
 # Hooks 복사 + 실행 권한
 echo "[2/$TOTAL_STEPS] Hooks..."
-for src in "$SCRIPT_DIR/hooks/"*.sh; do
+for src in "$SCRIPT_DIR/core/hooks/"*.sh; do
   safe_copy "$src" "$PROJECT_DIR/.claude/hooks/$(basename "$src")"
 done
 chmod +x "$PROJECT_DIR/.claude/hooks/"*.sh
 
 # Skills 복사 (하위 디렉토리 포함)
 echo "[3/$TOTAL_STEPS] Skills..."
-for skill_dir in "$SCRIPT_DIR/skills"/*/; do
+for skill_dir in "$SCRIPT_DIR/core/skills"/*/; do
   skill_name="$(basename "$skill_dir")"
   mkdir -p "$PROJECT_DIR/.claude/skills/$skill_name"
   safe_copy "$skill_dir/SKILL.md" "$PROJECT_DIR/.claude/skills/$skill_name/SKILL.md"
@@ -136,7 +136,7 @@ done
 
 # Rules 복사
 echo "[4/$TOTAL_STEPS] Rules..."
-for src in "$SCRIPT_DIR/rules/"*.md; do
+for src in "$SCRIPT_DIR/core/rules/"*.md; do
   safe_copy "$src" "$PROJECT_DIR/.claude/rules/$(basename "$src")"
 done
 
