@@ -81,6 +81,62 @@ while [ $# -gt 0 ]; do
   shift
 done
 
+# 사용 가능한 extensions 목록 (metadata)
+get_extensions_list() {
+  echo "meta-quality"
+  echo "design-system"
+  echo "deep-collaboration"
+  echo "learning-loop"
+  echo "code-feedback"
+}
+
+get_extension_summary() {
+  case "$1" in
+    meta-quality)        echo "스킬 자체 품질 측정 + 자가 진화 (/eval, /evolve)" ;;
+    design-system)       echo "참고 디자인 → 코드 정량 매칭 (/design-sync, /design-audit)" ;;
+    deep-collaboration)  echo "Builder/Validator 페어 + 토론 (/pair, /discuss)" ;;
+    learning-loop)       echo "장기 메트릭 + 회고 (/metrics, /retrospective)" ;;
+    code-feedback)       echo "git diff 기반 품질 분석 (/feedback)" ;;
+    *) echo "(알 수 없는 extension)" ;;
+  esac
+}
+
+# --list-extensions 처리 (조기 종료)
+if [ "$LIST_EXTENSIONS" = true ]; then
+  echo "=== vibe-flow Extensions ==="
+  echo ""
+  for ext in $(get_extensions_list); do
+    printf "  %-22s %s\n" "$ext" "$(get_extension_summary "$ext")"
+  done
+  echo ""
+  echo "설치: bash setup.sh --extensions <name>[,<name2>...]"
+  echo "상세: bash setup.sh --info <name>"
+  exit 0
+fi
+
+# --info <name> 처리 (조기 종료)
+if [ -n "$INFO_EXT" ]; then
+  README="$SCRIPT_DIR/extensions/$INFO_EXT/README.md"
+  if [ -f "$README" ]; then
+    cat "$README"
+  else
+    echo "ERROR: extension '$INFO_EXT' 없음" >&2
+    echo "사용 가능: $(get_extensions_list | tr '\n' ' ')" >&2
+    exit 1
+  fi
+  exit 0
+fi
+
+# --check 처리 (validate.sh 호출)
+if [ "$CHECK_ONLY" = true ]; then
+  if [ -f "$PROJECT_DIR/.claude/validate.sh" ]; then
+    exec bash "$PROJECT_DIR/.claude/validate.sh"
+  else
+    echo "ERROR: .claude/validate.sh 없음 — 먼저 setup.sh 실행" >&2
+    exit 1
+  fi
+fi
+
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
 # 사용자 수정본 보존: 대상 파일이 소스와 다르면 .bak.<timestamp>로 백업 후 덮어씀
