@@ -239,6 +239,42 @@ if [ -n "$REMOVE_EXT" ]; then
   exit $?
 fi
 
+# 기존 평면 .claude/ 구조 → vibe-flow state 기반 마이그레이션 감지
+# .claude/ 존재하지만 .vibe-flow.json 없으면 마이그레이션
+detect_and_migrate() {
+  local claude_dir="$PROJECT_DIR/.claude"
+  local state_file="$claude_dir/.vibe-flow.json"
+
+  [ ! -d "$claude_dir" ] && return 0
+  [ -f "$state_file" ] && return 0
+
+  echo ""
+  echo "=== Migration: 평면 .claude/ → vibe-flow state 기반 감지 ==="
+
+  local detected=()
+  [ -d "$claude_dir/skills/eval-skill" ] && detected+=("meta-quality")
+  [ -d "$claude_dir/skills/design-sync" ] && detected+=("design-system")
+  [ -d "$claude_dir/skills/pair" ] && detected+=("deep-collaboration")
+  [ -d "$claude_dir/skills/metrics" ] && detected+=("learning-loop")
+  [ -d "$claude_dir/skills/feedback" ] && detected+=("code-feedback")
+
+  if [ ${#detected[@]} -eq 0 ]; then
+    echo "  감지된 extensions: 없음 (Core only로 처리)"
+  else
+    echo "  감지된 extensions: ${detected[*]}"
+  fi
+
+  ensure_state_file
+
+  if [ ${#detected[@]} -gt 0 ]; then
+    EXTENSIONS_TO_INSTALL=$(IFS=,; echo "${detected[*]}")
+  fi
+
+  echo "  ✓ state 파일 생성: .claude/.vibe-flow.json"
+  echo "  → 감지된 extensions 재설치 진행..."
+  echo ""
+}
+
 install_extension() {
   local ext="$1"
   local src="$SCRIPT_DIR/extensions/$ext"
@@ -300,6 +336,9 @@ echo "Project: $PROJECT_NAME"
 echo "Target:  $PROJECT_DIR"
 [ "$WITH_ORCHESTRATORS" = true ] && echo "Mode:    with orchestrators"
 echo ""
+
+# 평면 .claude/ 출신 마이그레이션 감지 (mkdir 전에 호출)
+detect_and_migrate
 
 # .claude 디렉토리 생성
 mkdir -p "$PROJECT_DIR/.claude"/{agents,hooks,rules,skills,session-logs,memory,metrics,plans}
