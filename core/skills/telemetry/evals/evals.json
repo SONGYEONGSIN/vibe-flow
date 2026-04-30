@@ -1,0 +1,85 @@
+{
+  "skill": "telemetry",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "empty-events",
+      "description": "events.jsonl 없음 — 안내 메시지 + exit 0",
+      "setup": {
+        "files": {
+          ".claude/events.jsonl": null
+        }
+      },
+      "input": "/telemetry",
+      "expected": {
+        "shows_message": "events.jsonl 없음",
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "top-5-correct",
+      "description": "5 스킬 사용 카운트 — Top 5 정확 순서",
+      "setup": {
+        "events_distribution_30d": {
+          "commit_created": 100,
+          "verify_complete": 80,
+          "brainstorm": 50,
+          "test": 30,
+          "menu": 20,
+          "status": 10
+        }
+      },
+      "input": "/telemetry",
+      "expected": {
+        "top_5_order": ["/commit", "/verify", "/brainstorm", "/test", "/menu"],
+        "top_1_count": 100
+      }
+    },
+    {
+      "id": "stale-detection",
+      "description": "/security 30일 0회 → Stale + 개선 후보 'deprecate 검토'",
+      "setup": {
+        "events_distribution_30d": {
+          "commit_created": 50
+        }
+      },
+      "input": "/telemetry",
+      "expected": {
+        "stale_contains": "/security",
+        "improvements_contains": "/security 미사용 — 사용 시나리오 발견 또는 deprecate 검토"
+      }
+    },
+    {
+      "id": "trend-increasing",
+      "description": "마지막 7일 카운트 > 첫 23일 평균 → ↗ 증가",
+      "setup": {
+        "events_distribution_30d": {
+          "commit_created": 100
+        },
+        "events_distribution_7d_within": {
+          "commit_created": 50
+        }
+      },
+      "input": "/telemetry trends",
+      "expected": {
+        "shows_increasing_arrow": "↗ 증가",
+        "daily_avg_7d_higher": true
+      }
+    },
+    {
+      "id": "json-output",
+      "description": "/telemetry --json — 유효 JSON + 필수 키",
+      "setup": {
+        "events_distribution_30d": {
+          "commit_created": 50,
+          "verify_complete": 30
+        }
+      },
+      "input": "/telemetry --json",
+      "expected": {
+        "valid_json": true,
+        "has_keys": ["analyzed_events", "period_days", "top_5", "active_7d", "stale_30d", "improvements", "trends"]
+      }
+    }
+  ]
+}
