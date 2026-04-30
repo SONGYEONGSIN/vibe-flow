@@ -1,10 +1,10 @@
 #!/bin/bash
-# claude-builds validate.sh — setup 후 프로젝트 .claude/ 구조 검증
+# vibe-flow validate.sh — setup 후 프로젝트 .claude/ 구조 검증
 #
 # 사용법:
 #   cd /your/project
 #   bash .claude/validate.sh
-#   (또는 claude-builds 레포에서 직접: bash /path/to/claude-builds/validate.sh <project-dir>)
+#   (또는 vibe-flow 레포에서 직접: bash /path/to/vibe-flow/validate.sh <project-dir>)
 
 set -u
 
@@ -19,12 +19,12 @@ ok()   { echo "  ✓ $1";   PASS=$((PASS+1)); }
 err()  { echo "  ✗ $1";   FAIL=$((FAIL+1)); }
 warn() { echo "  ⚠ $1";   WARN=$((WARN+1)); }
 
-echo "=== claude-builds validate ==="
+echo "=== vibe-flow validate ==="
 echo "Target: $TARGET_DIR"
 echo ""
 
 # 1. .claude 디렉토리 구조
-echo "[1/9] .claude 디렉토리 구조"
+echo "[1/10] .claude 디렉토리 구조"
 [ -d "$CLAUDE_DIR" ] && ok ".claude/ 존재" || { err ".claude/ 없음 — setup.sh 실행 필요"; exit 1; }
 for sub in agents hooks rules skills messages scripts plans memory; do
   [ -d "$CLAUDE_DIR/$sub" ] && ok "$sub/ 존재" || err "$sub/ 없음"
@@ -33,6 +33,12 @@ done
 for sub in memory/brainstorms memory/reviews; do
   [ -d "$CLAUDE_DIR/$sub" ] && ok "$sub/ 존재" || warn "$sub/ 없음 — 첫 사용 시 자동 생성됨"
 done
+# state 파일 존재 확인
+if [ -f "$CLAUDE_DIR/.vibe-flow.json" ]; then
+  ok ".vibe-flow.json 존재"
+else
+  warn ".vibe-flow.json 없음 — 평면 .claude/ 출신이거나 초기 설치 미완료"
+fi
 # Instinct store 확인 (선택적)
 if [ -f "$CLAUDE_DIR/scripts/store.js" ]; then
   if [ -d "$CLAUDE_DIR/scripts/node_modules/better-sqlite3" ]; then
@@ -44,7 +50,7 @@ fi
 
 # 2. 필수 의존 도구
 echo ""
-echo "[2/9] 필수 도구"
+echo "[2/10] 필수 도구"
 for cmd in jq git node npx; do
   if command -v "$cmd" &>/dev/null; then
     ok "$cmd 설치됨 ($(command -v "$cmd"))"
@@ -53,9 +59,47 @@ for cmd in jq git node npx; do
   fi
 done
 
-# 3. 훅 파일 존재 + 실행 권한
+# 3. State file 무결성
 echo ""
-echo "[3/9] 훅 파일 검증"
+echo "[3/10] State file (.vibe-flow.json)"
+STATE="$CLAUDE_DIR/.vibe-flow.json"
+if [ -f "$STATE" ]; then
+  if jq empty "$STATE" 2>/dev/null; then
+    ok ".vibe-flow.json 유효 JSON"
+
+    SCHEMA_FAIL=0
+    for field in vibe_flow_version installed_at extensions; do
+      if ! jq -e --arg f "$field" 'has($f)' "$STATE" >/dev/null 2>&1; then
+        err "필수 필드 누락: $field"
+        SCHEMA_FAIL=$((SCHEMA_FAIL+1))
+      fi
+    done
+    [ "$SCHEMA_FAIL" = 0 ] && ok "필수 필드 (vibe_flow_version, installed_at, extensions) 존재"
+
+    EXT_FAIL=0
+    while IFS= read -r line; do
+      ext=$(echo "$line" | cut -d'|' -f1)
+      file=$(echo "$line" | cut -d'|' -f2)
+      full="$TARGET_DIR/$file"
+      if [ ! -e "$full" ]; then
+        err "ext '$ext' 파일 누락: $file"
+        EXT_FAIL=$((EXT_FAIL+1))
+      fi
+    done < <(jq -r '.extensions | to_entries[] | .key as $k | .value.files[] | "\($k)|\(.)"' "$STATE" 2>/dev/null)
+    [ "$EXT_FAIL" = 0 ] && ok "모든 extension 파일 존재"
+
+    EXT_COUNT=$(jq '.extensions | length' "$STATE")
+    ok "설치된 extensions: ${EXT_COUNT}개"
+  else
+    err ".vibe-flow.json JSON 파싱 실패"
+  fi
+else
+  warn ".vibe-flow.json 없음 — 마이그레이션 또는 첫 setup 필요"
+fi
+
+# 4. 훅 파일 존재 + 실행 권한
+echo ""
+echo "[4/10] 훅 파일 검증"
 if [ -d "$CLAUDE_DIR/hooks" ]; then
   # 필수 훅 파일 목록
   REQUIRED_HOOKS="_common command-guard smart-guard prettier-format eslint-fix typecheck test-runner metrics-collector pattern-check design-lint debate-trigger message-bus readme-sync session-log session-review uncommitted-warn tool-failure-handler notify pre-compact tdd-enforce context-prune model-suggest"
@@ -82,7 +126,7 @@ fi
 
 # 4. agents.json 일관성
 echo ""
-echo "[4/9] agents.json 일관성"
+echo "[5/10] agents.json 일관성"
 AGENTS_JSON="$CLAUDE_DIR/agents.json"
 if [ -f "$AGENTS_JSON" ]; then
   EXPECTED=$(jq -r '.agents[]' "$AGENTS_JSON" 2>/dev/null | tr -d '\r')
@@ -103,9 +147,9 @@ else
   warn "agents.json 없음 (하위 호환 모드로 동작)"
 fi
 
-# 5. settings.local.json 훅 경로
+# 5. settings.local.json 훅 경로 + JSON 유효성
 echo ""
-echo "[5/9] settings.local.json 훅 경로"
+echo "[6/10] settings.local.json 훅 경로 + JSON 유효성"
 SETTINGS="$CLAUDE_DIR/settings.local.json"
 if [ -f "$SETTINGS" ]; then
   if grep -q "\"command\".*\.claude/hooks/" "$SETTINGS" 2>/dev/null; then
@@ -117,13 +161,31 @@ if [ -f "$SETTINGS" ]; then
   else
     warn "settings.local.json에 훅 설정 없음"
   fi
+
+  # JSON 유효성 + hook 경로 실행 가능성 (이전 stage 8 → 통합)
+  if command -v jq &>/dev/null; then
+    if jq empty "$SETTINGS" 2>/dev/null; then
+      ok "settings.local.json 유효한 JSON"
+      BROKEN_PATHS=0
+      for cmd in $(jq -r '.. | .command? // empty' "$SETTINGS" 2>/dev/null); do
+        case "$cmd" in
+          */hooks/*.sh)
+            [ -x "$cmd" ] || { err "hook 경로 무효: $cmd"; BROKEN_PATHS=$((BROKEN_PATHS+1)); }
+            ;;
+        esac
+      done
+      [ "$BROKEN_PATHS" = 0 ] && ok "settings.local.json의 모든 hook 경로 실행 가능"
+    else
+      err "settings.local.json JSON 파싱 실패"
+    fi
+  fi
 else
   warn "settings.local.json 없음"
 fi
 
 # 6. 훅 bash 구문 검증
 echo ""
-echo "[6/9] 훅 bash 구문 검증"
+echo "[7/10] 훅 bash 구문 검증"
 if [ -d "$CLAUDE_DIR/hooks" ]; then
   SYNTAX_FAIL=0
   for hook in "$CLAUDE_DIR/hooks/"*.sh; do
@@ -138,7 +200,7 @@ fi
 
 # 7. agent / rule / skill frontmatter
 echo ""
-echo "[7/9] frontmatter 검증"
+echo "[8/10] frontmatter 검증"
 FRONTMATTER_FAIL=0
 
 # Agents: name + description + model 필수
@@ -168,30 +230,44 @@ fi
 
 [ "$FRONTMATTER_FAIL" = 0 ] && ok "agent/skill frontmatter 정상"
 
-# 8. settings.local.json JSON 유효성
+# 9. State ↔ Filesystem reconciliation
 echo ""
-echo "[8/9] settings.local.json JSON 유효성"
-if [ -f "$SETTINGS" ] && command -v jq &>/dev/null; then
-  if jq empty "$SETTINGS" 2>/dev/null; then
-    ok "settings.local.json 유효한 JSON"
-    # hook 경로가 실제 존재하는지
-    BROKEN_PATHS=0
-    for cmd in $(jq -r '.. | .command? // empty' "$SETTINGS" 2>/dev/null); do
-      case "$cmd" in
-        */hooks/*.sh)
-          [ -x "$cmd" ] || { err "hook 경로 무효: $cmd"; BROKEN_PATHS=$((BROKEN_PATHS+1)); }
-          ;;
-      esac
-    done
-    [ "$BROKEN_PATHS" = 0 ] && ok "settings.local.json의 모든 hook 경로 실행 가능"
-  else
-    err "settings.local.json JSON 파싱 실패"
-  fi
+echo "[9/10] State ↔ Filesystem reconciliation"
+if [ -f "$STATE" ]; then
+  ok "state 명시 파일 존재 (stage 3 결과)"
+
+  # orphan 검출 — extension 시그니처 디렉토리가 .claude/skills/에 있는데 state에는 없음
+  CORE_SKILLS="brainstorm plan finish release scaffold test worktree verify security commit review-pr receive-review status learn"
+  EXT_SIGNATURES="eval-skill evolve design-sync design-audit pair discuss metrics retrospective feedback"
+
+  ORPHAN_COUNT=0
+  for skill_dir in "$CLAUDE_DIR/skills"/*/; do
+    [ -d "$skill_dir" ] || continue
+    skill="$(basename "$skill_dir")"
+
+    # Core skill?
+    if echo "$CORE_SKILLS" | grep -qw "$skill"; then continue; fi
+
+    # state.extensions에 매칭?
+    if jq -r '.extensions | to_entries[] | .value.files[]' "$STATE" 2>/dev/null \
+        | grep -q "skills/$skill/"; then
+      continue
+    fi
+
+    # Orphan — Extension signature 일치하는데 state에 없음
+    if echo "$EXT_SIGNATURES" | grep -qw "$skill"; then
+      warn "orphan ext skill: $skill (state에 없음)"
+      ORPHAN_COUNT=$((ORPHAN_COUNT+1))
+    fi
+  done
+  [ "$ORPHAN_COUNT" = 0 ] && ok "orphan 파일 없음"
+else
+  warn "state 없음 — reconciliation 건너뜀"
 fi
 
 # 9. design-tokens.ts 검증 (선택적 — 파일이 있을 때만)
 echo ""
-echo "[9/9] design-tokens.ts 검증 (선택)"
+echo "[10/10] design-tokens.ts 검증 (선택)"
 TOKENS_FILE=""
 for cand in "$TARGET_DIR/src/lib/design-tokens.ts" "$TARGET_DIR/src/lib/design-tokens.tsx" "$TARGET_DIR/lib/design-tokens.ts"; do
   [ -f "$cand" ] && TOKENS_FILE="$cand" && break
@@ -207,6 +283,19 @@ else
   # colors 객체 존재
   grep -qE "(^| )colors\s*[=:]" "$TOKENS_FILE" || warn "design-tokens.ts: colors 객체 미정의"
   [ "$TOKEN_FAIL" = 0 ] && ok "design-tokens.ts 구조 정상 ($(basename "$TOKENS_FILE"))"
+fi
+
+# Extension dependencies (state에 design-system 있으면 playwright 등 검증)
+if [ -f "$STATE" ] && jq -e '.extensions["design-system"]' "$STATE" >/dev/null 2>&1; then
+  echo ""
+  echo "  design-system 의존성:"
+  for dep in playwright sharp pixelmatch pngjs; do
+    if (cd "$TARGET_DIR" && node -e "require('$dep')" 2>/dev/null); then
+      ok "  $dep 설치됨"
+    else
+      warn "  $dep 미설치 (npm i -D $dep)"
+    fi
+  done
 fi
 
 # 결과 요약

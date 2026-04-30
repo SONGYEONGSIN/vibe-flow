@@ -1,6 +1,6 @@
 # Claude Code 공식 스펙 레퍼런스
 
-claude-builds 개발 시 이 문서를 참고하여 공식 문서에 어긋나지 않도록 한다.
+vibe-flow 개발 시 이 문서를 참고하여 공식 문서에 어긋나지 않도록 한다.
 
 > 기준: 2026년 3월 공식 문서 (https://code.claude.com/docs)
 
@@ -215,7 +215,7 @@ paths:
 
 ---
 
-## 7. claude-builds 체크리스트
+## 7. vibe-flow 체크리스트
 
 새 파일 추가 시 아래를 확인:
 
