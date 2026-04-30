@@ -6,6 +6,7 @@
 - **`/onboard` 스킬** — Phase 2 첫 항목. 사용자 단계 자가진단(Stage 0 신규 ~ Stage 4 자가 진화) + 단계별 다음 행동 추천. 데이터 우선 (events.jsonl + .vibe-flow.json + memory/), 부족 시 자가보고 3 질문 폴백. 24h cache (--refresh로 무효화). docs/ONBOARDING.md(정적)를 보완하는 daily 인터랙티브 도구.
 - **`/menu` 스킬** — Phase 2 두 번째 항목. 24 스킬 카테고리별 발견성 + events.jsonl 사용 분포 + onboard-state.json 기반 Stage 추천 강조. 필터: `/menu core|extensions|<category>`. /onboard와 보완 (좁은 학습 경로 vs 넓은 카탈로그).
 - **`/inbox` 스킬** — Phase 2 세 번째 항목. 12 에이전트 inbox + broadcast + debates 통합 뷰. message-bus.sh CLI 호환 (read/archive는 그대로 위임). Active/Quiet 분류 + 최근 unread 미리보기 3. 필터: `/inbox <agent>|--unread-only|--broadcast`.
+- **Statusline 강화** — Phase 2 statusline 3 항목 통합. `scripts/statusline.sh` 신설 + `settings.template.json`의 `statusLine` 항목. verify 결과 / 마지막 hook 결과 / 활성 plan 진행도를 한 줄로 합성 (`✓v · 🔧✓ · 📋N/M`). `VIBE_FLOW_STATUSLINE=off` 비활성 옵션, `VIBE_FLOW_STATUSLINE_VERBOSE=1` 자세한 형태. 단위 테스트 5 케이스 (10/10 PASS).
 
 ## [1.1.0] - 2026-04-30 — vibe-flow rename + Core/Extensions
 
