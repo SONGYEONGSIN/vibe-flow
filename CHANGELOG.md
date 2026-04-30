@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### 추가
+- **`/onboard` 스킬** — Phase 2 첫 항목. 사용자 단계 자가진단(Stage 0 신규 ~ Stage 4 자가 진화) + 단계별 다음 행동 추천. 데이터 우선 (events.jsonl + .vibe-flow.json + memory/), 부족 시 자가보고 3 질문 폴백. 24h cache (--refresh로 무효화). docs/ONBOARDING.md(정적)를 보완하는 daily 인터랙티브 도구.
+
 ## [1.1.0] - 2026-04-30 — vibe-flow rename + Core/Extensions
 
 ### 변경 (Breaking — claude-builds 사용자에게)
