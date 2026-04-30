@@ -1,0 +1,73 @@
+{
+  "skill": "k8s-audit",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "no-k8s-detected",
+      "description": "manifest 디렉토리 없음 → 'k8s 미적용' 메시지 + exit 0",
+      "setup": {
+        "files": {}
+      },
+      "input": "/k8s-audit",
+      "expected": {
+        "shows_message": "k8s 미적용 감지",
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "all-clean",
+      "description": "Deployment with resources + non-latest image + securityContext.runAsNonRoot=true → 0 warn / 0 fail",
+      "setup": {
+        "files": {
+          "k8s/deploy.yaml": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web\n  labels:\n    app: web\nspec:\n  selector:\n    matchLabels:\n      app: web\n  template:\n    metadata:\n      labels:\n        app: web\n    spec:\n      securityContext:\n        runAsNonRoot: true\n      containers:\n      - name: web\n        image: nginx:1.25\n        resources:\n          limits: {memory: 512Mi}\n          requests: {memory: 256Mi}\n"
+        }
+      },
+      "input": "/k8s-audit",
+      "expected": {
+        "warn": 0,
+        "fail": 0
+      }
+    },
+    {
+      "id": "missing-resources",
+      "description": "Deployment에 resources 키 없음 → resources 누락 검출",
+      "setup": {
+        "files": {
+          "k8s/deploy.yaml": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web\nspec:\n  template:\n    spec:\n      containers:\n      - name: web\n        image: nginx:1.25\n"
+        }
+      },
+      "input": "/k8s-audit",
+      "expected": {
+        "warn_resources_count": 1
+      }
+    },
+    {
+      "id": "image-latest",
+      "description": "image: nginx:latest → image tag 위험 검출",
+      "setup": {
+        "files": {
+          "k8s/deploy.yaml": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web\nspec:\n  template:\n    spec:\n      containers:\n      - name: web\n        image: nginx:latest\n"
+        }
+      },
+      "input": "/k8s-audit",
+      "expected": {
+        "warn_image_count": 1,
+        "warn_image_contains": "nginx:latest"
+      }
+    },
+    {
+      "id": "label-selector-mismatch",
+      "description": "selector {app:api} vs template labels {app:api,env:prod} → mismatch 아님 (selector ⊆ template). selector {app:api,env:prod} vs template {app:api} → fail",
+      "setup": {
+        "files": {
+          "k8s/deploy.yaml": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: api\nspec:\n  selector:\n    matchLabels:\n      app: api\n      env: prod\n  template:\n    metadata:\n      labels:\n        app: api\n    spec:\n      containers:\n      - name: api\n        image: api:1.0\n"
+        }
+      },
+      "input": "/k8s-audit",
+      "expected": {
+        "fail_label_count": 1,
+        "fail_label_contains": "env=prod"
+      }
+    }
+  ]
+}

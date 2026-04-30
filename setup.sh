@@ -89,6 +89,7 @@ get_extensions_list() {
   echo "learning-loop"
   echo "code-feedback"
   echo "i18n"
+  echo "k8s"
 }
 
 get_extension_summary() {
@@ -99,6 +100,7 @@ get_extension_summary() {
     learning-loop)       echo "장기 메트릭 + 회고 (/metrics, /retrospective)" ;;
     code-feedback)       echo "git diff 기반 품질 분석 (/feedback)" ;;
     i18n)                echo "번역 키 누락/미사용 자동 검출 (/i18n-audit)" ;;
+    k8s)                 echo "Kubernetes manifest 5 anti-pattern audit (/k8s-audit)" ;;
     *) echo "(알 수 없는 extension)" ;;
   esac
 }
