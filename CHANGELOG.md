@@ -5,6 +5,9 @@
 ### 추가
 - **Phase 3 UI 레이어 — vibe-flow-dashboard** ([repo](https://github.com/SONGYEONGSIN/vibe-flow-dashboard)) — 별도 Next.js 16 + TypeScript 5 + Tailwind 4 프로젝트. chokidar로 events.jsonl 실시간 tail, SSE로 브라우저 push. 5 영역 통합 대시보드: events stream / 활성 plan / inbox / 메트릭 / .claude 구조. `VIBE_FLOW_PROJECT` env로 vibe-flow 프로젝트 지정 (localhost:9999). **Source 침범 0** — vibe-flow Layer 1/2 그대로, dashboard는 읽기 전용.
 
+### 변경
+- **ROADMAP 정리** — Phase 3 TUI / Phase 4 mobile 보류 사유 + 재평가 트리거 명확화. v1.x 후속 후보 6 항목 추가 (security / performance / GH Actions templates / inbox send / budget token mode / telemetry 기간 옵션).
+
 ## [1.3.0] - 2026-04-30 — Phase 4 새 Extensions (i18n + k8s)
 
 ### 추가
