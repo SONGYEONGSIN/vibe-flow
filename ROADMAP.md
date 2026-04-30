@@ -89,7 +89,7 @@
 - [x] 빌드 자체 메트릭 dashboard — README 배지 + `scripts/sync-readme-badges.sh`
 
 #### 새 Extensions 후보
-- [ ] **i18n** — 국제화 자동화 워크플로우
+- [x] **i18n** — `/i18n-audit` 스킬 (라이브러리 무관 누락/미사용/불일치 검출)
 - [ ] **k8s** — Kubernetes 배포 자동화
 - [ ] **mobile** — React Native / Flutter 보강
 

@@ -1,0 +1,80 @@
+{
+  "skill": "i18n-audit",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "no-i18n-detected",
+      "description": "locale 디렉토리 없음 — 'i18n 미적용' 메시지 + exit 0",
+      "setup": {
+        "files": {}
+      },
+      "input": "/i18n-audit",
+      "expected": {
+        "shows_message": "i18n 미적용 감지",
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "all-keys-match",
+      "description": "코드 t('foo'), locale {foo: 'Bar'} → 0 누락 / 0 미사용",
+      "setup": {
+        "files": {
+          "messages/en.json": "{\"foo\": \"Bar\"}",
+          "src/Component.tsx": "const x = t('foo');"
+        }
+      },
+      "input": "/i18n-audit",
+      "expected": {
+        "missing_count": 0,
+        "unused_count": 0,
+        "code_keys": 1
+      }
+    },
+    {
+      "id": "missing-key",
+      "description": "코드 t('foo'), locale {} → 1 누락",
+      "setup": {
+        "files": {
+          "messages/en.json": "{}",
+          "src/Component.tsx": "const x = t('foo');"
+        }
+      },
+      "input": "/i18n-audit",
+      "expected": {
+        "missing_count": 1,
+        "missing_contains": "foo"
+      }
+    },
+    {
+      "id": "unused-key",
+      "description": "locale {foo: 'Bar', baz: 'Qux'}, 코드 t('foo')만 → 1 미사용",
+      "setup": {
+        "files": {
+          "messages/en.json": "{\"foo\": \"Bar\", \"baz\": \"Qux\"}",
+          "src/Component.tsx": "const x = t('foo');"
+        }
+      },
+      "input": "/i18n-audit",
+      "expected": {
+        "unused_count": 1,
+        "unused_contains": "baz"
+      }
+    },
+    {
+      "id": "multi-locale-mismatch",
+      "description": "en.json {a:1, b:2}, ko.json {a:'A'} → ko missing 1 (b)",
+      "setup": {
+        "files": {
+          "messages/en.json": "{\"a\": \"A\", \"b\": \"B\"}",
+          "messages/ko.json": "{\"a\": \"가\"}",
+          "src/Component.tsx": "t('a'); t('b');"
+        }
+      },
+      "input": "/i18n-audit",
+      "expected": {
+        "locale_missing_ko": 1,
+        "shows_section": "Locale 간 불일치"
+      }
+    }
+  ]
+}

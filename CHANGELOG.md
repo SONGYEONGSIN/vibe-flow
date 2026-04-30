@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### 추가
+- **i18n Extension (Phase 4 새 Extension)** — 6번째 extension 카테고리. `/i18n-audit` 스킬 1개 — 번역 키 누락/미사용/locale 간 불일치 자동 검출. 라이브러리 무관 (next-intl, react-i18next, vue-i18n 등 5 패턴 정규식). 외부 의존 0 (jq + grep + comm). locale 자동 탐색 (messages/, public/locales/, locales/, src/i18n/). setup.sh `--list-extensions` / `--info i18n` / `--extensions i18n` 통합.
+
 ## [1.2.0] - 2026-04-30 — Phase 2 + 4 + P5 (UX + 메이커 도구화)
 
 ### 추가
