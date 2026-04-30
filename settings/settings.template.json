@@ -39,6 +39,10 @@
     "_deny_policy_note": "1차 방어 — Claude Code 레벨 차단. 프로젝트별 override 가능 (예: 라이브러리 메인테이너는 npm publish 제거). 절대 위험 (rm -rf / 등)은 hooks/command-guard.sh의 2차 방어에. 자세한 정책은 command-guard.sh 헤더 주석 참조.",
     "defaultMode": "acceptEdits"
   },
+  "statusLine": {
+    "type": "command",
+    "command": "bash $CLAUDE_PROJECT_DIR/.claude/scripts/statusline.sh"
+  },
   "autoMode": {
     "environment": [
       "개발 전용 로컬 환경. 프로덕션 접근 없음.",
