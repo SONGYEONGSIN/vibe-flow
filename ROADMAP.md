@@ -51,8 +51,8 @@
 - [x] **validate.sh 10 stages** (state + reconciliation 추가)
 - [x] **README 재구성**: 725 → ~120줄
 - [x] **docs/ 분리**: REFERENCE / ARCHITECTURE / MIGRATION / ONBOARDING
-- [ ] **글로벌 심볼릭 갱신** (Core only) — Task 32
-- [ ] **CHANGELOG 1.1.0** breaking notice + 호환 명시 — Task 30
+- [x] **글로벌 심볼릭 갱신** (Core only) — vibe-flow 1.1.0 머지 시 완료
+- [x] **CHANGELOG 1.1.0** breaking notice + 호환 명시 — vibe-flow 1.1.0 머지 시 완료
 
 ---
 
@@ -61,8 +61,8 @@
 ### 🟢 Phase 2 — UX 개선 (다음 후보)
 
 #### 신규 스킬
-- [ ] `/onboard` — 인터랙티브 단계별 가이드 (실력 자가진단 + 추천)
-- [ ] `/menu` — 23 스킬 카테고리별 발견성 (실력별 추천)
+- [x] `/onboard` — 인터랙티브 단계별 가이드 (실력 자가진단 + 추천) (PR #2)
+- [x] `/menu` — 24 스킬 카테고리별 발견성 (실력별 추천)
 - [ ] `/inbox` — 12 에이전트 inbox 통합 뷰
 
 #### Statusline 강화
