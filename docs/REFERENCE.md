@@ -122,6 +122,20 @@
 - `conventions.md` — 코드 스타일 + Server Action 패턴
 - `debugging.md` — 4단계 체계적 디버깅
 
+## Statusline
+
+`.claude/settings.local.json`의 `statusLine` 항목으로 활성. `scripts/statusline.sh`가 한 줄 출력.
+
+출력 예시:
+- `✓v · 🔧✓ · 📋3/7 (auth)` — verify pass / 마지막 hook OK / 활성 plan 3/7
+- `✗v(2 fail) · 🔧✗ tsc` — verify 실패 / hook 실패
+
+env 옵션:
+- `VIBE_FLOW_STATUSLINE=off` — 비활성 (빈 출력)
+- `VIBE_FLOW_STATUSLINE_VERBOSE=1` — 자세한 형태 (`verify ✓ pass | hook 🔧 prettier ✓ | plan 📋 3/7 — auth`)
+
+데이터 소스: `.claude/events.jsonl` (verify_complete, tool_result/failure 마지막) + `.claude/plans/*.md` (status:in_progress + step 카운트). 데이터 없으면 빈 출력.
+
 ## setup.sh CLI
 
 ```bash

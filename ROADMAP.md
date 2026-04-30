@@ -66,9 +66,9 @@
 - [x] `/inbox` — 12 에이전트 inbox 통합 뷰
 
 #### Statusline 강화
-- [ ] hook live status 표시 (마지막 실행 결과)
-- [ ] 활성 plan 진행도 표시
-- [ ] verify 결과 표시 (✓/✗/⊘)
+- [x] hook live status 표시 (마지막 실행 결과)
+- [x] 활성 plan 진행도 표시
+- [x] verify 결과 표시 (✓/✗/⊘)
 
 ### 🟡 Phase 3 — UI 레이어 (장기)
 
