@@ -88,6 +88,7 @@ get_extensions_list() {
   echo "deep-collaboration"
   echo "learning-loop"
   echo "code-feedback"
+  echo "i18n"
 }
 
 get_extension_summary() {
@@ -97,6 +98,7 @@ get_extension_summary() {
     deep-collaboration)  echo "Builder/Validator 페어 + 토론 (/pair, /discuss)" ;;
     learning-loop)       echo "장기 메트릭 + 회고 (/metrics, /retrospective)" ;;
     code-feedback)       echo "git diff 기반 품질 분석 (/feedback)" ;;
+    i18n)                echo "번역 키 누락/미사용 자동 검출 (/i18n-audit)" ;;
     *) echo "(알 수 없는 extension)" ;;
   esac
 }
