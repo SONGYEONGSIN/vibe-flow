@@ -466,6 +466,24 @@ fi
 cp "$SCRIPT_DIR/validate.sh" "$PROJECT_DIR/.claude/validate.sh"
 chmod +x "$PROJECT_DIR/.claude/validate.sh"
 
+# budget.json 기본값 생성 (파일 없을 때만)
+if [ ! -f "$PROJECT_DIR/.claude/budget.json" ]; then
+  cat > "$PROJECT_DIR/.claude/budget.json" <<'BUDGETEOF'
+{
+  "version": "1.0.0",
+  "limits": {
+    "pair_session":   {"daily": 5, "weekly": 20},
+    "discuss":        {"daily": 5, "weekly": 20},
+    "skill_evolve":   {"daily": 3, "weekly": 10},
+    "design_sync":    {"daily": 5, "weekly": 20},
+    "retrospective":  {"daily": 1, "weekly": 5}
+  },
+  "warn_threshold": 0.8
+}
+BUDGETEOF
+  echo "  Created .claude/budget.json (default limits)"
+fi
+
 # Orchestrator 설정 (선택)
 if [ "$WITH_ORCHESTRATORS" = true ]; then
   echo "[8/$TOTAL_STEPS] Orchestrators..."

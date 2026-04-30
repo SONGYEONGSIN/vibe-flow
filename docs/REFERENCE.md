@@ -2,9 +2,9 @@
 
 전체 명령 / 에이전트 / 훅 / 규칙 레퍼런스.
 
-## Skills (26 — Core 17 + Extensions 9)
+## Skills (27 — Core 18 + Extensions 9)
 
-### Core 17
+### Core 18
 
 | 스킬 | 호출 | 설명 |
 |------|------|------|
@@ -25,6 +25,7 @@
 | onboard | `/onboard [--refresh]` | 5단계 자가진단 + 다음 행동 추천 |
 | menu | `/menu [core\|extensions\|<category>]` | 24 스킬 카테고리별 + 사용 분포 + Stage 추천 |
 | inbox | `/inbox [<agent>\|--unread-only\|--broadcast]` | 12 에이전트 inbox 통합 뷰 |
+| budget | `/budget [set\|reset\|--json]` | 호출 카운트 기반 비용 예산 (5 무거운 스킬) |
 
 ### Extensions 9
 
@@ -108,6 +109,7 @@
 ### Notification
 - `notify.sh` — 데스크톱 알림 (macOS)
 - `model-suggest.sh` — events 패턴 분석 → 모델 전환 제안
+- `budget-warn.sh` — 일일 한도 80%+ 사용 시 비차단 경고 (15분 디바운스)
 
 ### 유틸리티
 - `_common.sh` — 공용 함수 (truncate, mtime, hex)

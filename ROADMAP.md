@@ -93,12 +93,11 @@
 - [ ] **k8s** — Kubernetes 배포 자동화
 - [ ] **mobile** — React Native / Flutter 보강
 
-### 🔵 P5 전략 공백: 토큰/비용 예산 프레임워크
+### 🔵 P5 전략 공백: 토큰/비용 예산 프레임워크 ✅ 완료
 
 - **배경**: /pair / /discuss / 오케스트레이터 병렬 실행 시 무제한 과금 가능
-- **통합 지점**: 신규 hook 또는 wrapper / .claude/budget.json / /metrics 비용 차트
-- **예상 공수**: 반나절
-- **우선순위**: 실제 과금 사례 발생 시 착수
+- **구현**: `/budget` 스킬 + `budget-warn.sh` Notification hook + `.claude/budget.json`
+- **방식**: 호출 카운트 기반 (token 정확 비용 X). 5 무거운 스킬 추적. 정보만 (차단 X).
 
 ---
 

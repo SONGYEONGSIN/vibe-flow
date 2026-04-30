@@ -1,0 +1,83 @@
+{
+  "skill": "budget",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "empty-budget",
+      "description": "events 없음 — 모든 0/N 출력",
+      "setup": {
+        "files": {
+          ".claude/budget.json": "default",
+          ".claude/events.jsonl": null
+        }
+      },
+      "input": "/budget",
+      "expected": {
+        "shows_section": "💰 vibe-flow Budget",
+        "all_zero": true,
+        "no_warning": true
+      }
+    },
+    {
+      "id": "80pct-daily-pair",
+      "description": "/pair 4회 today (한도 5) → ⚠ 표시",
+      "setup": {
+        "files": {
+          ".claude/budget.json": "default",
+          ".claude/events_today_pair_session": 4
+        }
+      },
+      "input": "/budget",
+      "expected": {
+        "shows_pair_count": "4/5",
+        "shows_warn_single": "⚠"
+      }
+    },
+    {
+      "id": "100pct-daily-retro",
+      "description": "/retrospective 1회 today (한도 1) → ⚠⚠ 표시",
+      "setup": {
+        "files": {
+          ".claude/budget.json": "default",
+          ".claude/events_today_retrospective": 1
+        }
+      },
+      "input": "/budget",
+      "expected": {
+        "shows_retro_count": "1/1",
+        "shows_warn_double": "⚠⚠"
+      }
+    },
+    {
+      "id": "set-command",
+      "description": "/budget set pair 10 30 — budget.json 갱신 검증",
+      "setup": {
+        "files": {
+          ".claude/budget.json": "default"
+        }
+      },
+      "input": "/budget set pair 10 30",
+      "expected": {
+        "updates_budget_json": true,
+        "new_limits_pair_session": {"daily": 10, "weekly": 30},
+        "shows_message": "✓ pair: daily=10, weekly=30 갱신됨"
+      }
+    },
+    {
+      "id": "json-output",
+      "description": "/budget --json — 유효 JSON 출력",
+      "setup": {
+        "files": {
+          ".claude/budget.json": "default",
+          ".claude/events_today_pair_session": 2
+        }
+      },
+      "input": "/budget --json",
+      "expected": {
+        "valid_json": true,
+        "has_keys": ["limits", "usage"],
+        "usage_pair_today": 2
+      }
+    }
+  ]
+}
