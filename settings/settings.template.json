@@ -196,6 +196,11 @@
             "type": "command",
             "command": ".claude/hooks/model-suggest.sh",
             "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/budget-warn.sh",
+            "timeout": 5000
           }
         ]
       }
