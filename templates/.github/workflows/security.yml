@@ -1,0 +1,77 @@
+# vibe-flow template: security.yml
+# vibe-flow `/security` 스킬 패턴 — npm audit + secret/취약 패턴 grep.
+# warn-only 기본 (PR 차단 X). 강제 차단하려면 `continue-on-error` 제거.
+#
+# 사용:
+#   1. 이 파일을 .github/workflows/security.yml로 복사
+#   2. PR/push 시 자동 실행, weekly schedule (cron) 옵션
+#   3. 발견 시 GitHub Actions Summary에 표시
+name: security
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+  schedule:
+    # 매주 월요일 09:00 UTC
+    - cron: '0 9 * * 1'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    continue-on-error: true   # warn-only — 강제 차단하려면 제거
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: npm audit
+        if: hashFiles('package.json') != ''
+        run: |
+          if [ -f package-lock.json ]; then
+            npm audit --audit-level=high --omit=dev || echo "::warning::npm audit found high severity issues"
+          else
+            echo "package-lock.json 없음 — npm audit skip"
+          fi
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Grep for committed secrets
+        run: |
+          # 흔한 시크릿 패턴 (false positive 가능 — warn-only)
+          PATTERNS='(api[_-]?key|secret[_-]?key|password|private[_-]?key|aws_access_key_id|aws_secret_access_key)\s*[:=]\s*["'"'"'][^"'"'"' ]{16,}'
+          found=$(git grep -niE "$PATTERNS" -- ':!**/*.test.*' ':!**/*.spec.*' ':!**/*.md' ':!**/*.lock*' ':!templates/**' 2>/dev/null || true)
+          if [ -n "$found" ]; then
+            echo "::warning::시크릿 패턴 의심 라인 발견 (false positive 가능):"
+            echo "$found" | head -20
+          else
+            echo "✓ 시크릿 패턴 발견 안 됨"
+          fi
+
+  owasp-grep:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: OWASP-style 정적 grep (XSS / SQLi / 위험 함수)
+        run: |
+          fail=0
+          # 위험: eval(), Function(), innerHTML 직접 할당
+          if git grep -nE 'eval\(|new Function\(|innerHTML\s*=' -- '*.js' '*.ts' '*.tsx' '*.jsx' 2>/dev/null | grep -v test; then
+            echo "::warning::위험 함수 사용 의심 — eval/new Function/innerHTML 직접 할당"
+            fail=1
+          fi
+          # SQL string concat (super-rough heuristic)
+          if git grep -nE 'SELECT.*\+.*FROM|INSERT.*\+.*VALUES' -- '*.js' '*.ts' '*.tsx' 2>/dev/null | grep -v test; then
+            echo "::warning::SQL 문자열 연결 의심 — prepared statement 권장"
+            fail=1
+          fi
+          [ $fail -eq 0 ] && echo "✓ OWASP grep 패턴 발견 안 됨"

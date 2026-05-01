@@ -1,0 +1,77 @@
+# vibe-flow template: eval-regression.yml
+# 사용자가 자기 스킬/에이전트를 만들 때 SKILL.md / agents.md / evals.json 구조 회귀 검증.
+# vibe-flow 1.x 패턴과 동일한 구조 강제 (frontmatter name/description, evals.json valid 등).
+#
+# 사용:
+#   1. 이 파일을 .github/workflows/eval-regression.yml로 복사
+#   2. .claude/skills, .claude/agents, .claude/agents.json 변경 시 자동 실행
+#   3. 검증 실패 시 PR merge 차단 (basic guard)
+name: eval-regression
+
+on:
+  pull_request:
+    paths:
+      - '.claude/skills/**'
+      - '.claude/agents/**'
+      - '.claude/agents.json'
+  push:
+    branches: [main, master]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Validate SKILL.md frontmatter
+        run: |
+          fail=0
+          for f in $(find .claude/skills -name SKILL.md 2>/dev/null); do
+            fm=$(awk '/^---$/{n++; if(n==2) exit; next} n==1{print}' "$f")
+            if ! echo "$fm" | grep -q '^name:'; then
+              echo "✗ $f: name 누락"; fail=1
+            fi
+            desc=$(echo "$fm" | awk '/^description:/' | sed 's/^description: *//')
+            if [ ${#desc} -lt 20 ]; then
+              echo "✗ $f: description 20자 미만 (${#desc}자)"; fail=1
+            fi
+          done
+          [ $fail -eq 0 ] && echo "✓ SKILL.md frontmatter OK"
+          exit $fail
+
+      - name: Validate evals.json
+        run: |
+          fail=0
+          for f in $(find .claude/skills -name evals.json 2>/dev/null); do
+            if ! jq empty "$f" 2>/dev/null; then
+              echo "✗ $f: invalid JSON"; fail=1
+              continue
+            fi
+            if ! jq -e '.cases | type == "array"' "$f" >/dev/null 2>&1; then
+              echo "✗ $f: cases 배열 누락"; fail=1
+            fi
+          done
+          [ $fail -eq 0 ] && echo "✓ evals.json structure OK"
+          exit $fail
+
+      - name: Validate agents.json ↔ agents/*.md 일치
+        run: |
+          if [ ! -f .claude/agents.json ]; then
+            echo "agents.json 없음 — skip"; exit 0
+          fi
+          fail=0
+          declared=$(jq -r '.agents[]' .claude/agents.json 2>/dev/null | sort)
+          actual=$(find .claude/agents -maxdepth 1 -name '*.md' -exec basename {} .md \; 2>/dev/null | sort)
+          missing=$(comm -23 <(echo "$declared") <(echo "$actual"))
+          extra=$(comm -13 <(echo "$declared") <(echo "$actual"))
+          if [ -n "$missing" ]; then
+            echo "✗ agents.json에 선언됐지만 .md 없음: $missing"; fail=1
+          fi
+          if [ -n "$extra" ]; then
+            echo "✗ .md 있지만 agents.json 미선언: $extra"; fail=1
+          fi
+          [ $fail -eq 0 ] && echo "✓ agents.json ↔ agents/ 일치"
+          exit $fail

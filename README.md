@@ -63,6 +63,24 @@ bash setup.sh --all                   # 전체 설치
 
 각 extension 상세 → [extensions/](extensions/)
 
+## 🔧 CI 템플릿 (opt-in)
+
+`templates/.github/workflows/`에 사용자 프로젝트용 GH Actions 3종 제공:
+
+| 파일 | 역할 |
+|------|------|
+| `verify.yml` | lint + typecheck + test (npm/yarn/pnpm 자동 감지, stack-agnostic) |
+| `eval-regression.yml` | 자기 만든 SKILL.md / agents.md / evals.json 구조 회귀 검증 |
+| `security.yml` | npm audit + secret 패턴 grep + OWASP-style 정적 grep (warn-only 기본) |
+
+```bash
+# 사용자 프로젝트로 복사 (수동, opt-in)
+mkdir -p .github/workflows
+cp /path/to/vibe-flow/templates/.github/workflows/*.yml .github/workflows/
+```
+
+→ [templates/.github/workflows/](templates/.github/workflows/)
+
 ## 🚀 학습 경로
 
 ```
