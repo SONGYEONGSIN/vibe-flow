@@ -1,6 +1,6 @@
 {
   "skill": "budget",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "cases": [
     {
       "id": "empty-budget",
@@ -77,6 +77,59 @@
         "valid_json": true,
         "has_keys": ["limits", "usage"],
         "usage_pair_today": 2
+      }
+    },
+    {
+      "id": "tokens-no-session-logs",
+      "description": "/budget --tokens — Claude Code session-logs 없을 때 안내 메시지 + exit 0",
+      "setup": {
+        "files": {
+          "${HOME}/.claude/projects/<empty>": true
+        }
+      },
+      "input": "/budget --tokens",
+      "expected": {
+        "shows_message": "session-logs",
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "tokens-basic-aggregation",
+      "description": "/budget --tokens — assistant 메시지 모델별 합산 + USD 계산",
+      "setup": {
+        "files": {
+          "${HOME}/.claude/projects/test-proj/sess.jsonl": [
+            "{\"type\":\"assistant\",\"cwd\":\"<project_cwd>\",\"timestamp\":\"<-2d>\",\"message\":{\"model\":\"claude-opus-4-7\",\"usage\":{\"input_tokens\":1000,\"output_tokens\":500,\"cache_read_input_tokens\":2000,\"cache_creation_input_tokens\":1000}}}"
+          ]
+        }
+      },
+      "input": "/budget --tokens --period 7",
+      "expected": {
+        "shows_model": "claude-opus-4-7",
+        "shows_usd_column": true,
+        "filters_synthetic_models": true
+      }
+    },
+    {
+      "id": "tokens-period-option",
+      "description": "/budget --tokens --period 90 — 90일 기간",
+      "setup": {},
+      "input": "/budget --tokens --period 90",
+      "expected": {
+        "period_days": 90
+      }
+    },
+    {
+      "id": "tokens-nfc-normalization",
+      "description": "macOS 한글 경로 NFD/NFC 정규화 — git rev-parse 결과를 NFC 변환 후 cwd 매칭",
+      "setup": {
+        "files": {
+          "<vibe-flow project with korean path>": "/Users/x/개발/proj"
+        }
+      },
+      "input": "/budget --tokens",
+      "expected": {
+        "matches_log_cwd_after_nfc_normalize": true
       }
     }
   ]
