@@ -40,6 +40,9 @@ coverage/
 # Sync (머신별 설정)
 sync-memory.conf
 
+# Superpowers plugin local cache (brainstorm session files 등)
+.superpowers/
+
 # IDE
 .vscode/
 .idea/
