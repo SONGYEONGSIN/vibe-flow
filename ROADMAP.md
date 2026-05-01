@@ -117,7 +117,7 @@
   - 현재 `.github/workflows/eval-regression.yml` 1개만. 사용자 프로젝트용 템플릿 (`templates/.github/workflows/`) 추가 검토
   - 후보: vibe-flow-check.yml (validate.sh 자동), pr-summary.yml, security-scan.yml
 
-- [ ] **`/inbox` 메시지 작성 스킬** — `/inbox send <agent> <subject> <body>` (현재 message-bus.sh CLI만 있음)
+- [x] **`/inbox` 메시지 작성 스킬** — `/inbox send <to> <subject> <body> [--type ...] [--priority ...]` 1.4.x 추가
 
 - [ ] **`/budget` token 추정 모드 (옵션)** — Claude Code session-logs/*.json에 cost 데이터 있으면 정확 비용 표시
 
