@@ -113,7 +113,7 @@
   - `/perf-audit` 스킬 후보 — Next.js + Lighthouse CLI 자동 실행 + 결과 events에 push
   - 외부 의존: lighthouse, puppeteer (design-system extension과 유사 패턴)
 
-- [ ] **GitHub Actions templates** — vibe-flow 자체 CI 템플릿 모음
+- [x] **GitHub Actions templates** — `templates/.github/workflows/` 3종 (verify/eval-regression/security) 1.4.x 추가
   - 현재 `.github/workflows/eval-regression.yml` 1개만. 사용자 프로젝트용 템플릿 (`templates/.github/workflows/`) 추가 검토
   - 후보: vibe-flow-check.yml (validate.sh 자동), pr-summary.yml, security-scan.yml
 

@@ -1,0 +1,79 @@
+# vibe-flow template: verify.yml
+# vibe-flow `/verify` 스킬과 1:1 매핑 — lint, typecheck, test (E2E는 별도 권장)
+#
+# 패키지 매니저 자동 감지: pnpm > yarn > npm (lockfile 기반)
+# package.json scripts에 lint/typecheck/test 중 정의된 것만 실행 (없으면 skip)
+#
+# 사용:
+#   1. 이 파일을 사용자 프로젝트의 .github/workflows/verify.yml로 복사
+#   2. 필요 시 node-version 조정 (기본 20)
+#   3. push/PR 시 자동 실행
+name: verify
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect package manager
+        id: pm
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "name=pnpm" >> $GITHUB_OUTPUT
+            echo "install=pnpm install --frozen-lockfile" >> $GITHUB_OUTPUT
+            echo "exec=pnpm" >> $GITHUB_OUTPUT
+          elif [ -f yarn.lock ]; then
+            echo "name=yarn" >> $GITHUB_OUTPUT
+            echo "install=yarn install --frozen-lockfile" >> $GITHUB_OUTPUT
+            echo "exec=yarn" >> $GITHUB_OUTPUT
+          else
+            echo "name=npm" >> $GITHUB_OUTPUT
+            echo "install=npm ci" >> $GITHUB_OUTPUT
+            echo "exec=npm run" >> $GITHUB_OUTPUT
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: ${{ steps.pm.outputs.name }}
+
+      - name: Enable pnpm
+        if: steps.pm.outputs.name == 'pnpm'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install
+        run: ${{ steps.pm.outputs.install }}
+
+      - name: Lint
+        run: |
+          if jq -e '.scripts.lint' package.json >/dev/null 2>&1; then
+            ${{ steps.pm.outputs.exec }} lint
+          else
+            echo "lint script 없음 — skip"
+          fi
+
+      - name: Typecheck
+        run: |
+          if jq -e '.scripts.typecheck' package.json >/dev/null 2>&1; then
+            ${{ steps.pm.outputs.exec }} typecheck
+          elif [ -f tsconfig.json ]; then
+            npx tsc --noEmit
+          else
+            echo "typecheck script + tsconfig 없음 — skip"
+          fi
+
+      - name: Test
+        run: |
+          if jq -e '.scripts.test' package.json >/dev/null 2>&1; then
+            ${{ steps.pm.outputs.exec }} test
+          else
+            echo "test script 없음 — skip"
+          fi
