@@ -1,6 +1,6 @@
 {
   "skill": "telemetry",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "cases": [
     {
       "id": "empty-events",
@@ -78,7 +78,54 @@
       "input": "/telemetry --json",
       "expected": {
         "valid_json": true,
-        "has_keys": ["analyzed_events", "period_days", "top_5", "active_7d", "stale_30d", "improvements", "trends"]
+        "has_keys": ["analyzed_events", "period_days", "top_5", "active_7d", "stale_period", "improvements", "trends"],
+        "period_days": 30
+      }
+    },
+    {
+      "id": "period-7-option",
+      "description": "/telemetry --period 7 — 7일만 분석, period_days=7",
+      "setup": {
+        "events_distribution_30d": {
+          "commit_created": 100
+        },
+        "events_distribution_7d_within": {
+          "commit_created": 30
+        }
+      },
+      "input": "/telemetry --json --period 7",
+      "expected": {
+        "valid_json": true,
+        "period_days": 7,
+        "analyzed_events": 30
+      }
+    },
+    {
+      "id": "period-90-option",
+      "description": "/telemetry --period 90 — 90일 분석",
+      "setup": {
+        "events_distribution_30d": {
+          "commit_created": 50
+        }
+      },
+      "input": "/telemetry --period 90",
+      "expected": {
+        "shows_header": "90일 분석",
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "period-invalid-fallback",
+      "description": "/telemetry --period 999 — 무효, 30일로 대체 + warn",
+      "setup": {
+        "events_distribution_30d": {
+          "commit_created": 10
+        }
+      },
+      "input": "/telemetry --period 999",
+      "expected": {
+        "shows_warn": "warn: --period 999 무효",
+        "shows_header": "30일 분석"
       }
     }
   ]

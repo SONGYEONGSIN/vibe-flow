@@ -26,7 +26,7 @@
 | menu | `/menu [core\|extensions\|<category>]` | 24 스킬 카테고리별 + 사용 분포 + Stage 추천 |
 | inbox | `/inbox [<agent>\|--unread-only\|--broadcast]` | 12 에이전트 inbox 통합 뷰 |
 | budget | `/budget [set\|reset\|--json]` | 호출 카운트 기반 비용 예산 (5 무거운 스킬) |
-| telemetry | `/telemetry [skills\|trends\|--json]` | 30일 분석 — Top 5/Stale/개선 후보/추세 |
+| telemetry | `/telemetry [skills\|trends\|--json] [--period 7\|30\|90]` | events.jsonl 분석 — Top 5/Stale/개선 후보/추세 (기본 30일) |
 
 ### Extensions 11
 
