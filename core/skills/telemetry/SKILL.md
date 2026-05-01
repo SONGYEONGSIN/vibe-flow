@@ -1,33 +1,48 @@
 ---
 name: telemetry
-description: 본인 1 머신 30일 events.jsonl 분석 — Top 5 / Active / Stale / 개선 후보 / 추세. 메이커 빌드 개선 결정 + 사용자 자가 진단. 4 모드 (all/skills/trends/--json).
+description: 본인 1 머신 events.jsonl 분석 — Top 5 / Active / Stale / 개선 후보 / 추세. 기본 30일, --period 7|30|90 옵션으로 기간 조정. 4 모드 (all/skills/trends/--json).
 model: claude-sonnet-4-6
 ---
 
 # /telemetry
 
-vibe-flow의 본인 1 머신 events.jsonl을 30일 분석해 메이커 의사결정 데이터를 출력한다.
+vibe-flow의 본인 1 머신 events.jsonl을 분석해 메이커 의사결정 데이터를 출력한다. 기본 분석 기간 30일, `--period 7|30|90`으로 조정 가능.
 
 ## 트리거
 
-- `/telemetry` — 종합 보고서
+- `/telemetry` — 종합 보고서 (30일)
 - `/telemetry skills` — Top 5 + Active + Stale만
-- `/telemetry trends` — 30일 추이만
+- `/telemetry trends` — 추이만
 - `/telemetry --json` — JSON 출력
+- `/telemetry --period 7|30|90` — 분석 기간 조정 (다른 모드와 조합 가능: `/telemetry skills --period 7`)
 
 ## 절차
 
-### 1. 모드 파싱
+### 1. 모드 + 기간 파싱
 
 ```bash
-ARG="${1:-all}"
-case "$ARG" in
-  skills) MODE="skills" ;;
-  trends) MODE="trends" ;;
-  --json) MODE="json" ;;
-  ""|all) MODE="all" ;;
-  *) MODE="all" ;;
-esac
+# 기본값
+MODE="all"
+PERIOD_DAYS=30
+
+# 인자 순회 — --period 와 mode 동시 허용
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --period)
+      shift
+      case "$1" in
+        7|30|90) PERIOD_DAYS="$1" ;;
+        *) echo "warn: --period $1 무효, 30일로 대체 (허용: 7|30|90)" >&2 ;;
+      esac
+      ;;
+    skills) MODE="skills" ;;
+    trends) MODE="trends" ;;
+    --json) MODE="json" ;;
+    ""|all) ;;
+    *) ;;
+  esac
+  shift
+done
 ```
 
 ### 2. 시간 기준
@@ -36,10 +51,11 @@ esac
 EVENTS=".claude/events.jsonl"
 [ -f "$EVENTS" ] || { echo "events.jsonl 없음 — 먼저 vibe-flow 사용 후 다시 실행" >&2; exit 0; }
 
-DAY_30_AGO=$(date -u -v-30d +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
-        || date -u -d '30 days ago' +%Y-%m-%dT%H:%M:%SZ)
+DAY_PERIOD_AGO=$(date -u -v-${PERIOD_DAYS}d +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
+        || date -u -d "${PERIOD_DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)
 DAY_7_AGO=$(date -u -v-7d +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
         || date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)
+# Active/recent 서브 윈도우는 항상 7일 (period가 7이면 전체 기간과 일치)
 ```
 
 ### 3. 스킬 명단 + 별칭
@@ -95,12 +111,12 @@ extension_name() {
 ### 4. jq 1패스 group_by
 
 ```bash
-# 30일 카운트 (group)
-COUNTS_30D=$(jq -s --arg d "$DAY_30_AGO" \
+# 분석 기간 카운트 (group)
+COUNTS_PERIOD=$(jq -s --arg d "$DAY_PERIOD_AGO" \
   'map(select(.ts > $d)) | group_by(.type) | map({type: .[0].type, count: length}) | from_entries' \
   "$EVENTS" 2>/dev/null || echo '{}')
 
-# 7일 카운트
+# 7일 카운트 (서브 윈도우 — Active/추세용)
 COUNTS_7D=$(jq -s --arg d "$DAY_7_AGO" \
   'map(select(.ts > $d)) | group_by(.type) | map({type: .[0].type, count: length}) | from_entries' \
   "$EVENTS" 2>/dev/null || echo '{}')
@@ -109,8 +125,8 @@ COUNTS_7D=$(jq -s --arg d "$DAY_7_AGO" \
 LAST_USED=$(jq -s 'group_by(.type) | map({type: .[0].type, last: (max_by(.ts) | .ts)}) | from_entries' \
   "$EVENTS" 2>/dev/null || echo '{}')
 
-# 30일 일별 totals (sparkline용)
-DAILY_TOTALS=$(jq -s --arg d "$DAY_30_AGO" \
+# 분석 기간 일별 totals (sparkline용)
+DAILY_TOTALS=$(jq -s --arg d "$DAY_PERIOD_AGO" \
   'map(select(.ts > $d)) | group_by(.ts | .[0:10]) | map({date: .[0].ts[0:10], count: length})' \
   "$EVENTS" 2>/dev/null || echo '[]')
 
@@ -119,16 +135,16 @@ ACTIVE_EXTS="[]"
 [ -f ".claude/.vibe-flow.json" ] && \
   ACTIVE_EXTS=$(jq -c '.extensions | keys' .claude/.vibe-flow.json 2>/dev/null || echo '[]')
 
-# 30일 총 events
-TOTAL_30D=$(echo "$COUNTS_30D" | jq -r 'to_entries | map(.value) | add // 0')
+# 분석 기간 총 events
+TOTAL_PERIOD=$(echo "$COUNTS_PERIOD" | jq -r 'to_entries | map(.value) | add // 0')
 ```
 
 ### 5. 헬퍼 함수
 
 ```bash
-# 30일 카운트 조회
-count_30d() {
-  echo "$COUNTS_30D" | jq -r --arg t "$1" '.[$t] // 0'
+# 분석 기간 카운트 조회
+count_period() {
+  echo "$COUNTS_PERIOD" | jq -r --arg t "$1" '.[$t] // 0'
 }
 
 count_7d() {
@@ -169,21 +185,20 @@ sparkline() {
   done
 }
 
-# 추세 라벨 (전반 7일 vs 마지막 7일)
+# 추세 라벨 (전체 기간 평균 vs 마지막 7일 평균)
 trend_label_for_type() {
   local type="$1"
   local last7
   last7=$(count_7d "$type")
-  local first7=$(($(count_30d "$type") - last7))  # 대략, 30-7=23일에서 첫 부분
-  # 단순화: 30일 대비 7일 비율
-  local d30
-  d30=$(count_30d "$type")
-  [ "$d30" = "0" ] && { echo "→ 평탄"; return; }
+  # 분석 기간 대비 7일 비율
+  local d_period
+  d_period=$(count_period "$type")
+  [ "$d_period" = "0" ] && { echo "→ 평탄"; return; }
   # 일평균 비교
-  local avg30=$((d30 / 30))
+  local avg_period=$((d_period / PERIOD_DAYS))
   local avg7=$((last7 / 7))
-  if [ "$avg7" -gt $((avg30 * 110 / 100)) ]; then echo "↗ 증가"
-  elif [ "$avg7" -lt $((avg30 * 90 / 100)) ]; then echo "↘ 감소"
+  if [ "$avg7" -gt $((avg_period * 110 / 100)) ]; then echo "↗ 증가"
+  elif [ "$avg7" -lt $((avg_period * 90 / 100)) ]; then echo "↘ 감소"
   else echo "→ 평탄"
   fi
 }
@@ -192,8 +207,8 @@ trend_label_for_type() {
 ### 6. Top 5 + Active + Stale 분류
 
 ```bash
-# Top 5: 30일 카운트 상위 5
-TOP_5=$(echo "$COUNTS_30D" | jq -r 'to_entries | sort_by(-.value) | .[0:5] | .[] | "\(.key)\t\(.value)"')
+# Top 5: 분석 기간 카운트 상위 5
+TOP_5=$(echo "$COUNTS_PERIOD" | jq -r 'to_entries | sort_by(-.value) | .[0:5] | .[] | "\(.key)\t\(.value)"')
 
 # Active: 7일 내 1회+
 ACTIVE=()
@@ -202,10 +217,10 @@ for type in "${SKILL_TYPES[@]}"; do
   [ "$c" -gt 0 ] && ACTIVE+=("$(type_to_label "$type")")
 done
 
-# Stale: 30일 0회
+# Stale: 분석 기간 0회
 STALE=()
 for type in "${SKILL_TYPES[@]}"; do
-  c=$(count_30d "$type")
+  c=$(count_period "$type")
   [ "$c" = "0" ] && STALE+=("$type")
 done
 
@@ -262,7 +277,7 @@ print_active() {
 }
 
 print_stale() {
-  echo "━━━ Stale (30일 내 0회) ━━━"
+  echo "━━━ Stale (${PERIOD_DAYS}일 내 0회) ━━━"
   if [ ${#STALE[@]} -eq 0 ]; then
     echo "  (없음 — 모든 스킬 활용)"
   else
@@ -290,19 +305,19 @@ print_improvements() {
 }
 
 print_trends() {
-  echo "━━━ 30일 추이 ━━━"
+  echo "━━━ ${PERIOD_DAYS}일 추이 ━━━"
   local daily_counts
   daily_counts=$(echo "$DAILY_TOTALS" | jq -r 'map(.count) | join(" ")')
   local total_spark
   total_spark=$(sparkline "$daily_counts")
   echo "  total events: $total_spark"
 
-  local avg_30 avg_7
-  avg_30=$((TOTAL_30D / 30))
+  local avg_period avg_7
+  avg_period=$((TOTAL_PERIOD / PERIOD_DAYS))
   local last_7d_total
   last_7d_total=$(echo "$COUNTS_7D" | jq -r 'to_entries | map(.value) | add // 0')
   avg_7=$((last_7d_total / 7))
-  echo "  daily avg: $avg_30 → $avg_7 (지난 7일)"
+  echo "  daily avg: $avg_period → $avg_7 (지난 7일)"
   echo ""
 }
 ```
@@ -353,32 +368,33 @@ print_json() {
     imp_json=$(printf '%s\n' "${IMPROVEMENTS[@]}" | jq -R . | jq -s .)
   fi
 
-  local daily_counts daily_spark avg_30 last_7d_total avg_7
+  local daily_counts daily_spark avg_period last_7d_total avg_7
   daily_counts=$(echo "$DAILY_TOTALS" | jq -r 'map(.count) | join(" ")')
   daily_spark=$(sparkline "$daily_counts")
-  avg_30=$((TOTAL_30D / 30))
+  avg_period=$((TOTAL_PERIOD / PERIOD_DAYS))
   last_7d_total=$(echo "$COUNTS_7D" | jq -r 'to_entries | map(.value) | add // 0')
   avg_7=$((last_7d_total / 7))
 
   jq -n \
-    --argjson total "$TOTAL_30D" \
+    --argjson total "$TOTAL_PERIOD" \
+    --argjson period "$PERIOD_DAYS" \
     --argjson top5 "$top5_json" \
     --argjson active "$active_json" \
     --argjson stale "$stale_json" \
     --argjson imp "$imp_json" \
     --arg spark "$daily_spark" \
-    --argjson avg30 "$avg_30" \
+    --argjson avg_period "$avg_period" \
     --argjson avg7 "$avg_7" \
     '{
       analyzed_events: $total,
-      period_days: 30,
+      period_days: $period,
       top_5: $top5,
       active_7d: $active,
-      stale_30d: $stale,
+      stale_period: $stale,
       improvements: $imp,
       trends: {
         total_events_sparkline: $spark,
-        daily_avg_30d: $avg30,
+        daily_avg_period: $avg_period,
         daily_avg_7d: $avg7
       }
     }'
@@ -390,25 +406,25 @@ print_json() {
 ```bash
 case "$MODE" in
   all)
-    echo "📊 vibe-flow Telemetry (1 머신, 30일 분석)"
-    echo "   분석된 events: $TOTAL_30D"
+    echo "📊 vibe-flow Telemetry (1 머신, ${PERIOD_DAYS}일 분석)"
+    echo "   분석된 events: $TOTAL_PERIOD"
     echo ""
     print_top5
     print_active
     print_stale
     print_improvements
     print_trends
-    echo "설정: /telemetry skills | trends | --json"
+    echo "설정: /telemetry skills | trends | --json | --period 7|30|90"
     ;;
   skills)
-    echo "📊 vibe-flow Telemetry — Skills (30일)"
+    echo "📊 vibe-flow Telemetry — Skills (${PERIOD_DAYS}일)"
     echo ""
     print_top5
     print_active
     print_stale
     ;;
   trends)
-    echo "📊 vibe-flow Trends (30일)"
+    echo "📊 vibe-flow Trends (${PERIOD_DAYS}일)"
     echo ""
     print_trends
     echo "스킬별 추이 (Top 5):"
@@ -433,8 +449,8 @@ esac
 ```bash
 NOW_ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 mkdir -p .claude
-jq -nc --arg ts "$NOW_ISO" --arg mode "$MODE" --argjson n "$TOTAL_30D" \
-  '{type:"telemetry", ts:$ts, mode:$mode, analyzed_events:$n}' \
+jq -nc --arg ts "$NOW_ISO" --arg mode "$MODE" --argjson n "$TOTAL_PERIOD" --argjson p "$PERIOD_DAYS" \
+  '{type:"telemetry", ts:$ts, mode:$mode, period_days:$p, analyzed_events:$n}' \
   >> .claude/events.jsonl
 ```
 
