@@ -11,6 +11,7 @@
 #   C. evals.json 유효 JSON + cases 배열 + 케이스별 필수 필드
 #   D. agents.json ↔ core/agents/*.md 일치
 #   E. Core skills ≥ 19, Extension skills ≥ 9
+#   F. templates/.github/workflows/*.yml YAML 유효성
 #
 # Exit:
 #   0 — 모두 통과
@@ -180,6 +181,41 @@ if [ "$EXT_SKILLS" -ge 9 ]; then
   ok "Extension skills count: ${EXT_SKILLS} (≥ 9)"
 else
   err "Extension skills count: ${EXT_SKILLS} (< 9)"
+fi
+
+# ─── F. Templates GH Actions YAML 유효성 ───
+# templates/.github/workflows/*.yml가 valid YAML인지 검증.
+# yq 우선, 없으면 python3 yaml fallback. 둘 다 없으면 warn + skip (실패 X).
+TEMPLATE_DIR="templates/.github/workflows"
+if [ -d "$TEMPLATE_DIR" ]; then
+  TEMPLATE_BEFORE=$FAIL
+  TEMPLATE_COUNT=0
+  TEMPLATE_TOOL=""
+  if command -v yq &>/dev/null; then
+    TEMPLATE_TOOL="yq"
+  elif command -v python3 &>/dev/null && python3 -c "import yaml" 2>/dev/null; then
+    TEMPLATE_TOOL="python3"
+  fi
+  if [ -z "$TEMPLATE_TOOL" ]; then
+    warn "yq + python3 yaml 모두 없음 — templates YAML 검증 skip"
+  else
+    for f in "$TEMPLATE_DIR"/*.yml "$TEMPLATE_DIR"/*.yaml; do
+      [ -f "$f" ] || continue
+      TEMPLATE_COUNT=$((TEMPLATE_COUNT+1))
+      if [ "$TEMPLATE_TOOL" = "yq" ]; then
+        if ! yq e '.' "$f" >/dev/null 2>&1; then
+          err "$f: invalid YAML (yq)"
+        fi
+      else
+        if ! python3 -c "import yaml,sys; yaml.safe_load(open(sys.argv[1]))" "$f" 2>/dev/null; then
+          err "$f: invalid YAML (python3 yaml)"
+        fi
+      fi
+    done
+    if [ "$TEMPLATE_COUNT" -gt 0 ] && [ "$FAIL" = "$TEMPLATE_BEFORE" ]; then
+      ok "Templates GH Actions YAML valid (${TEMPLATE_COUNT} files, ${TEMPLATE_TOOL})"
+    fi
+  fi
 fi
 
 # ─── 결과 ───

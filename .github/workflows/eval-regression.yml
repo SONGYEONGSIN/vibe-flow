@@ -7,6 +7,7 @@ on:
       - 'core/agents/**'
       - 'extensions/**'
       - 'core/agents.json'
+      - 'templates/.github/workflows/**'
       - 'scripts/eval-regression-check.sh'
       - '.github/workflows/eval-regression.yml'
   push:
@@ -17,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Install jq + yq
+        run: sudo apt-get update && sudo apt-get install -y jq && sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && sudo chmod +x /usr/local/bin/yq
       - name: Run eval regression check
         run: bash scripts/eval-regression-check.sh
