@@ -121,7 +121,7 @@
 
 - [ ] **`/budget` token 추정 모드 (옵션)** — Claude Code session-logs/*.json에 cost 데이터 있으면 정확 비용 표시
 
-- [ ] **`/telemetry` 기간 옵션** — `/telemetry --period 7|30|90` (현재 30일 고정)
+- [x] **`/telemetry` 기간 옵션** — `/telemetry --period 7|30|90` 1.4.x 추가 (PR #19)
 
 - [ ] **🎮 동적 캐릭터 시스템 (게임화)** — vibe-coding에 재미 요소
   - **의도**: 12 에이전트 = 12 캐릭터로 시각화 + 사용자가 캐릭터 이름/외형 설정 + events 트리거에 반응 애니메이션
