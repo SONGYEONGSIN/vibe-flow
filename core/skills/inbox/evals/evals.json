@@ -1,6 +1,6 @@
 {
   "skill": "inbox",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "cases": [
     {
       "id": "empty-inbox",
@@ -70,6 +70,47 @@
         "missing_section_2": "Broadcast",
         "shows_agents_with_unread": ["developer"],
         "missing_agents_with_no_unread": ["qa"]
+      }
+    },
+    {
+      "id": "send-basic",
+      "description": "/inbox send developer \"리뷰 요청\" \"인증 모듈 리뷰\" — message-bus.sh send 위임 + inbox_sent 이벤트",
+      "setup": {
+        "files": {
+          ".claude/hooks/message-bus.sh": "exists",
+          ".claude/agents.json": "{\"agents\":[\"developer\"]}"
+        }
+      },
+      "input": "/inbox send developer \"리뷰 요청\" \"인증 모듈 리뷰\"",
+      "expected": {
+        "delegates_to": "message-bus.sh send user developer info medium \"리뷰 요청\" \"인증 모듈 리뷰\"",
+        "shows_success": "✓ 메시지 발송 → @developer (info/medium)",
+        "events_jsonl_appends": "inbox_sent"
+      }
+    },
+    {
+      "id": "send-with-options",
+      "description": "/inbox send <to> <subj> <body> --type alert --priority high",
+      "setup": {
+        "files": {
+          ".claude/hooks/message-bus.sh": "exists",
+          ".claude/agents.json": "{\"agents\":[\"security\"]}"
+        }
+      },
+      "input": "/inbox send security \"OWASP 위반\" \"SQL injection in api/users.ts:42\" --type alert --priority high",
+      "expected": {
+        "delegates_to": "message-bus.sh send user security alert high",
+        "shows_success": "✓ 메시지 발송 → @security (alert/high)"
+      }
+    },
+    {
+      "id": "send-missing-args",
+      "description": "/inbox send (인자 부족) — Usage 표시 + exit 1",
+      "setup": {},
+      "input": "/inbox send",
+      "expected": {
+        "shows_usage": "Usage: /inbox send <to>",
+        "exit_code": 1
       }
     },
     {

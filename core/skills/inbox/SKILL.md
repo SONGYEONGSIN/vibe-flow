@@ -1,16 +1,17 @@
 ---
 name: inbox
-description: 12 에이전트 inbox + broadcast + debates 통합 뷰. /inbox, /inbox <agent>, /inbox --unread-only, /inbox --broadcast.
+description: 12 에이전트 inbox + broadcast + debates 통합 뷰 + 메시지 발송. /inbox, /inbox <agent>, /inbox --unread-only, /inbox --broadcast, /inbox send <to> <subject> <body>.
 model: claude-sonnet-4-6
 ---
 
 # /inbox
 
-vibe-flow의 12 에이전트 메시지 큐를 한 화면에 보여준다. message-bus.sh CLI 호환 (read/archive는 그대로 위임).
+vibe-flow의 12 에이전트 메시지 큐를 한 화면에 보여준다. message-bus.sh CLI 호환 (read/archive/send는 그대로 위임).
 
 ## 트리거
 
 - 사용자: `/inbox` (전체 통합 뷰), `/inbox <agent>` (단일 풀 리스트), `/inbox --unread-only` (Active만), `/inbox --broadcast` (broadcast/debates만)
+- 발송: `/inbox send <to> <subject> <body> [--type info|alert|request|reply] [--priority low|medium|high|critical]` — 사용자가 에이전트에게 메시지 발송 (기본 type=info, priority=medium)
 
 ## 절차
 
@@ -19,6 +20,34 @@ vibe-flow의 12 에이전트 메시지 큐를 한 화면에 보여준다. messag
 ```bash
 ARG="${1:-all}"
 case "$ARG" in
+  send)
+    MODE="send"
+    shift
+    SEND_TO="${1:-}"; shift || true
+    SEND_SUBJECT="${1:-}"; shift || true
+    SEND_BODY="${1:-}"; shift || true
+    SEND_TYPE="info"
+    SEND_PRIORITY="medium"
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --type)
+          shift
+          case "$1" in
+            info|alert|request|reply) SEND_TYPE="$1" ;;
+            *) echo "warn: --type $1 무효, info로 대체 (허용: info|alert|request|reply)" >&2 ;;
+          esac
+          ;;
+        --priority)
+          shift
+          case "$1" in
+            low|medium|high|critical) SEND_PRIORITY="$1" ;;
+            *) echo "warn: --priority $1 무효, medium으로 대체 (허용: low|medium|high|critical)" >&2 ;;
+          esac
+          ;;
+      esac
+      shift
+    done
+    ;;
   --unread-only) MODE="unread-only" ;;
   --broadcast) MODE="broadcast" ;;
   "" | "all") MODE="all" ;;
@@ -194,6 +223,28 @@ case "$MODE" in
     fi
     UNREAD_TOTAL=$(count_unread "$AGENT")
     ;;
+  send)
+    # 검증
+    if [ -z "$SEND_TO" ] || [ -z "$SEND_SUBJECT" ] || [ -z "$SEND_BODY" ]; then
+      echo "Usage: /inbox send <to> <subject> <body> [--type info|alert|request|reply] [--priority low|medium|high|critical]" >&2
+      exit 1
+    fi
+    # 수신자 에이전트가 명단에 있는지 확인 (없으면 경고만 — message-bus.sh가 폴더 자동 생성)
+    if [ -n "$AGENTS" ] && ! echo "$AGENTS" | tr ' \n' '\n\n' | grep -qx "$SEND_TO"; then
+      echo "warn: '$SEND_TO'은(는) 알려진 에이전트 명단에 없음 (계속 진행)" >&2
+    fi
+    if [ ! -f ".claude/hooks/message-bus.sh" ]; then
+      echo "ERROR: .claude/hooks/message-bus.sh 없음 — setup.sh 필요" >&2
+      exit 1
+    fi
+    # message-bus.sh send <from> <to> <type> <priority> <subject> <body>
+    bash .claude/hooks/message-bus.sh send user "$SEND_TO" "$SEND_TYPE" "$SEND_PRIORITY" "$SEND_SUBJECT" "$SEND_BODY"
+    SEND_RC=$?
+    if [ $SEND_RC -eq 0 ]; then
+      echo "✓ 메시지 발송 → @$SEND_TO ($SEND_TYPE/$SEND_PRIORITY)"
+    fi
+    UNREAD_TOTAL=0
+    ;;
 esac
 ```
 
@@ -202,12 +253,22 @@ esac
 ```bash
 NOW_ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 mkdir -p .claude
-jq -nc \
-  --arg ts "$NOW_ISO" \
-  --arg filter "$MODE" \
-  --argjson unread "${UNREAD_TOTAL:-0}" \
-  '{type: "inbox", ts: $ts, filter: $filter, unread_total: $unread}' \
-  >> .claude/events.jsonl
+if [ "$MODE" = "send" ] && [ "${SEND_RC:-1}" -eq 0 ]; then
+  jq -nc \
+    --arg ts "$NOW_ISO" \
+    --arg to "$SEND_TO" \
+    --arg msg_type "$SEND_TYPE" \
+    --arg priority "$SEND_PRIORITY" \
+    '{type: "inbox_sent", ts: $ts, to: $to, msg_type: $msg_type, priority: $priority}' \
+    >> .claude/events.jsonl
+else
+  jq -nc \
+    --arg ts "$NOW_ISO" \
+    --arg filter "$MODE" \
+    --argjson unread "${UNREAD_TOTAL:-0}" \
+    '{type: "inbox", ts: $ts, filter: $filter, unread_total: $unread}' \
+    >> .claude/events.jsonl
+fi
 ```
 
 ## 출처
