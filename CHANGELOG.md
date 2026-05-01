@@ -2,11 +2,20 @@
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-05-01 — Phase 3 UI + 동적 캐릭터 시스템 (게임화)
+
 ### 추가
 - **Phase 3 UI 레이어 — vibe-flow-dashboard** ([repo](https://github.com/SONGYEONGSIN/vibe-flow-dashboard)) — 별도 Next.js 16 + TypeScript 5 + Tailwind 4 프로젝트. chokidar로 events.jsonl 실시간 tail, SSE로 브라우저 push. 5 영역 통합 대시보드: events stream / 활성 plan / inbox / 메트릭 / .claude 구조. `VIBE_FLOW_PROJECT` env로 vibe-flow 프로젝트 지정 (localhost:9999). **Source 침범 0** — vibe-flow Layer 1/2 그대로, dashboard는 읽기 전용.
+- **동적 캐릭터 시스템 (vibe-flow-dashboard `/characters`)** — 12 에이전트 픽셀 룸 무대. events.jsonl 이벤트 → 매칭 캐릭터 점프/walk-to + 컨텍스트 대사. active/waiting zone 분리 + Activity Feed + Stage 어드저스터 UI (localStorage 미리보기). (dashboard PR #2/#7/#4/#8)
+- **`skill_invoked` 이벤트 + hook** — `core/hooks/skill-tracker.sh` (UserPromptSubmit). 사용자가 prompt에 `/<skill>` 또는 `/<plugin>:<skill>` 입력 시 `.claude/events.jsonl`에 `{type:"skill_invoked", skill, ts}` push. dashboard `/characters`에서 40+ 스킬 → 12 에이전트 매핑 (planner/designer/developer/qa/security/validator/feedback/moderator/comparator/retrospective/grader/skill-reviewer) + 각 캐릭터 `skill_invoked` 컨텍스트 대사 풀 추가. 매칭 안 되는 스킬은 moderator fallback. 실패해도 exit 0 (기존 워크플로우 차단 X). (vibe-flow PR #17 + dashboard PR #6)
 
 ### 변경
 - **ROADMAP 정리** — Phase 3 TUI / Phase 4 mobile 보류 사유 + 재평가 트리거 명확화. v1.x 후속 후보 6 항목 추가 (security / performance / GH Actions templates / inbox send / budget token mode / telemetry 기간 옵션).
+- README Hooks 23 → 24
+
+### 호환
+- ✓ 기존 19 Core + 11 Extension 스킬 모두 유지
+- ✓ vibe-flow 1.3.0에서 자동 마이그레이션 (state 보존)
 
 ## [1.3.0] - 2026-04-30 — Phase 4 새 Extensions (i18n + k8s)
 
