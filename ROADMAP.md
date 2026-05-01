@@ -119,7 +119,7 @@
 
 - [x] **`/inbox` 메시지 작성 스킬** — `/inbox send <to> <subject> <body> [--type ...] [--priority ...]` 1.4.x 추가
 
-- [ ] **`/budget` token 추정 모드 (옵션)** — Claude Code session-logs/*.json에 cost 데이터 있으면 정확 비용 표시
+- [x] **`/budget` token 추정 모드** — `/budget --tokens [--period 7|30|90]` 1.4.x 추가. Claude Code `~/.claude/projects/<slug>/*.jsonl` 파싱 → 모델별 정확 USD (pricing.json 별도 파일)
 
 - [x] **`/telemetry` 기간 옵션** — `/telemetry --period 7|30|90` 1.4.x 추가 (PR #19)
 

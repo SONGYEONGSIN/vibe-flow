@@ -25,7 +25,7 @@
 | onboard | `/onboard [--refresh]` | 5단계 자가진단 + 다음 행동 추천 |
 | menu | `/menu [core\|extensions\|<category>]` | 24 스킬 카테고리별 + 사용 분포 + Stage 추천 |
 | inbox | `/inbox [<agent>\|--unread-only\|--broadcast\|send <to> <subject> <body>]` | 12 에이전트 inbox 통합 뷰 + 메시지 발송 |
-| budget | `/budget [set\|reset\|--json]` | 호출 카운트 기반 비용 예산 (5 무거운 스킬) |
+| budget | `/budget [set\|reset\|--json\|--tokens [--period 7\|30\|90]]` | 호출 카운트 + --tokens는 session-logs 기반 정확 USD |
 | telemetry | `/telemetry [skills\|trends\|--json] [--period 7\|30\|90]` | events.jsonl 분석 — Top 5/Stale/개선 후보/추세 (기본 30일) |
 
 ### Extensions 11

@@ -1,32 +1,46 @@
 ---
 name: budget
-description: 호출 카운트 기반 비용 예산 프레임워크. 5개 무거운 스킬(/pair, /discuss, /evolve, /design-sync, /retrospective) 일일/주간 한도 추적 + sparkline 추이 + 80%+ 경고. 정보만 (차단 X).
+description: 비용 예산 프레임워크. 기본은 호출 카운트 기반(5 무거운 스킬 일일/주간 한도). --tokens 옵션으로 Claude Code session-logs/*.jsonl 파싱하여 모델별 정확 USD 비용 표시. 정보만 (차단 X).
 model: claude-sonnet-4-6
 ---
 
 # /budget
 
-vibe-flow의 무거운 LLM 호출 5개 스킬 사용량을 호출 카운트로 추적. 한도는 정보용 (차단 안 함).
+vibe-flow의 무거운 LLM 호출 5개 스킬 사용량을 호출 카운트로 추적. `--tokens`로 session-logs 기반 정확 USD 비용 보조 모드. 한도는 정보용 (차단 안 함).
 
 ## 트리거
 
-- `/budget` — 사용량 + 한도 + 추이 출력
+- `/budget` — 사용량 + 한도 + 추이 출력 (호출 카운트)
 - `/budget set <skill> <daily> <weekly>` — 한도 갱신
 - `/budget reset` — 기본값 복귀
 - `/budget --json` — JSON 출력
+- `/budget --tokens [--period 7|30|90]` — Claude Code session-logs 기반 모델별 정확 USD 비용 (기본 30일)
 
 ## 절차
 
 ### 1. 인자 파싱
 
 ```bash
-ARG1="${1:-view}"
-case "$ARG1" in
-  set) MODE="set"; SKILL="$2"; DAILY="$3"; WEEKLY="$4" ;;
-  reset) MODE="reset" ;;
-  --json) MODE="json" ;;
-  *) MODE="view" ;;
-esac
+MODE="view"
+SKILL=""; DAILY=""; WEEKLY=""
+PERIOD_DAYS=30  # --tokens 모드 기본 분석 기간
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    set) MODE="set"; SKILL="$2"; DAILY="$3"; WEEKLY="$4"; shift 4 || break; continue ;;
+    reset) MODE="reset" ;;
+    --json) MODE="json" ;;
+    --tokens) MODE="tokens" ;;
+    --period)
+      shift
+      case "$1" in
+        7|30|90) PERIOD_DAYS="$1" ;;
+        *) echo "warn: --period $1 무효, 30일 대체 (허용: 7|30|90)" >&2 ;;
+      esac
+      ;;
+  esac
+  shift
+done
 ```
 
 ### 2. budget.json 로드 (기본값 fallback)
@@ -269,24 +283,142 @@ print_json() {
 }
 ```
 
-### 9. 모드 분기 + 출력
+### 9. Token 모드 (--tokens) — Claude Code session-logs 기반 정확 비용
+
+```bash
+print_tokens() {
+  local home_projects="${HOME}/.claude/projects"
+  if [ ! -d "$home_projects" ]; then
+    echo "Claude Code session-logs 디렉토리 없음: $home_projects" >&2
+    echo "(Claude Code 사용 이력 필요)" >&2
+    return 1
+  fi
+
+  # 가격 table 로드 — 우선순위: skill 설치 위치 > vibe-flow 소스
+  local pricing_file=""
+  for candidate in \
+    ".claude/skills/budget/data/pricing.json" \
+    "core/skills/budget/data/pricing.json" \
+    "${HOME}/.claude/skills/budget/data/pricing.json"; do
+    if [ -f "$candidate" ]; then
+      pricing_file="$candidate"
+      break
+    fi
+  done
+  if [ -z "$pricing_file" ]; then
+    echo "pricing.json 없음 — /budget --tokens는 가격 table이 필요합니다" >&2
+    return 1
+  fi
+
+  # 분석 기간 시작점
+  local since
+  since=$(date -u -v-${PERIOD_DAYS}d +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
+       || date -u -d "${PERIOD_DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)
+
+  # 현재 프로젝트 cwd — macOS NFD/NFC 정규화 (Claude Code log는 NFC 저장)
+  local project_cwd_raw project_cwd
+  project_cwd_raw=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+  if command -v python3 &>/dev/null; then
+    project_cwd=$(python3 -c "import unicodedata,sys;print(unicodedata.normalize('NFC', sys.argv[1]))" "$project_cwd_raw" 2>/dev/null || echo "$project_cwd_raw")
+  else
+    project_cwd="$project_cwd_raw"
+  fi
+
+  # 모든 session-log 순회 — cat | jq -n inputs 패턴 (jq -s는 NDJSON 다중파일 부적합)
+  local agg
+  agg=$(cat "$home_projects"/*/*.jsonl 2>/dev/null | jq -n --arg cwd "$project_cwd" --arg since "$since" '
+    [inputs | select(
+        .type == "assistant"
+        and .cwd == $cwd
+        and (.timestamp // .ts // "") > $since
+        and ((.message.usage.input_tokens // 0) + (.message.usage.output_tokens // 0)) > 0
+        and (.message.model // "") != "<synthetic>"
+      )]
+    | group_by(.message.model)
+    | map({
+        model: (.[0].message.model // "unknown"),
+        input: (map(.message.usage.input_tokens // 0) | add),
+        output: (map(.message.usage.output_tokens // 0) | add),
+        cache_read: (map(.message.usage.cache_read_input_tokens // 0) | add),
+        cache_creation: (map(.message.usage.cache_creation_input_tokens // 0) | add),
+        messages: length
+      })
+  ' 2>/dev/null || echo '[]')
+
+  if [ "$(echo "$agg" | jq 'length')" = "0" ]; then
+    echo "📊 /budget --tokens (지난 ${PERIOD_DAYS}일, project: $project_cwd)"
+    echo "   매칭되는 session-log 없음 — Claude Code에서 이 프로젝트 사용 이력이 없습니다."
+    return 0
+  fi
+
+  # 각 모델별 USD 계산
+  echo "📊 /budget --tokens (지난 ${PERIOD_DAYS}일, project: $project_cwd)"
+  echo ""
+  printf "%-22s %12s %12s %12s %12s %10s\n" "model" "input" "output" "cache_rd" "cache_cr" "USD"
+  printf "%-22s %12s %12s %12s %12s %10s\n" "─────" "─────" "──────" "────────" "────────" "───"
+
+  local total_usd=0
+  echo "$agg" | jq -c '.[]' | while IFS= read -r row; do
+    local model input output cache_read cache_create
+    model=$(echo "$row" | jq -r '.model')
+    input=$(echo "$row" | jq -r '.input')
+    output=$(echo "$row" | jq -r '.output')
+    cache_read=$(echo "$row" | jq -r '.cache_read')
+    cache_create=$(echo "$row" | jq -r '.cache_creation')
+
+    # pricing lookup — 정확 매치 후 _default fallback
+    local p_in p_out p_cr p_cc
+    p_in=$(jq -r --arg m "$model"   '.models[$m].input        // .models._default.input'        "$pricing_file")
+    p_out=$(jq -r --arg m "$model"  '.models[$m].output       // .models._default.output'       "$pricing_file")
+    p_cr=$(jq -r --arg m "$model"   '.models[$m].cache_read   // .models._default.cache_read'   "$pricing_file")
+    p_cc=$(jq -r --arg m "$model"   '.models[$m].cache_creation // .models._default.cache_creation' "$pricing_file")
+
+    # USD = (tokens / 1M) * price
+    local usd
+    usd=$(awk -v i="$input" -v o="$output" -v cr="$cache_read" -v cc="$cache_create" \
+              -v pi="$p_in" -v po="$p_out" -v pcr="$p_cr" -v pcc="$p_cc" \
+              'BEGIN{printf "%.4f", (i*pi + o*po + cr*pcr + cc*pcc) / 1000000}')
+
+    printf "%-22s %12s %12s %12s %12s %10s\n" \
+      "$model" \
+      "$(numfmt --grouping "$input" 2>/dev/null || echo "$input")" \
+      "$(numfmt --grouping "$output" 2>/dev/null || echo "$output")" \
+      "$(numfmt --grouping "$cache_read" 2>/dev/null || echo "$cache_read")" \
+      "$(numfmt --grouping "$cache_create" 2>/dev/null || echo "$cache_create")" \
+      "\$$usd"
+  done
+
+  echo ""
+  echo "출처: ${home_projects}/*/*.jsonl (cwd 매칭)"
+  echo "가격: $pricing_file (변동 시 갱신)"
+}
+```
+
+### 10. 모드 분기 + 출력
 
 ```bash
 case "$MODE" in
   view) print_view ;;
   json) print_json ;;
+  tokens) print_tokens ;;
   set|reset) ;;  # 위에서 처리
 esac
 ```
 
-### 10. Events 발생
+### 11. Events 발생
 
 ```bash
 NOW_ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 mkdir -p .claude
-jq -nc --arg ts "$NOW_ISO" --arg mode "$MODE" \
-  '{type:"budget", ts:$ts, mode:$mode}' \
-  >> .claude/events.jsonl
+if [ "$MODE" = "tokens" ]; then
+  jq -nc --arg ts "$NOW_ISO" --arg mode "$MODE" --argjson p "$PERIOD_DAYS" \
+    '{type:"budget", ts:$ts, mode:$mode, period_days:$p}' \
+    >> .claude/events.jsonl
+else
+  jq -nc --arg ts "$NOW_ISO" --arg mode "$MODE" \
+    '{type:"budget", ts:$ts, mode:$mode}' \
+    >> .claude/events.jsonl
+fi
 ```
 
 ## 출처
