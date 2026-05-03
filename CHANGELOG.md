@@ -2,6 +2,34 @@
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-05-04 — bite-sized 스킬 + hook 일괄 보강
+
+### 추가
+- **`/perf-audit <url>` Core 스킬 (#26)** — Lighthouse CLI 래핑 (npx -y, 자동 다운로드). Performance score + 5 Web Vitals (FCP/LCP/CLS/TBT/Speed Index) 추출, pass/warn/fail verdict, `events.jsonl` `type=perf_audit` 이력. stack-agnostic (URL만 있으면 동작). on-demand only (~30s+).
+- **`security-lint.sh` PostToolUse hook (#25)** — Write/Edit 직후 5+ OWASP 정적 패턴 (A01/A02/A03/A07/A09) grep. warn-only (차단 X), <200ms 응답. `pattern-check.sh`와 동일 형태로 일관. test/spec/templates/lockfile 등 false positive 회피.
+- **`/inbox send <to> <subject> <body>` 모드 (#21)** — 사용자가 에이전트에게 메시지 발송. `--type info|alert|request|reply` / `--priority low|medium|high|critical` 옵션. 무효값 fallback. `message-bus.sh send` CLI 위임. 성공 시 `inbox_sent` 이벤트 push.
+- **`/budget --tokens [--period 7|30|90]` 모드 (#24)** — Claude Code `~/.claude/projects/<slug>/*.jsonl` 파싱하여 모델별 정확 USD 비용. macOS NFD/NFC 한글 경로 정규화 (python3 fallback). pricing은 `core/skills/budget/data/pricing.json` 별도 파일 (가격 변경 시 한 줄 PR).
+- **`/telemetry --period 7|30|90` 옵션 (#19)** — 기본 30일 분석 기간을 조정 가능. 모든 30일 하드코딩을 `$PERIOD_DAYS`로 치환. 무효값 (7/30/90 외) 경고 후 30일 fallback. JSON 출력 키 일반화 (`stale_30d` → `stale_period`).
+- **GitHub Actions templates 3종 (#22)** — `templates/.github/workflows/`에 사용자 프로젝트용 CI 추가. **opt-in (manual copy)** — setup.sh 자동 복사 X.
+  - `verify.yml` — npm/yarn/pnpm 자동 감지 + lint/typecheck/test (stack-agnostic)
+  - `eval-regression.yml` — 사용자 자기 SKILL.md/agents.md/evals.json 구조 회귀 검증
+  - `security.yml` — npm audit + secret 패턴 grep + OWASP 정적 (warn-only)
+- **dashboard 신규 이벤트 매핑** ([dashboard #9](https://github.com/SONGYEONGSIN/vibe-flow-dashboard/pull/9)) — `inbox_sent` (수신자 jump) + `perf_audit` (verdict 분기) 캐릭터 액션 매핑.
+
+### 변경
+- **README**: Core 19 → 20, Hooks 24 → 25 (배지 + 텍스트 일관)
+- **`docs/REFERENCE.md`**: 4 행 갱신 (perf-audit 신규, telemetry/inbox/budget 시그니처 확장)
+- **eval-regression CI**: `templates/.github/workflows/**` path filter 추가, yq 설치 + Templates YAML 유효성 검증 단계 신규 (#23). 검증 6 → 7 항목.
+
+### 호환
+- ✓ 기존 19 Core + 11 Extension 스킬 모두 유지 (Core 20 = 19 + /perf-audit)
+- ✓ 모든 신규 옵션은 backward compatible (기존 호출 그대로 동작)
+- ✓ vibe-flow 1.4.0에서 자동 마이그레이션 (state 보존)
+
+### 후속 후보
+- `templates/.github/workflows/perf.yml` — `/perf-audit` CI 자동화 (별도 PR 후보)
+- 🎮 캐릭터 풀 게임화 — 외형 설정 / `/pair` 협업 애니메이션 / Stage 진화 (별도 brainstorm)
+
 ## [1.4.0] - 2026-05-01 — Phase 3 UI + 동적 캐릭터 시스템 (게임화)
 
 ### 추가
