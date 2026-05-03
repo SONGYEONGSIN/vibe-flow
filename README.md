@@ -65,13 +65,14 @@ bash setup.sh --all                   # 전체 설치
 
 ## 🔧 CI 템플릿 (opt-in)
 
-`templates/.github/workflows/`에 사용자 프로젝트용 GH Actions 3종 제공:
+`templates/.github/workflows/`에 사용자 프로젝트용 GH Actions 4종 제공:
 
 | 파일 | 역할 |
 |------|------|
 | `verify.yml` | lint + typecheck + test (npm/yarn/pnpm 자동 감지, stack-agnostic) |
 | `eval-regression.yml` | 자기 만든 SKILL.md / agents.md / evals.json 구조 회귀 검증 |
 | `security.yml` | npm audit + secret 패턴 grep + OWASP-style 정적 grep (warn-only 기본) |
+| `perf.yml` | Lighthouse 성능 측정 (`workflow_dispatch` 또는 weekly schedule, threshold 미달 시 warning) |
 
 ```bash
 # 사용자 프로젝트로 복사 (수동, opt-in)
