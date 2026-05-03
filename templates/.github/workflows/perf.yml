@@ -1,0 +1,103 @@
+# vibe-flow template: perf.yml
+# vibe-flow `/perf-audit <url>` 스킬 패턴 — Lighthouse CLI로 URL 측정.
+# warn-only 기본 (PR 차단 X). threshold 미달 시 warning만.
+#
+# 사용:
+#   1. 이 파일을 .github/workflows/perf.yml로 복사
+#   2. 측정 방법 2 가지:
+#      (a) workflow_dispatch — Actions 탭에서 수동 실행 + URL 입력
+#      (b) schedule — 매주 월요일 09:00 UTC. env LIGHTHOUSE_URL 설정 필요
+#         (Settings → Secrets and variables → Actions → Variables 또는 Secrets)
+#   3. 결과: Job Summary에 표 출력 + lighthouse-report.json artifact (30일 보관)
+name: perf-audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL to audit (https://example.com)'
+        required: true
+        type: string
+      threshold:
+        description: 'Minimum performance score (0-100)'
+        required: false
+        default: '50'
+        type: string
+  schedule:
+    # 매주 월요일 09:00 UTC — env LIGHTHOUSE_URL 미설정 시 skip
+    - cron: '0 9 * * 1'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    continue-on-error: true   # warn-only — 강제 차단하려면 제거
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Resolve URL
+        id: url
+        run: |
+          # workflow_dispatch input > env LIGHTHOUSE_URL > skip
+          INPUT_URL="${{ github.event.inputs.url }}"
+          ENV_URL="${LIGHTHOUSE_URL:-}"
+          URL="${INPUT_URL:-$ENV_URL}"
+          if [ -z "$URL" ]; then
+            echo "::warning::URL 미지정 — workflow_dispatch input 또는 env LIGHTHOUSE_URL 설정 필요"
+            echo "url=" >> $GITHUB_OUTPUT
+          else
+            echo "url=$URL" >> $GITHUB_OUTPUT
+          fi
+        env:
+          LIGHTHOUSE_URL: ${{ vars.LIGHTHOUSE_URL }}
+
+      - name: Run Lighthouse
+        if: steps.url.outputs.url != ''
+        run: |
+          npx -y lighthouse "${{ steps.url.outputs.url }}" \
+            --quiet \
+            --chrome-flags="--headless --no-sandbox --disable-gpu" \
+            --output=json \
+            --output-path=lighthouse-report.json
+
+      - name: Parse + Job Summary
+        if: steps.url.outputs.url != ''
+        run: |
+          if [ ! -s lighthouse-report.json ]; then
+            echo "::warning::lighthouse 결과 비어있음"
+            exit 0
+          fi
+
+          SCORE=$(jq -r '.categories.performance.score * 100 | floor' lighthouse-report.json)
+          THRESHOLD="${{ github.event.inputs.threshold || '50' }}"
+
+          # Job Summary에 표 출력
+          {
+            echo "## Lighthouse Performance Audit"
+            echo ""
+            echo "- **URL**: ${{ steps.url.outputs.url }}"
+            echo "- **Score**: $SCORE / 100"
+            echo "- **Threshold**: $THRESHOLD"
+            echo ""
+            echo "| 지표 | 값 |"
+            echo "|------|---|"
+            echo "| First Contentful Paint | $(jq -r '.audits["first-contentful-paint"].displayValue // "N/A"' lighthouse-report.json) |"
+            echo "| Largest Contentful Paint | $(jq -r '.audits["largest-contentful-paint"].displayValue // "N/A"' lighthouse-report.json) |"
+            echo "| Cumulative Layout Shift | $(jq -r '.audits["cumulative-layout-shift"].displayValue // "N/A"' lighthouse-report.json) |"
+            echo "| Total Blocking Time | $(jq -r '.audits["total-blocking-time"].displayValue // "N/A"' lighthouse-report.json) |"
+            echo "| Speed Index | $(jq -r '.audits["speed-index"].displayValue // "N/A"' lighthouse-report.json) |"
+          } >> $GITHUB_STEP_SUMMARY
+
+          if [ "$SCORE" -lt "$THRESHOLD" ]; then
+            echo "::warning::Performance score $SCORE < threshold $THRESHOLD"
+          fi
+
+      - name: Upload report artifact
+        if: steps.url.outputs.url != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: lighthouse-report.json
+          retention-days: 30
