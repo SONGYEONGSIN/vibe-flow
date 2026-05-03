@@ -171,6 +171,11 @@
           },
           {
             "type": "command",
+            "command": ".claude/hooks/security-lint.sh",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
             "command": ".claude/hooks/debate-trigger.sh",
             "timeout": 5000
           },
