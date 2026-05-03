@@ -108,8 +108,7 @@
 - [x] **security 강화** — `core/hooks/security-lint.sh` (PostToolUse Write/Edit, 5+ OWASP 패턴, warn-only) 1.4.x 추가. `/security` 스킬은 명시 호출 deep scan으로 역할 분리.
   - 후보 검출: SQL injection, XSS, hardcoded secret, eval(), insecure deserialization
 
-- [ ] **performance audit** — Lighthouse / Web Vitals 통합
-  - `/perf-audit` 스킬 후보 — Next.js + Lighthouse CLI 자동 실행 + 결과 events에 push
+- [x] **performance audit** — `/perf-audit <url>` 스킬 1.4.x 추가. Lighthouse CLI 래핑 (npx -y), 5 Web Vitals + verdict + events.jsonl. 후속: `templates/.github/workflows/perf.yml` CI 자동화 (별도 PR 후보)
   - 외부 의존: lighthouse, puppeteer (design-system extension과 유사 패턴)
 
 - [x] **GitHub Actions templates** — `templates/.github/workflows/` 3종 (verify/eval-regression/security) 1.4.x 추가

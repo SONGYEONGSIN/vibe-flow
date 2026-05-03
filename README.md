@@ -3,7 +3,7 @@
 > vibe coder의 작업 흐름 — 초보부터 상급자까지, mechanical enforcement로
 
 [![CI](https://github.com/SONGYEONGSIN/vibe-flow/actions/workflows/eval-regression.yml/badge.svg)](https://github.com/SONGYEONGSIN/vibe-flow/actions)
-[![Core](https://img.shields.io/badge/Core-19_skills-blue)](docs/REFERENCE.md)
+[![Core](https://img.shields.io/badge/Core-20_skills-blue)](docs/REFERENCE.md)
 [![Extensions](https://img.shields.io/badge/Extensions-11_skills-purple)](extensions/)
 [![Hooks](https://img.shields.io/badge/Hooks-25-orange)](docs/REFERENCE.md)
 [![Agents](https://img.shields.io/badge/Agents-12-green)](docs/REFERENCE.md)
@@ -17,7 +17,7 @@ cd /your/project
 bash /path/to/vibe-flow/setup.sh
 ```
 
-→ Core 19 스킬 + 23 훅 + 10 에이전트 + 6 규칙 즉시 활성화
+→ Core 20 스킬 + 25 훅 + 10 에이전트 + 6 규칙 즉시 활성화
 
 ## 🎯 첫 사이클 (5분)
 
@@ -31,13 +31,13 @@ claude
 > /finish                                # PR/머지 결정 트리
 ```
 
-## 📦 Core 19 — 기본 설치
+## 📦 Core 20 — 기본 설치
 
 | 카테고리 | 스킬 |
 |---------|------|
 | 사이클 | `/brainstorm` `/plan` `/finish` `/release` |
 | 작업 | `/scaffold` `/test` `/worktree` |
-| 검증 | `/verify` `/security` |
+| 검증 | `/verify` `/security` `/perf-audit` |
 | Git | `/commit` `/review-pr` `/receive-review` |
 | 메타 | `/status` `/learn` `/onboard` `/menu` `/inbox` `/budget` `/telemetry` |
 
