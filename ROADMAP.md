@@ -105,8 +105,7 @@
 
 #### v1.x 후속 후보 (우선순위 미정)
 
-- [ ] **security 강화** — OWASP Top 10 자동 체크 hooks (`/security` 스킬 보강)
-  - 현재 `/security` 단일 스킬만. PostToolUse hook으로 `Write/Edit` 시 자동 lint 추가 검토
+- [x] **security 강화** — `core/hooks/security-lint.sh` (PostToolUse Write/Edit, 5+ OWASP 패턴, warn-only) 1.4.x 추가. `/security` 스킬은 명시 호출 deep scan으로 역할 분리.
   - 후보 검출: SQL injection, XSS, hardcoded secret, eval(), insecure deserialization
 
 - [ ] **performance audit** — Lighthouse / Web Vitals 통합
