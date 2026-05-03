@@ -1,0 +1,81 @@
+{
+  "skill": "perf-audit",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "missing-url",
+      "description": "URL 인자 누락 — Usage 안내 + exit 1",
+      "setup": {},
+      "input": "/perf-audit",
+      "expected": {
+        "shows_usage": "Usage: /perf-audit <url>",
+        "exit_code": 1
+      }
+    },
+    {
+      "id": "invalid-scheme",
+      "description": "http:// 또는 https:// 없는 URL — 거부 + exit 1",
+      "setup": {},
+      "input": "/perf-audit example.com",
+      "expected": {
+        "shows_warn": "http:// 또는 https://",
+        "exit_code": 1
+      }
+    },
+    {
+      "id": "successful-audit-text",
+      "description": "정상 URL — Performance Score, FCP/LCP/CLS/TBT/Speed Index 출력",
+      "setup": {
+        "mocked_lighthouse_output": {
+          "categories": {"performance": {"score": 0.95}},
+          "audits": {
+            "first-contentful-paint": {"numericValue": 1200},
+            "largest-contentful-paint": {"numericValue": 1800},
+            "cumulative-layout-shift": {"numericValue": 0.05},
+            "total-blocking-time": {"numericValue": 50},
+            "speed-index": {"numericValue": 2200}
+          }
+        }
+      },
+      "input": "/perf-audit https://example.com",
+      "expected": {
+        "shows_score": "95/100",
+        "shows_verdict": "PASS",
+        "shows_metric": ["First Contentful Paint", "Largest Contentful Paint", "Cumulative Layout Shift"]
+      }
+    },
+    {
+      "id": "json-output",
+      "description": "/perf-audit ... --json — 유효 JSON + 필수 키",
+      "setup": {
+        "mocked_lighthouse_output": {
+          "categories": {"performance": {"score": 0.65}},
+          "audits": {
+            "first-contentful-paint": {"numericValue": 2000},
+            "largest-contentful-paint": {"numericValue": 3500},
+            "cumulative-layout-shift": {"numericValue": 0.15},
+            "total-blocking-time": {"numericValue": 200},
+            "speed-index": {"numericValue": 4000}
+          }
+        }
+      },
+      "input": "/perf-audit https://example.com --json",
+      "expected": {
+        "valid_json": true,
+        "has_keys": ["url", "score", "verdict", "vitals"],
+        "has_vitals_keys": ["fcp_ms", "lcp_ms", "cls", "tbt_ms", "speed_index_ms"],
+        "verdict": "WARN"
+      }
+    },
+    {
+      "id": "events-jsonl-append",
+      "description": "실행 후 .claude/events.jsonl에 type=perf_audit 1줄 append",
+      "setup": {},
+      "input": "/perf-audit https://example.com",
+      "expected": {
+        "events_jsonl_appends": "perf_audit",
+        "event_keys": ["type", "ts", "url", "score", "verdict", "lcp_ms", "cls", "tbt_ms", "fcp_ms"]
+      }
+    }
+  ]
+}
