@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-05-05 — sleep-build (자율 사이클) + character system 정리
+
+vibe-flow v2 첫 사이클. **maker가 자는 시간을 가치로 만든다** — 야간 자율 사이클 토대 (`/sleep-build`) + Phase 1.1 dogfooding 강화.
+
 ### 추가
 - **`/sleep-build` Phase 1.1 — orchestrator 강화 (#32, Closes #31)** — dogfooding 발견 4 design gap 해소.
   - F1 (high): P0.1 배포 fail-fast — hook + run-log + orchestrator.md 미배포 시 즉시 abort `deployment_missing`
@@ -17,6 +21,13 @@
   - 설계 근거: `.claude/memory/brainstorms/20260504-103257-vibe-flow-v2-overnight-autonomous-build.md`
   - 구현 plan: `.claude/plans/20260504-194208-vibe-flow-sleep-build-phase1.md` (T1~T10)
   - **Out of scope**: 다중 task 큐(Phase 2), CronCreate 야간 스케줄(Phase 2), dashboard `/morning`(Phase 3), retrospective 자가 진화(Phase 4)
+- **GitHub Actions templates — `perf.yml` (#28)** — Lighthouse CI workflow. PR push 시 URL 1개 자동 측정 → comment 형태 결과. opt-in (manual copy from `templates/.github/workflows/`). 1.5.0의 verify/eval-regression/security 3종에 이어 4번째 템플릿.
+
+### 호환
+- ✓ 1.5.0 Core 20 + Extension 11 스킬 모두 유지 (Core 21 = 20 + /sleep-build)
+- ✓ Hook 25 → 26 (sleep-build-safety.sh 추가)
+- ✓ 자율 모드 토글은 `SLEEP_BUILD_MODE=1` env로 격리 — 비-자율 작업에 영향 0
+- 짝 운영 dashboard 1.1.0 ([dashboard CHANGELOG](https://github.com/SONGYEONGSIN/vibe-flow-dashboard/blob/main/CHANGELOG.md)) 와 sleep_build_* 이벤트 형식 정합 (run-log.sh 출력 ↔ event-map.ts mapping)
 
 ## [1.5.0] - 2026-05-04 — bite-sized 스킬 + hook 일괄 보강
 
