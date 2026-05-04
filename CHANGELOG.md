@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### 추가
+- **`/sleep-build "<task>"` Core 스킬 — Phase 1 MVP** — 단일 task one-shot 자율 사이클. brainstorm → plan → 구현(TDD) → /verify → /commit → /finish 까지 maker가 자는 동안 완주.
+  - 진입점: `core/skills/sleep-build/SKILL.md`. 본체 시퀀스: `orchestrator.md` (P0 전처리 → P1~P5 → P-end 후처리)
+  - 안전 hook: `core/hooks/sleep-build-safety.sh` (PreToolUse). `SLEEP_BUILD_MODE=1` 일 때만 활성. destructive op 6+ 차단(`rm -rf`, `git reset --hard`, `git push --force`, `--no-verify`, `chmod 777`, fork bomb), token cap (`SLEEP_BUILD_TOKEN_CAP` 기본 130k), file count cap (`SLEEP_BUILD_FILE_CAP` 기본 19, HARD-GATE 20+ 자율 차단)
+  - 사이클 이력: `.claude/memory/sleep-build-runs.jsonl` (start/abort/done 이벤트, NFC 한글 경로 정규화)
+  - eval: `core/skills/sleep-build/evals/evals.json` 5 케이스 (orchestrator phase 헤더 / hook 차단 / hook 비활성 통과 / innocent 통과 / run-log append)
+  - 설계 근거: `.claude/memory/brainstorms/20260504-103257-vibe-flow-v2-overnight-autonomous-build.md`
+  - 구현 plan: `.claude/plans/20260504-194208-vibe-flow-sleep-build-phase1.md` (T1~T10)
+  - **Out of scope**: 다중 task 큐(Phase 2), CronCreate 야간 스케줄(Phase 2), dashboard `/morning`(Phase 3), retrospective 자가 진화(Phase 4)
+
 ## [1.5.0] - 2026-05-04 — bite-sized 스킬 + hook 일괄 보강
 
 ### 추가
