@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### 추가
+- **`/sleep-build` Phase 1.1 — orchestrator 강화 (#32, Closes #31)** — dogfooding 발견 4 design gap 해소.
+  - F1 (high): P0.1 배포 fail-fast — hook + run-log + orchestrator.md 미배포 시 즉시 abort `deployment_missing`
+  - F3 (high): P1 자율 spec 직접 작성 — `/brainstorm` 스킬 호출 X. orchestrator가 prepared 4문항 답변에서 5 H2 헤더 spec 합성. 합성 실패 시 abort
+  - F4 (medium): P2 HARD-GATE 분기 — `inline` → P3 직행, `brief` → plan 생성, `full` → abort
+  - F5 (medium): P4 project-aware verify — `/verify` 의존 X. `package.json scripts` (test/build/lint/typecheck) detect 후 실재 명세만 실행
+  - evals.json +4 케이스 — 결정 트리 회귀 검증
 - **`/sleep-build "<task>"` Core 스킬 — Phase 1 MVP** — 단일 task one-shot 자율 사이클. brainstorm → plan → 구현(TDD) → /verify → /commit → /finish 까지 maker가 자는 동안 완주.
   - 진입점: `core/skills/sleep-build/SKILL.md`. 본체 시퀀스: `orchestrator.md` (P0 전처리 → P1~P5 → P-end 후처리)
   - 안전 hook: `core/hooks/sleep-build-safety.sh` (PreToolUse). `SLEEP_BUILD_MODE=1` 일 때만 활성. destructive op 6+ 차단(`rm -rf`, `git reset --hard`, `git push --force`, `--no-verify`, `chmod 777`, fork bomb), token cap (`SLEEP_BUILD_TOKEN_CAP` 기본 130k), file count cap (`SLEEP_BUILD_FILE_CAP` 기본 19, HARD-GATE 20+ 자율 차단)
