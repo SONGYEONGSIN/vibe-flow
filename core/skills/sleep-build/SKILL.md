@@ -29,12 +29,20 @@ vibe-flow v2의 첫 자율 워크플로우. maker는 잠자기 전 task 1개를 
 4. **file count cap** — branch git diff 파일 수가 `SLEEP_BUILD_FILE_CAP`(기본 19) 초과 시 abort (HARD-GATE 20+ 자율 차단)
 5. **실패 시 abort** — exit reason을 `.claude/memory/sleep-build-runs.jsonl`에 명시 + branch 보존(폐기 X) → maker morning review
 
-## 선행 조건
+## 선행 조건 (P0가 자동 검증, 부재 시 즉시 abort)
 
-- `/brainstorm`, `/plan`, `/verify`, `/commit`, `/finish` 스킬 모두 사용 가능
-- `core/hooks/sleep-build-safety.sh` 가 `settings.template.json`의 PreToolUse에 등록됨
-- 현재 working tree clean (커밋되지 않은 변경 없음)
-- `gh` 인증 완료 (PR 생성용)
+- **배포 검증** (Phase 1.1, F1 완화):
+  - `.claude/hooks/sleep-build-safety.sh` 실행 권한 보유 — 미배포 시 abort `deployment_missing`
+  - `.claude/skills/sleep-build/scripts/run-log.sh` 실행 권한 보유
+  - `.claude/skills/sleep-build/orchestrator.md` 존재
+- **검증 명세** (Phase 1.1, F5 완화):
+  - `package.json`의 `scripts.test|build|lint|typecheck` 중 1개 이상 존재 (P4가 detect)
+  - 또는 `/verify` 스킬 배포
+  - 모두 부재 시 abort `verify_unspecified`
+- **환경**:
+  - 현재 working tree clean (커밋되지 않은 변경 없음)
+  - `gh` 인증 완료 (PR 생성용)
+  - `core/hooks/sleep-build-safety.sh` 가 `settings.template.json`의 PreToolUse에 등록됨 (setup.sh 자동 처리)
 
 ## 절차 요약
 
