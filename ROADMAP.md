@@ -121,23 +121,19 @@
 
 - [x] **`/telemetry` 기간 옵션** — `/telemetry --period 7|30|90` 1.4.x 추가 (PR #19)
 
-- [ ] **🎮 동적 캐릭터 시스템 (게임화)** — vibe-coding에 재미 요소
-  - **의도**: 12 에이전트 = 12 캐릭터로 시각화 + 사용자가 캐릭터 이름/외형 설정 + events 트리거에 반응 애니메이션
-  - **시작 방향**: brainstorming 필요 (다음 세션 첫 작업)
-  - **결정 후보 (Q1 범위)**:
-    - 프론트 UI만 (캐릭터 이름/외형 설정 + 정적 표시, mock 데이터)
-    - vibe-flow 연결 (events.jsonl 트리거 → 캐릭터 액션, 예: `commit_created` → 디자이너 박수)
-    - 풀 게임화 (Stage 시스템, /pair 두 캐릭터 협업 애니메이션, /telemetry 기반 레벨업)
-  - **결정 후보 (Q2 캐릭터 표현)**:
-    - 이모지/유니코드 (가장 단순, ASCII art)
-    - CSS 애니메이션 (단순 도형 + transform)
-    - 이미지/SVG (사용자 직접 그리기 또는 AI 생성)
-    - Lottie/Canvas (풍부, 무거움)
-  - **결정 후보 (Q3 배치)**:
-    - dashboard 새 섹션 (vibe-flow-dashboard에 통합)
-    - 별도 페이지 (`/characters`)
-    - 별도 repo (`vibe-flow-characters` 또는 `vibe-flow-game`)
-  - **참고**: vibe-flow 12 에이전트 매핑 자연스러움 (planner=기획자, designer=디자이너, developer=개발자, qa, security, validator, feedback, moderator, comparator, retrospective + extension의 grader/skill-reviewer)
+- [x] **🎮 동적 캐릭터 시스템 (게임화)** — vibe-flow-dashboard `/characters` (별도 repo)
+  - **Q1 범위**: 풀 게임화 채택 — events.jsonl 트리거 + Stage 시스템 (`/pair` 협업 애니메이션은 후순위)
+  - **Q2 캐릭터 표현**: 픽셀 도트 아트 (CSS sprite, 12 에이전트 개별)
+  - **Q3 배치**: vibe-flow-dashboard `/characters` 페이지 통합
+  - **구현 사이클**:
+    - 12 캐릭터 + reducer + useCharacterEngine (dashboard #4)
+    - `skill_invoked` 이벤트 매핑 + 12 캐릭터 skill 대사 풀 (dashboard #6)
+    - Stage 어드저스터 UI + localStorage 미리보기 (dashboard #8)
+    - `inbox_sent` + `perf_audit` 이벤트 매핑 (dashboard #9)
+    - **Stage 자동 진화** — telemetry 기반 에이전트별 시각 차이 (dashboard #10, brainstorm `20260504-074253-character-system-extension.md` → plan `20260504-075255-character-stage-auto-evolution.md`)
+  - **미정 후속 후보** (브레인스토밍 보존):
+    - B. 외형/이름 personalization — 픽셀 art 한계로 가치 작음, 메이커가 "내 캐릭터" 정 들이는 시점에 재평가
+    - C. `/pair` 협업 애니메이션 — 동작 프리미티브 일반화 후 장기 후보
 
 ### 🔵 P5 전략 공백: 토큰/비용 예산 프레임워크 ✅ 완료
 
