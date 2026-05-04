@@ -393,6 +393,8 @@ for skill_dir in "$SCRIPT_DIR/core/skills"/*/; do
     cp "$sub_dir"* "$PROJECT_DIR/.claude/skills/$skill_name/$sub_name/" 2>/dev/null || true
   done
 done
+# 스킬 하위 scripts/ 디렉토리의 .sh 실행 권한 (예: sleep-build/scripts/run-log.sh)
+find "$PROJECT_DIR/.claude/skills" -path "*/scripts/*.sh" -exec chmod +x {} + 2>/dev/null || true
 
 # Rules 복사
 echo "[4/$TOTAL_STEPS] Rules..."

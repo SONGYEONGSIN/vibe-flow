@@ -1,0 +1,84 @@
+{
+  "skill": "sleep-build",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "orchestrator-phases-present",
+      "description": "orchestrator.md에 P0~P5 + P-end 모든 phase 헤더 존재",
+      "setup": {},
+      "input": "grep -E '^### P[0-5]|^### P-end' core/skills/sleep-build/orchestrator.md",
+      "expected": {
+        "has_lines": [
+          "### P0 — 전처리",
+          "### P1 — Brainstorm",
+          "### P2 — Plan",
+          "### P3 — TDD 구현",
+          "### P4 — Verify",
+          "### P5 — Commit + Finish",
+          "### P-end — 후처리"
+        ],
+        "min_match_count": 7
+      }
+    },
+    {
+      "id": "safety-hook-blocks-destructive-when-active",
+      "description": "SLEEP_BUILD_MODE=1 일 때 rm -rf 패턴 차단 (exit 2)",
+      "setup": {
+        "env": {
+          "SLEEP_BUILD_MODE": "1"
+        },
+        "stdin": "{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"rm -rf /tmp/foo\"}}"
+      },
+      "input": "bash core/hooks/sleep-build-safety.sh",
+      "expected": {
+        "exit_code": 2,
+        "stderr_contains": "BLOCKED — rm -rf 패턴"
+      }
+    },
+    {
+      "id": "safety-hook-passes-when-inactive",
+      "description": "SLEEP_BUILD_MODE 미설정 시 destructive 패턴도 통과 (자율 모드 X = hook 비활성)",
+      "setup": {
+        "env": {},
+        "stdin": "{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"rm -rf /tmp/foo\"}}"
+      },
+      "input": "bash core/hooks/sleep-build-safety.sh",
+      "expected": {
+        "exit_code": 0,
+        "stderr_empty": true
+      }
+    },
+    {
+      "id": "safety-hook-passes-innocent-when-active",
+      "description": "SLEEP_BUILD_MODE=1 + 정상 Bash 명령 — 통과 (false positive 회귀 방지)",
+      "setup": {
+        "env": {
+          "SLEEP_BUILD_MODE": "1"
+        },
+        "stdin": "{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"ls -la\"}}"
+      },
+      "input": "bash core/hooks/sleep-build-safety.sh",
+      "expected": {
+        "exit_code": 0,
+        "stderr_empty": true
+      }
+    },
+    {
+      "id": "run-log-jsonl-append",
+      "description": "run-log.sh start|done|abort 3 이벤트 jsonl 1줄씩 append + jq 파싱 가능",
+      "setup": {
+        "cwd_isolated": true
+      },
+      "input": "bash core/skills/sleep-build/scripts/run-log.sh start test-r1 phase=P1 && bash core/skills/sleep-build/scripts/run-log.sh done test-r1 pr_url=https://x/y/pull/1 && jq -s 'length' .claude/memory/sleep-build-runs.jsonl",
+      "expected": {
+        "stdout_equals": "2",
+        "valid_jsonl": ".claude/memory/sleep-build-runs.jsonl"
+      }
+    }
+  ],
+  "out_of_scope": [
+    "실제 야간 자율 빌드 end-to-end 검증 — maker 수동 dogfooding 1회로 calibration",
+    "token cap calibration — Phase 1 dogfooding 결과 기반 SLEEP_BUILD_TOKEN_CAP 조정",
+    "PR 자동 생성/머지 검증 — `/finish` `--path pr` 동작은 별도 스킬 책임"
+  ]
+}
