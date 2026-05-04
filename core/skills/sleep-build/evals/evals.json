@@ -4,20 +4,56 @@
   "cases": [
     {
       "id": "orchestrator-phases-present",
-      "description": "orchestrator.md에 P0~P5 + P-end 모든 phase 헤더 존재",
+      "description": "orchestrator.md에 P0~P5 + P-end 모든 phase 헤더 존재 (Phase 1.1: P1 자율 spec, P2 분기, P4 project-aware 명시 포함)",
       "setup": {},
       "input": "grep -E '^### P[0-5]|^### P-end' core/skills/sleep-build/orchestrator.md",
       "expected": {
         "has_lines": [
           "### P0 — 전처리",
-          "### P1 — Brainstorm",
-          "### P2 — Plan",
+          "### P1 — Brainstorm (자율 spec 직접 작성)",
+          "### P2 — Plan (HARD-GATE 분기)",
           "### P3 — TDD 구현",
-          "### P4 — Verify",
+          "### P4 — Verify (project-aware)",
           "### P5 — Commit + Finish",
           "### P-end — 후처리"
         ],
         "min_match_count": 7
+      }
+    },
+    {
+      "id": "p0-deployment-fast-fail",
+      "description": "Phase 1.1 F1 — P0가 hook + run-log + orchestrator 미배포 시 abort 명시",
+      "setup": {},
+      "input": "grep -E 'deployment_missing|미배포 — vibe-flow setup' core/skills/sleep-build/orchestrator.md | wc -l",
+      "expected": {
+        "stdout_min": "1"
+      }
+    },
+    {
+      "id": "p1-autonomous-spec-no-brainstorm-call",
+      "description": "Phase 1.1 F3 — P1이 /brainstorm 스킬 호출 X, orchestrator 직접 작성 명시",
+      "setup": {},
+      "input": "grep -E '/brainstorm. 스킬 호출 X|orchestrator가 직접 작성|task_description_incomplete' core/skills/sleep-build/orchestrator.md | wc -l",
+      "expected": {
+        "stdout_min": "2"
+      }
+    },
+    {
+      "id": "p2-inline-skip-branch",
+      "description": "Phase 1.1 F4 — P2가 hard_gate=inline 시 P3 직행 분기 명시",
+      "setup": {},
+      "input": "grep -E 'P2 skip|inline_grade|P3 직행' core/skills/sleep-build/orchestrator.md | wc -l",
+      "expected": {
+        "stdout_min": "2"
+      }
+    },
+    {
+      "id": "p4-project-aware-detect",
+      "description": "Phase 1.1 F5 — P4가 npm scripts detect 후 실재하는 명세만 실행",
+      "setup": {},
+      "input": "grep -E 'package.json. \\`scripts\\`|verify_unspecified|project-aware' core/skills/sleep-build/orchestrator.md | wc -l",
+      "expected": {
+        "stdout_min": "2"
       }
     },
     {

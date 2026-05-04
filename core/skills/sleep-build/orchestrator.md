@@ -13,10 +13,24 @@ run_id: <ISO 8601 timestamp + 4-char hex, 예: 20260504T103257Z-a1b2>
 
 ### P0 — 전처리 (자율 모드 진입)
 
-**목표**: 자율 사이클 환경 격리 — branch 분기 + safety hook 활성화 + run-log 시작.
+**목표**: 자율 사이클 환경 격리 — 배포 검증 + branch 분기 + safety hook 활성화 + run-log 시작.
 
 **실행** (이 순서를 반드시 지킴):
-1. working tree 정합성 확인 — `git status --porcelain` 결과가 비어 있어야 함. 비어 있지 않으면 즉시 abort (uncommitted 변경은 자율 사이클 진입 신호 X)
+
+**P0.1 — 배포 fail-fast 검증** (Phase 1.1 추가, F1 해소):
+
+target project에 sleep-build 스킬과 hook이 배포되지 않았으면 자율 사이클은 진입 자체가 무의미하다. 다음 3개를 순차 검증, 어느 하나라도 부재 시 즉시 abort:
+
+```bash
+[ -x ".claude/hooks/sleep-build-safety.sh" ] || abort "sleep-build-safety.sh 미배포 — vibe-flow setup.sh 먼저 실행"
+[ -x ".claude/skills/sleep-build/scripts/run-log.sh" ] || abort "run-log.sh 미배포"
+[ -f ".claude/skills/sleep-build/orchestrator.md" ] || abort "orchestrator.md 미배포"
+```
+
+abort 시 exit_reason: `deployment_missing`. run-log helper 부재로 jsonl 기록 불가하므로 stderr에 사유만 출력하고 종료.
+
+**P0.2 — 환경 정합성**:
+1. working tree 정합성 확인 — `git status --porcelain` 결과가 비어 있어야 함. 비어 있지 않으면 즉시 abort (uncommitted 변경은 자율 사이클 진입 신호 X). exit_reason: `dirty_working_tree`
 2. `run_id` 결정 — 형식 `<UTC ISO 8601 (no separators)>-<4자 hex>`, 예: `20260504T103257Z-a1b2`
 3. branch 자동 생성:
    ```bash
@@ -29,11 +43,11 @@ run_id: <ISO 8601 timestamp + 4-char hex, 예: 20260504T103257Z-a1b2>
    export SLEEP_BUILD_MODE=1
    export SLEEP_BUILD_RUN_ID="${run_id}"
    ```
-5. `bash core/skills/sleep-build/scripts/run-log.sh start ${run_id} phase=P0 branch=${BRANCH} task="${task}"`
+5. `bash .claude/skills/sleep-build/scripts/run-log.sh start ${run_id} phase=P0 branch=${BRANCH} task="${task}"`
 
 **종료 조건**:
-- ✓ pass: branch checkout 성공 + env 2개 export + run-log start 1줄 append
-- ✗ fail: working tree dirty / branch 생성 실패 / run-log 실패 → abort (env 미설정 상태로 종료)
+- ✓ pass: 배포 검증 통과 + branch checkout + env 2개 export + run-log start
+- ✗ fail: 배포 부재 / working tree dirty / branch 생성 실패 / run-log 실패 → abort (env 미설정 상태로 종료)
 
 **종료 처리**:
 - pass → P1 진입
@@ -41,43 +55,68 @@ run_id: <ISO 8601 timestamp + 4-char hex, 예: 20260504T103257Z-a1b2>
 
 ---
 
-### P1 — Brainstorm
+### P1 — Brainstorm (자율 spec 직접 작성)
 
-**목표**: task → brainstorm spec 파일 1개 생성. 사용자 추가 입력 없이 통과.
+**목표**: task → brainstorm spec 파일 1개 생성. **`/brainstorm` 스킬 호출 X** — orchestrator가 직접 작성. 자율 모드는 사용자 답변 대기가 불가능하기 때문 (F3 해소).
+
+**입력 task description은 4문항이 모두 답변된 형식**이라고 가정한다. 4문항이 누락되었거나 모호하면 P1 진입 직후 abort. SKILL.md "호출 형태" 섹션의 task description 가이드 참조.
 
 **실행**:
-1. `bash core/skills/sleep-build/scripts/run-log.sh start ${run_id} phase=P1 task="${task}"` 호출
-2. `/brainstorm "${task}"` 슬래시 스킬 invoke
-3. 스킬이 4문항 추가 질문 던지면 **즉시 abort** (R7 완화) — `exit_reason=brainstorm_clarification_required`
-4. 결과 spec 파일 경로 캡처 — `.claude/memory/brainstorms/<timestamp>-<slug>.md`
+1. `bash .claude/skills/sleep-build/scripts/run-log.sh start ${run_id} phase=P1 task="${task}"`
+2. task description에서 4문항(무엇을/누가/왜 지금/성공) 추출 가능한지 확인. 추출 불가 시 abort. exit_reason: `task_description_incomplete`
+3. spec 파일 직접 작성:
+   ```bash
+   SPEC_TS=$(date +%Y%m%d-%H%M%S)
+   SPEC_FILE=".claude/memory/brainstorms/${SPEC_TS}-${SLUG}.md"
+   ```
+4. spec 본문 — H1 + 5개 H2 헤더 표준 구조 강제:
+   - `# Brainstorm: <topic>`
+   - `## 의도` — 4문항 답변
+   - `## 제약` — 기술/비즈니스/코드베이스 (orchestrator가 알 수 있는 범위)
+   - `## 대안 비교` — 최소 2 + Z 표 형식
+   - `## 추천 + 근거` — 1 alternative 명시 + 기각 사유
+   - `## 다음 단계` — hard_gate 등급 명시 (`hard_gate: inline | brief | full`)
+5. orchestrator는 task의 도메인 컨텍스트만으로 대안 도출 어려운 경우 abort. exit_reason: `alternative_synthesis_failed` (예: 도메인 깊은 결정 필요 — auth 재설계 등)
 
 **종료 조건**:
-- ✓ pass: spec 파일 1개 생성 + `## 의도 / ## 제약 / ## 추천 + 근거 / ## 다음 단계` 4 헤더 모두 존재
-- ✗ fail: spec 미생성 / 헤더 누락 / 추가 질문 발생 → abort
+- ✓ pass: spec 파일 생성 + 5 H2 헤더 모두 존재 + `## 다음 단계`에 hard_gate 명시
+- ✗ fail: 4문항 추출 불가 / 대안 합성 실패 / 헤더 누락 → abort
 
 **종료 처리**:
-- pass → `run-log.sh start ${run_id} phase=P1_done spec_file="${path}"`
+- pass → `run-log.sh start ${run_id} phase=P1_done spec_file="${path}" hard_gate="${level}"`
 - fail → `run-log.sh abort ${run_id} phase=P1 exit_reason="${reason}"` + 시퀀스 종료
+
+> **수동 모드와의 차이**: `/sleep-build` 외 일반 작업에서는 사용자가 `/brainstorm "<주제>"`를 직접 호출. 이 경우 brainstorm 스킬의 4문항 자기검증 + 사용자 응답 대기가 정상 동작. 자율 모드만 본 P1 시퀀스를 따른다.
 
 ---
 
-### P2 — Plan
+### P2 — Plan (HARD-GATE 분기)
 
-**목표**: brainstorm spec → 구현 plan 1개 생성 + 사용자 합의 게이트 자동 통과.
+**목표**: brainstorm spec → plan 1개 생성. **단, hard_gate 등급에 따라 분기** (Phase 1.1 추가, F4 해소):
 
-**실행**:
+| hard_gate | 동작 | 다음 |
+|-----------|------|------|
+| `inline` (1~5 파일) | **P2 skip** — brainstorm spec을 인라인 설계로 사용 | P3 직행 |
+| `brief` (6~19 파일) | plan 생성 (기존 로직) | P3 진입 |
+| `full` (20+ 파일) | **abort** — file count cap이 어차피 차단 | P-end (abort) |
+
+**실행 (brief 등급일 때만)**:
 1. `run-log.sh start ${run_id} phase=P2`
-2. `/plan from-brainstorm <spec-file-path>` invoke
-3. plan 스킬은 사용자 합의 게이트가 있다 — 자율 모드에서는 brainstorm spec의 `## 추천 + 근거` 단락이 명시적이면 자동 yes 처리. 추천이 모호하거나 alternatives ≥ 2 미만이면 abort.
-4. plan 파일 경로와 `plan_id` 캡처
-5. plan의 `hard_gate` 필드 검증 — `full`(20+ 파일)이면 즉시 abort (file count cap 진입 방지)
+2. brainstorm spec 파일에서 `## 다음 단계` 섹션의 `hard_gate` 필드 추출. 미명시면 파일 수 추정으로 fallback (영향 파일 표 행 수 ≤ 5 → inline, 6~19 → brief, 20+ → full)
+3. inline → run-log start phase=P2_skipped reason=inline_grade → P3 진입
+4. full → abort, exit_reason: `hard_gate_full_blocked`
+5. brief → `/plan from-brainstorm <spec-file-path>` invoke
+6. plan 스킬은 사용자 합의 게이트가 있다 — 자율 모드에서는 brainstorm spec의 `## 추천 + 근거` 단락이 명시적이면 자동 yes 처리. 추천이 모호하거나 alternatives ≥ 2 미만이면 abort. exit_reason: `plan_consent_gate_blocked`
+7. plan 파일 경로와 `plan_id` 캡처
 
 **종료 조건**:
-- ✓ pass: plan 파일 생성 + `hard_gate ∈ {inline, brief}` + 단계 ≥ 1
-- ✗ fail: plan 미생성 / hard_gate=full / 단계 0개 → abort
+- ✓ pass (inline): P2 skip 처리, brainstorm spec이 P3의 입력
+- ✓ pass (brief): plan 파일 생성 + 단계 ≥ 1
+- ✗ fail: hard_gate=full / 추천 모호 / plan 미생성 → abort
 
 **종료 처리**:
-- pass → `run-log.sh start ${run_id} phase=P2_done plan_id="${id}" hard_gate="${level}" steps=${n}`
+- pass (inline) → `run-log.sh start ${run_id} phase=P2_skipped reason=inline_grade`
+- pass (brief) → `run-log.sh start ${run_id} phase=P2_done plan_id="${id}" hard_gate=brief steps=${n}`
 - fail → `run-log.sh abort ${run_id} phase=P2 exit_reason="${reason}"`
 
 ---
@@ -111,26 +150,36 @@ run_id: <ISO 8601 timestamp + 4-char hex, 예: 20260504T103257Z-a1b2>
 
 ---
 
-### P4 — Verify
+### P4 — Verify (project-aware)
 
-**목표**: 프로젝트 전체 검증 통과 (lint/typecheck/test/E2E).
+**목표**: 프로젝트 전체 검증 통과. **`/verify` 스킬에 의존 X** — 프로젝트 실재 명세를 detect (Phase 1.1 추가, F5 해소).
 
-**실행 (최대 3회 재시도)**:
-1. `run-log.sh start ${run_id} phase=P4 attempt=${n}`
-2. `/verify` 슬래시 스킬 invoke
+**검증 명세 detect** (P4 진입 시 1회):
+1. `package.json`이 있으면 `scripts` 키 grep:
+   - `test` 스크립트 존재 → `npm test` 실행
+   - `build` 스크립트 존재 → `npm run build` 실행 (Next.js 등은 typecheck 통합)
+   - `lint` 스크립트 존재 → `npm run lint` 실행
+   - `typecheck` 스크립트 존재 → `npm run typecheck` 실행
+2. `.claude/skills/verify/SKILL.md`가 배포돼 있고 위 npm 명세 부재 시 → `/verify` 슬래시 스킬 fallback
+3. 둘 다 부재 → abort, exit_reason: `verify_unspecified` (프로젝트가 검증 명세를 갖춰야 자율 사이클 가능)
+
+**실행 (detect된 명세별 순차, 최대 3회 재시도 per 명세)**:
+1. `run-log.sh start ${run_id} phase=P4 attempt=${n} cmd="${cmd}"`
+2. detect된 명령 1개 실행
 3. 실패 시 — 실패 카테고리 식별:
    - lint/format 자동 수정 가능 → 1회 fix 후 재시도
    - typecheck 명백한 오류 → 1회 fix 후 재시도
    - test 실패 → 1회 디버깅 후 재시도 (R1 완화: 모호 시 abort 우선)
-   - E2E / browser console → abort (사용자 시각 검증 필수)
+   - build 실패 (compile / SSR / type) → 카테고리별로 1회 시도 후 abort
+   - E2E / browser console → abort (사용자 시각 검증 필수). exit_reason: `e2e_visual_required`
 4. 3회 시도 후에도 실패면 abort
 
 **종료 조건**:
-- ✓ pass: `/verify` exit 0
-- ✗ fail: 3회 실패 / abort 카테고리(E2E 등) → abort
+- ✓ pass: detect된 모든 명세 exit 0
+- ✗ fail: 3회 실패 / abort 카테고리(E2E 등) / 검증 명세 부재 → abort
 
 **종료 처리**:
-- pass → `run-log.sh start ${run_id} phase=P4_done attempts=${n}`
+- pass → `run-log.sh start ${run_id} phase=P4_done attempts=${n} cmds_run="${cmds}"`
 - fail → `run-log.sh abort ${run_id} phase=P4 exit_reason="${reason}"`
 
 ---
@@ -199,16 +248,24 @@ orchestrator의 자연어 시퀀스는 hook 차단을 신뢰하고 추가 검사
 ## 결정 트리 요약
 
 ```
-P0 전처리     → ok? ─── no ──→ 시퀀스 종료 (env 미설정)
-   │ yes (env export, branch checkout, run-log start)
-P1 brainstorm → ok? ─── no ──→ P-end (abort: clarification)
+P0.1 배포 검증 → ok? ─── no ──→ 시퀀스 종료 (deployment_missing, env 미설정)
    │ yes
-P2 plan       → ok? ─── no ──→ P-end (abort: full grade / no recommendation)
+P0.2 환경      → ok? ─── no ──→ 시퀀스 종료 (dirty_working_tree)
+   │ yes (env export, branch checkout, run-log start)
+P1 자율 spec   → ok? ─── no ──→ P-end (abort: task_description_incomplete)
+   │ yes (spec 직접 작성, hard_gate 명시)
+P2 분기        ──── inline ──→ P3 직행 (P2 skip)
+   │ brief                    │
+   ↓                          │
+   plan 생성                  │
+   │                          │
+   ↓ ok?                      ↓
+   no → P-end (abort: full_blocked / consent_blocked)
    │ yes
 P3 TDD        → ok? ─── no ──→ P-end (abort: step retry exhausted / cap)
    │ yes
-P4 verify     → ok? ─── no ──→ P-end (abort: 3 attempts / E2E fail)
-   │ yes
+P4 verify     → ok? ─── no ──→ P-end (abort: 3 attempts / E2E fail / unspecified)
+   │ yes (project-aware: npm test/build/lint/typecheck detect)
 P5 commit/PR  → ok? ─── no ──→ P-end (abort: push / PR creation fail)
    │ yes
 P-end 후처리  → 항상 실행 (env unset, run-log done|abort)
