@@ -1,0 +1,124 @@
+{
+  "skill": "onboard",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "stage-0-new-user",
+      "description": "신규 사용자 — state 없음, events 0건",
+      "setup": {
+        "files": {
+          ".claude/.vibe-flow.json": null,
+          ".claude/events.jsonl": null
+        }
+      },
+      "input": "/onboard",
+      "expected": {
+        "stage": 0,
+        "stage_name": "신규",
+        "fallback_triggered": true,
+        "recommends": ["/brainstorm"]
+      }
+    },
+    {
+      "id": "stage-1-beginner",
+      "description": "입문 — events 30건, Core 4 스킬 사용",
+      "setup": {
+        "files": {
+          ".claude/.vibe-flow.json": "{\"vibe_flow_version\":\"1.1.0\",\"installed_at\":\"2026-04-25T00:00:00Z\",\"extensions\":{}}",
+          ".claude/events.jsonl_lines": 30,
+          ".claude/events_skill_types": ["brainstorm", "commit", "verify", "status"]
+        }
+      },
+      "input": "/onboard",
+      "expected": {
+        "stage": 1,
+        "stage_name": "입문",
+        "recommends_now": ["/commit", "/verify"],
+        "recommends_week": ["/finish", "/status"]
+      }
+    },
+    {
+      "id": "stage-2-routine",
+      "description": "핵심 익숙 — events 137건, Core 8 스킬",
+      "setup": {
+        "files": {
+          ".claude/.vibe-flow.json": "{\"vibe_flow_version\":\"1.1.0\",\"installed_at\":\"2026-04-01T00:00:00Z\",\"extensions\":{}}",
+          ".claude/events.jsonl_lines": 137,
+          ".claude/events_skill_types": ["brainstorm", "plan", "commit", "verify", "test", "status", "learn", "finish"]
+        }
+      },
+      "input": "/onboard",
+      "expected": {
+        "stage": 2,
+        "stage_name": "핵심 익숙",
+        "recommends_now": ["/test", "/security"],
+        "recommends_week": ["/scaffold", "/worktree"]
+      }
+    },
+    {
+      "id": "stage-3-extension-candidate",
+      "description": "확장 후보 — events 250건, Core 12 스킬, improvements.md 존재",
+      "setup": {
+        "files": {
+          ".claude/.vibe-flow.json": "{\"vibe_flow_version\":\"1.1.0\",\"installed_at\":\"2026-03-15T00:00:00Z\",\"extensions\":{}}",
+          ".claude/events.jsonl_lines": 250,
+          ".claude/events_skill_types": ["brainstorm", "plan", "finish", "release", "scaffold", "test", "worktree", "verify", "security", "commit", "review_pr", "status"],
+          ".claude/memory/improvements.md": "exists"
+        }
+      },
+      "input": "/onboard",
+      "expected": {
+        "stage": 3,
+        "stage_name": "확장 후보",
+        "recommends_now_contains": "learning-loop"
+      }
+    },
+    {
+      "id": "stage-4-self-evolving",
+      "description": "자가 진화 — meta-quality 활성 + /eval 사용 events",
+      "setup": {
+        "files": {
+          ".claude/.vibe-flow.json": "{\"vibe_flow_version\":\"1.1.0\",\"installed_at\":\"2026-02-01T00:00:00Z\",\"extensions\":{\"meta-quality\":{\"version\":\"1.0.0\",\"installed_at\":\"2026-04-15T00:00:00Z\",\"files\":[]}}}",
+          ".claude/events.jsonl_lines": 300,
+          ".claude/events_skill_types": ["brainstorm", "commit", "verify", "test", "eval", "retrospective"]
+        }
+      },
+      "input": "/onboard",
+      "expected": {
+        "stage": 4,
+        "stage_name": "자가 진화",
+        "recommends_now_contains": "/eval",
+        "recommends_week_contains": "/evolve"
+      }
+    },
+    {
+      "id": "cache-hit",
+      "description": "Cache hit — 1시간 전 진단된 onboard-state.json 존재",
+      "setup": {
+        "files": {
+          ".claude/memory/onboard-state.json": "{\"last_diagnosed_at\":\"<1시간 전 ISO>\",\"stage\":2,\"stage_name\":\"핵심 익숙\",\"recommendations\":{\"now\":[\"/test\"],\"this_week\":[\"/scaffold\"],\"next_stage\":\"Stage 3\"}}"
+        }
+      },
+      "input": "/onboard",
+      "expected": {
+        "stage": 2,
+        "cache_hit": true,
+        "cache_message_contains": "강제 재진단"
+      }
+    },
+    {
+      "id": "refresh-bypasses-cache",
+      "description": "--refresh로 cache 무효화",
+      "setup": {
+        "files": {
+          ".claude/memory/onboard-state.json": "{\"last_diagnosed_at\":\"<1시간 전\",\"stage\":2}"
+        }
+      },
+      "input": "/onboard --refresh",
+      "expected": {
+        "cache_hit": false,
+        "rediagnosed": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+- [Skill discipline in claude-builds projects](feedback_skill_discipline.md) — 룰만 수동으로 따르지 말고 superpowers 스킬을 명시 호출. 빌드 셋업의 목적
+- [Folio = OPSROOM Next.js 포팅](project_folio_scope.md) — folio-login.html / folio-dashboard.html mockup → Next.js 16. Foundation → Login → Dashboard 순서로 진행
+- [Mockup-driven port 워크플로](feedback_mockup_port_skips.md) — mockup이 명세 역할일 때 brainstorm/plan 스킵 가능 vs 적용 경계
+- [Folio 사용자 = 송영석](user_role.md) — 운영 시스템(OPSROOM) 빌더, 한국어 주석 선호, 짧은 응답 선호
+- [Supabase + Playwright 함정 3가지](feedback_supabase_auth_gotchas.md) — dotenv 명시 로드 / "Invalid credentials" 양면성 / "No rows returned" 해석
+- [Layout debugging — Tailwind v4 mockup 격차](feedback_layout_debugging.md) — 4 root cause (unlayered `*`, html font-size, --text-*--line-height, input font:inherit) + 진단 워크플로
+- [SignUp + 비밀번호 강도/일치 + Clock 패턴](feedback_signup_password_pattern.md) — zod regex + 실시간 인디케이터 + SSR-safe 시계 + 다중 useActionState + e2e selector 함정
+- [SSO + remember 14일 + 비밀번호 찾기 패턴](feedback_login_extras_pattern.md) — Supabase OAuth + cookie maxAge override + reset 흐름 + /auth/callback + enumeration 방지 + 임시 session 가드
+- [Dashboard dynamic [slug] + 4 패턴 demo 패턴](feedback_dashboard_pages_pattern.md) — findSidebarMeta + 4 패턴 분류 + layout.tsx 추출 + Sidebar Link/active
