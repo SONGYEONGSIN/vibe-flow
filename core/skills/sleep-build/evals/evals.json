@@ -1,6 +1,6 @@
 {
   "skill": "sleep-build",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "cases": [
     {
       "id": "orchestrator-phases-present",
@@ -109,6 +109,53 @@
       "expected": {
         "stdout_equals": "2",
         "valid_jsonl": ".claude/memory/sleep-build-runs.jsonl"
+      }
+    },
+    {
+      "id": "persona-mapping-jq-valid",
+      "description": "Phase 2 — persona-mapping.json jq 유효성 + 카테고리 ≥7 + 모든 persona id가 core/agents/<id>.md 실재",
+      "setup": {},
+      "input": "jq empty core/skills/sleep-build/data/persona-mapping.json && jq 'keys | map(select(startswith(\"_\") | not)) | length' core/skills/sleep-build/data/persona-mapping.json",
+      "expected": {
+        "stdout_min": "7"
+      }
+    },
+    {
+      "id": "persona-vote-dispatch-grep",
+      "description": "Phase 2 — persona-vote.sh design 카테고리 호출 시 stdout 4 라인, 각 ^(AGENT|MODERATOR)_DISPATCH: 매칭",
+      "setup": {},
+      "input": "bash core/skills/sleep-build/scripts/persona-vote.sh design '테스트 질문' | grep -cE '^(AGENT|MODERATOR)_DISPATCH:'",
+      "expected": {
+        "stdout_equals": "4"
+      }
+    },
+    {
+      "id": "orchestrator-ralph-wrapper-present",
+      "description": "Phase 2 — orchestrator.md에 ## Ralph Loop Wrapper + MAX_ITERATIONS 언급 ≥2",
+      "setup": {},
+      "input": "grep -c '## Ralph Loop Wrapper\\|MAX_ITERATIONS\\|MAX_ITER' core/skills/sleep-build/orchestrator.md",
+      "expected": {
+        "stdout_min": "2"
+      }
+    },
+    {
+      "id": "safety-max-iterations-block",
+      "description": "Phase 2 — safety hook이 SLEEP_BUILD_MAX_ITERATIONS=2 cap에 iter=3 jsonl 시뮬레이션 시 exit 2 + stderr max iterations",
+      "setup": {
+        "env": {
+          "SLEEP_BUILD_MODE": "1",
+          "SLEEP_BUILD_RUN_ID": "test-iter-r",
+          "SLEEP_BUILD_MAX_ITERATIONS": "2"
+        },
+        "stdin": "{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"ls\"}}",
+        "fixtures": {
+          ".claude/memory/sleep-build-runs.jsonl": "{\"run_id\":\"test-iter-r\",\"iteration\":3}\n"
+        }
+      },
+      "input": "bash core/hooks/sleep-build-safety.sh",
+      "expected": {
+        "exit_code": 2,
+        "stderr_contains": "max iterations"
       }
     }
   ],

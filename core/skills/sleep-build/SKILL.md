@@ -1,33 +1,33 @@
 ---
 name: sleep-build
-description: 단일 task one-shot 자율 사이클 — maker가 자는 동안 brainstorm → plan → 구현(TDD) → /verify → /commit → /finish 까지 완주. branch 격리 + destructive op 차단 + token/file cap으로 안전 보장. 사용법 /sleep-build "<task description>"
+description: multi-iteration Ralph loop + persona vote 자율 사이클 — maker가 자는 동안 brainstorm → plan → 구현(TDD + ambiguity 시 24 agent 자동 vote) → /verify → /commit → /finish 까지 완주. branch 격리 + destructive op 차단 + token/file/iter cap으로 안전 보장. 사용법 /sleep-build "<task description>"
 effort: large
 ---
 
-vibe-flow v2의 첫 자율 워크플로우. maker는 잠자기 전 task 1개를 명시하고, 깨어나서 working PR(또는 명시적 abort + 부분 진행 보존 branch)을 morning review 한다.
+vibe-flow v2의 자율 워크플로우 — Phase 2 (Ralph loop + persona voting). maker는 잠자기 전 task 1개를 명시하고, 깨어나서 working PR(또는 명시적 abort + 부분 진행 보존 branch)을 morning review 한다.
 
 ## 사용 시점
 
 **필수**:
-- task가 단일 사이클(brainstorm → plan → 구현 → PR)로 닫힐 만큼 명확
-- HARD-GATE 간략 등급 이내(예상 6~19 파일)로 추정 가능
-- 사용자 추가 의사결정 없이 진행 가능한 명시 task
+- task가 사이클(brainstorm → plan → 구현 → PR)로 닫힐 만큼 명확 (Ralph wrapper가 N iter PR 분할 처리)
+- 사용자 추가 의사결정 없이 진행 가능한 명시 task (ambiguity는 24 agent persona vote가 자동 결정)
 
 **스킵 (수동 사이클 권장)**:
-- 모호한 의도 (대안 비교가 필요한 단계)
-- 디자인 결정 포함 (사용자 시각 검증 필수)
-- HARD-GATE 전체 등급(20+ 파일) — file count cap이 중도 차단
-- stacked PR / multi-repo 동시 변경
+- 모호한 의도 (vote 카테고리 매핑조차 안 되는 본질 결정)
+- stacked PR / multi-repo 동시 변경 (Ralph wrapper가 단일 repo 가정)
+
+> **Phase 2 변경**: "디자인 결정 포함" / "HARD-GATE 전체 등급" 스킵 조건 제거 — vote가 디자인 결정 자동 처리, Ralph wrapper가 file_cap 75% 도달 시 PR 분할 후 다음 iter 진입.
 
 ## 안전 계약
 
 `/sleep-build`는 자율 모드 진입 시 다음을 **반드시** 준수한다:
 
-1. **branch 자동 격리** — `feat/sleep-<timestamp>-<slug>` 신규 branch 생성 후 main 직접 수정 0
+1. **branch 자동 격리** — `feat/sleep-<timestamp>-<slug>` 신규 branch 생성 후 main 직접 수정 0. Ralph wrapper iter+1 시 새 branch base = 직전 iter tip (R3 stacked PR 사고 회피).
 2. **destructive op 차단** — `core/hooks/sleep-build-safety.sh` PreToolUse hook이 `SLEEP_BUILD_MODE=1` 감지 시 활성. 차단 패턴: `rm -rf`, `git reset --hard`, `git push --force`, `--no-verify`, `chmod 777`, fork bomb 등
-3. **token cap** — 사이클당 누적 token이 `SLEEP_BUILD_TOKEN_CAP`(기본 130000) 초과 시 abort
-4. **file count cap** — branch git diff 파일 수가 `SLEEP_BUILD_FILE_CAP`(기본 19) 초과 시 abort (HARD-GATE 20+ 자율 차단)
-5. **실패 시 abort** — exit reason을 `.claude/memory/sleep-build-runs.jsonl`에 명시 + branch 보존(폐기 X) → maker morning review
+3. **token cap** — 사이클당 누적 token이 `SLEEP_BUILD_TOKEN_CAP`(기본 200000) 초과 시 abort
+4. **file count cap** — branch git diff 파일 수가 `SLEEP_BUILD_FILE_CAP`(기본 19) 초과 시 abort. 단 Ralph wrapper가 75% 도달 시 P5 강제 push + 새 branch로 우회.
+5. **max_iterations cap** — Ralph wrapper iter 카운트가 `SLEEP_BUILD_MAX_ITERATIONS`(기본 30) 초과 시 abort `max_iterations_exceeded`
+6. **실패 시 abort** — exit reason을 `.claude/memory/sleep-build-runs.jsonl`에 명시 + branch 보존(폐기 X) → maker morning review
 
 ## 선행 조건 (P0가 자동 검증, 부재 시 즉시 abort)
 
@@ -93,13 +93,18 @@ task description 가이드:
 - **사이클 도중 maker 추가 입력 요청 금지** — 모호하면 abort 우선 (`brainstorm` 4문항 추가 질문 시도 = abort 신호)
 - **branch 자동 폐기 금지** — 실패 사이클도 branch는 morning review 자료
 - **token cap / file cap 초과는 silent skip 금지** — 반드시 jsonl `exit_reason` 명시
-- **Phase 1 한정** — 다중 task 큐, cron 스케줄, dashboard 통합은 Phase 2/3에서 다룸
+- **Phase 2: vote가 ambiguity 결정 자동화** — 단, vote 카테고리 매핑조차 안 되는 본질 결정은 abort `vote_low_confidence`
+- **Phase 3 진입 전** — 다중 task 큐, cron 스케줄, dashboard 통합은 Phase 3 (CronCreate 통합)에서 다룸
 
 ## 관련 파일
 
-- `core/skills/sleep-build/orchestrator.md` — 자율 사이클 5 phase 시퀀스 본체
+- `core/skills/sleep-build/orchestrator.md` — Ralph wrapper + P0~P-end + P3 ambiguity 분기
+- `core/skills/sleep-build/scripts/persona-vote.sh` — vote dispatch 명령 + moderator 중재 helper (Phase 2 신규)
+- `core/skills/sleep-build/data/persona-mapping.json` — 카테고리(7) → persona 풀 매핑 (Phase 2 신규)
 - `core/skills/sleep-build/scripts/run-log.sh` — `.claude/memory/sleep-build-runs.jsonl` append helper
-- `core/hooks/sleep-build-safety.sh` — PreToolUse 안전 hook
+- `core/hooks/sleep-build-safety.sh` — PreToolUse 안전 hook (token/file/iter cap)
 - `.claude/memory/sleep-build-runs.jsonl` — 사이클 이력 (런타임 생성)
-- `.claude/memory/brainstorms/20260504-103257-vibe-flow-v2-overnight-autonomous-build.md` — 설계 근거
-- `.claude/plans/20260504-194208-vibe-flow-sleep-build-phase1.md` — 구현 plan
+- `.claude/memory/brainstorms/20260504-103257-vibe-flow-v2-overnight-autonomous-build.md` — Phase 1 설계 근거
+- `.claude/memory/brainstorms/20260507-212317-sleep-build-phase2-ralph-loop-persona-vote.md` — Phase 2 설계 근거
+- `.claude/plans/20260504-194208-vibe-flow-sleep-build-phase1.md` — Phase 1 구현 plan
+- `.claude/plans/20260507-213353-sleep-build-phase2-ralph-vote.md` — Phase 2 구현 plan

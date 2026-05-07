@@ -77,7 +77,7 @@ fi
 # ──────────────────────────────────────────────────────────────
 # T4: token cap (현재 사이클 누적 토큰 초과 시 차단)
 # ──────────────────────────────────────────────────────────────
-TOKEN_CAP="${SLEEP_BUILD_TOKEN_CAP:-130000}"
+TOKEN_CAP="${SLEEP_BUILD_TOKEN_CAP:-200000}"
 RUNS_LOG=".claude/memory/sleep-build-runs.jsonl"
 
 if [ -f "$RUNS_LOG" ] && [ -n "${SLEEP_BUILD_RUN_ID:-}" ]; then
@@ -116,6 +116,25 @@ if echo "$CUR_BRANCH" | grep -qE '^feat/sleep-'; then
       echo "[sleep-build-safety] exit_reason=file_cap_exceeded — 사이클 abort, 수동 plan 분할 권장" >&2
       exit 2
     fi
+  fi
+fi
+
+# ──────────────────────────────────────────────────────────────
+# Phase 2: max_iterations cap (Ralph wrapper iter 카운트 초과 시 차단)
+# jsonl에서 가장 큰 iteration 값 jq 추출 → cap 초과 시 abort
+# ──────────────────────────────────────────────────────────────
+MAX_ITER="${SLEEP_BUILD_MAX_ITERATIONS:-30}"
+
+if [ -f "$RUNS_LOG" ] && [ -n "${SLEEP_BUILD_RUN_ID:-}" ]; then
+  CUR_ITER=$(jq -r --arg rid "$SLEEP_BUILD_RUN_ID" '
+      select(.run_id == $rid) | (.iteration // 0)
+    ' "$RUNS_LOG" 2>/dev/null | sort -rn | head -1)
+
+  if [ -n "$CUR_ITER" ] && [ "$CUR_ITER" -gt "$MAX_ITER" ] 2>/dev/null; then
+    echo "[sleep-build-safety] BLOCKED — max iterations 초과" >&2
+    echo "[sleep-build-safety] 현재 iter: ${CUR_ITER} / cap: ${MAX_ITER}" >&2
+    echo "[sleep-build-safety] exit_reason=max_iterations_exceeded — Ralph wrapper 종료" >&2
+    exit 2
   fi
 fi
 
