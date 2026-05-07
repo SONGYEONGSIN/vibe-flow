@@ -1,6 +1,6 @@
 #!/bin/bash
 set -uo pipefail
-# persona-vote.sh — sleep-build Phase 2 ambiguity 자동 결정
+# persona-vote.sh — auto-build Phase 2 ambiguity 자동 결정
 #
 # 사용법:
 #   persona-vote.sh <category> <question>
@@ -11,7 +11,7 @@ set -uo pipefail
 #      형식: AGENT_DISPATCH:<persona-id>:<question>
 #   3. 마지막 라인 — moderator 중재 dispatch
 #      형식: MODERATOR_DISPATCH:moderator:<question>:<vote-results-placeholder>
-#   4. SLEEP_BUILD_RUN_ID env가 set이면 run-log.sh로 jsonl 이벤트 기록
+#   4. AUTO_BUILD_RUN_ID env가 set이면 run-log.sh로 jsonl 이벤트 기록
 #
 # Exit codes:
 #   0 — 정상 dispatch 명령 출력
@@ -61,11 +61,11 @@ done <<< "$PERSONAS"
 # MODERATOR_DISPATCH 라인 (마지막)
 echo "MODERATOR_DISPATCH:${MODERATOR}:${QUESTION}:<vote-results-placeholder>"
 
-# jsonl 이벤트 기록 (SLEEP_BUILD_RUN_ID env가 set일 때만)
-if [ -n "${SLEEP_BUILD_RUN_ID:-}" ]; then
+# jsonl 이벤트 기록 (AUTO_BUILD_RUN_ID env가 set일 때만)
+if [ -n "${AUTO_BUILD_RUN_ID:-}" ]; then
   RUN_LOG="${SCRIPT_DIR}/run-log.sh"
   if [ -f "$RUN_LOG" ]; then
-    bash "$RUN_LOG" start "$SLEEP_BUILD_RUN_ID" \
+    bash "$RUN_LOG" start "$AUTO_BUILD_RUN_ID" \
       phase=vote \
       category="$CATEGORY" \
       personas="$PERSONA_COUNT" \

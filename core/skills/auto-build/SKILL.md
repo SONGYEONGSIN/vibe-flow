@@ -1,6 +1,6 @@
 ---
-name: sleep-build
-description: multi-iteration Ralph loop + persona vote 자율 사이클 — maker가 자는 동안 brainstorm → plan → 구현(TDD + ambiguity 시 24 agent 자동 vote) → /verify → /commit → /finish 까지 완주. branch 격리 + destructive op 차단 + token/file/iter cap으로 안전 보장. 사용법 /sleep-build "<task description>"
+name: auto-build
+description: multi-iteration Ralph loop + persona vote 자율 사이클 — maker가 자는 동안 brainstorm → plan → 구현(TDD + ambiguity 시 24 agent 자동 vote) → /verify → /commit → /finish 까지 완주. branch 격리 + destructive op 차단 + token/file/iter cap으로 안전 보장. 사용법 /auto-build "<task description>"
 effort: large
 ---
 
@@ -20,21 +20,21 @@ vibe-flow v2의 자율 워크플로우 — Phase 2 (Ralph loop + persona voting)
 
 ## 안전 계약
 
-`/sleep-build`는 자율 모드 진입 시 다음을 **반드시** 준수한다:
+`/auto-build`는 자율 모드 진입 시 다음을 **반드시** 준수한다:
 
 1. **branch 자동 격리** — `feat/sleep-<timestamp>-<slug>` 신규 branch 생성 후 main 직접 수정 0. Ralph wrapper iter+1 시 새 branch base = 직전 iter tip (R3 stacked PR 사고 회피).
-2. **destructive op 차단** — `core/hooks/sleep-build-safety.sh` PreToolUse hook이 `SLEEP_BUILD_MODE=1` 감지 시 활성. 차단 패턴: `rm -rf`, `git reset --hard`, `git push --force`, `--no-verify`, `chmod 777`, fork bomb 등
-3. **token cap** — 사이클당 누적 token이 `SLEEP_BUILD_TOKEN_CAP`(기본 200000) 초과 시 abort
-4. **file count cap** — branch git diff 파일 수가 `SLEEP_BUILD_FILE_CAP`(기본 19) 초과 시 abort. 단 Ralph wrapper가 75% 도달 시 P5 강제 push + 새 branch로 우회.
-5. **max_iterations cap** — Ralph wrapper iter 카운트가 `SLEEP_BUILD_MAX_ITERATIONS`(기본 30) 초과 시 abort `max_iterations_exceeded`
-6. **실패 시 abort** — exit reason을 `.claude/memory/sleep-build-runs.jsonl`에 명시 + branch 보존(폐기 X) → maker morning review
+2. **destructive op 차단** — `core/hooks/auto-build-safety.sh` PreToolUse hook이 `AUTO_BUILD_MODE=1` 감지 시 활성. 차단 패턴: `rm -rf`, `git reset --hard`, `git push --force`, `--no-verify`, `chmod 777`, fork bomb 등
+3. **token cap** — 사이클당 누적 token이 `AUTO_BUILD_TOKEN_CAP`(기본 200000) 초과 시 abort
+4. **file count cap** — branch git diff 파일 수가 `AUTO_BUILD_FILE_CAP`(기본 19) 초과 시 abort. 단 Ralph wrapper가 75% 도달 시 P5 강제 push + 새 branch로 우회.
+5. **max_iterations cap** — Ralph wrapper iter 카운트가 `AUTO_BUILD_MAX_ITERATIONS`(기본 30) 초과 시 abort `max_iterations_exceeded`
+6. **실패 시 abort** — exit reason을 `.claude/memory/auto-build-runs.jsonl`에 명시 + branch 보존(폐기 X) → maker morning review
 
 ## 선행 조건 (P0가 자동 검증, 부재 시 즉시 abort)
 
 - **배포 검증** (Phase 1.1, F1 완화):
-  - `.claude/hooks/sleep-build-safety.sh` 실행 권한 보유 — 미배포 시 abort `deployment_missing`
-  - `.claude/skills/sleep-build/scripts/run-log.sh` 실행 권한 보유
-  - `.claude/skills/sleep-build/orchestrator.md` 존재
+  - `.claude/hooks/auto-build-safety.sh` 실행 권한 보유 — 미배포 시 abort `deployment_missing`
+  - `.claude/skills/auto-build/scripts/run-log.sh` 실행 권한 보유
+  - `.claude/skills/auto-build/orchestrator.md` 존재
 - **검증 명세** (Phase 1.1, F5 완화):
   - `package.json`의 `scripts.test|build|lint|typecheck` 중 1개 이상 존재 (P4가 detect)
   - 또는 `/verify` 스킬 배포
@@ -42,21 +42,21 @@ vibe-flow v2의 자율 워크플로우 — Phase 2 (Ralph loop + persona voting)
 - **환경**:
   - 현재 working tree clean (커밋되지 않은 변경 없음)
   - `gh` 인증 완료 (PR 생성용)
-  - `core/hooks/sleep-build-safety.sh` 가 `settings.template.json`의 PreToolUse에 등록됨 (setup.sh 자동 처리)
+  - `core/hooks/auto-build-safety.sh` 가 `settings.template.json`의 PreToolUse에 등록됨 (setup.sh 자동 처리)
 
 ## 절차 요약
 
-자율 사이클은 다음 4-step으로 압축된다. 단계별 본체는 `core/skills/sleep-build/orchestrator.md`에 정의됨 — 이 파일은 진입점만 다룬다.
+자율 사이클은 다음 4-step으로 압축된다. 단계별 본체는 `core/skills/auto-build/orchestrator.md`에 정의됨 — 이 파일은 진입점만 다룬다.
 
-1. **안전 계약 발효** — `SLEEP_BUILD_MODE=1` export, branch 자동 생성, `run-log.sh start` 호출
+1. **안전 계약 발효** — `AUTO_BUILD_MODE=1` export, branch 자동 생성, `run-log.sh start` 호출
 2. **branch 격리** — `feat/sleep-<timestamp>-<slug>` checkout, working tree clean 확인
 3. **orchestrator.md 시퀀스 진입** — P1(brainstorm) → P2(plan) → P3(TDD 구현) → P4(verify) → P5(commit + finish)
-4. **종료 처리** — 성공/실패 무관 `run-log.sh done|abort` append, `SLEEP_BUILD_MODE` unset, branch 보존
+4. **종료 처리** — 성공/실패 무관 `run-log.sh done|abort` append, `AUTO_BUILD_MODE` unset, branch 보존
 
 ## 호출 형태
 
 ```bash
-/sleep-build "<task description>"
+/auto-build "<task description>"
 ```
 
 task description 가이드:
@@ -74,7 +74,7 @@ task description 가이드:
 | 사이클 시작 직전 | maker 본인 — task 명시화 + working tree clean |
 | 사이클 진행 중 | `/brainstorm`, `/plan`, `/verify`, `/commit`, `/finish` (orchestrator가 자동 호출) |
 | 사이클 종료 후 | maker 본인 — morning review (PR 머지 또는 abort branch 폐기) |
-| 누적 데이터 분석 | `/telemetry` (sleep_build_* 이벤트 추세), `/budget --tokens` (사이클당 비용) |
+| 누적 데이터 분석 | `/telemetry` (auto_build_* 이벤트 추세), `/budget --tokens` (사이클당 비용) |
 
 ## 메시지 버스 알림 (선택적)
 
@@ -89,7 +89,7 @@ task description 가이드:
 ## 규칙
 
 - **사용자 합의 없이 main에 직접 변경 금지** — 항상 신규 branch
-- **safety hook 미등록 환경에서는 즉시 abort** — `SLEEP_BUILD_MODE` 활성 전 hook 존재 확인
+- **safety hook 미등록 환경에서는 즉시 abort** — `AUTO_BUILD_MODE` 활성 전 hook 존재 확인
 - **사이클 도중 maker 추가 입력 요청 금지** — 모호하면 abort 우선 (`brainstorm` 4문항 추가 질문 시도 = abort 신호)
 - **branch 자동 폐기 금지** — 실패 사이클도 branch는 morning review 자료
 - **token cap / file cap 초과는 silent skip 금지** — 반드시 jsonl `exit_reason` 명시
@@ -98,13 +98,13 @@ task description 가이드:
 
 ## 관련 파일
 
-- `core/skills/sleep-build/orchestrator.md` — Ralph wrapper + P0~P-end + P3 ambiguity 분기
-- `core/skills/sleep-build/scripts/persona-vote.sh` — vote dispatch 명령 + moderator 중재 helper (Phase 2 신규)
-- `core/skills/sleep-build/data/persona-mapping.json` — 카테고리(7) → persona 풀 매핑 (Phase 2 신규)
-- `core/skills/sleep-build/scripts/run-log.sh` — `.claude/memory/sleep-build-runs.jsonl` append helper
-- `core/hooks/sleep-build-safety.sh` — PreToolUse 안전 hook (token/file/iter cap)
-- `.claude/memory/sleep-build-runs.jsonl` — 사이클 이력 (런타임 생성)
+- `core/skills/auto-build/orchestrator.md` — Ralph wrapper + P0~P-end + P3 ambiguity 분기
+- `core/skills/auto-build/scripts/persona-vote.sh` — vote dispatch 명령 + moderator 중재 helper (Phase 2 신규)
+- `core/skills/auto-build/data/persona-mapping.json` — 카테고리(7) → persona 풀 매핑 (Phase 2 신규)
+- `core/skills/auto-build/scripts/run-log.sh` — `.claude/memory/auto-build-runs.jsonl` append helper
+- `core/hooks/auto-build-safety.sh` — PreToolUse 안전 hook (token/file/iter cap)
+- `.claude/memory/auto-build-runs.jsonl` — 사이클 이력 (런타임 생성)
 - `.claude/memory/brainstorms/20260504-103257-vibe-flow-v2-overnight-autonomous-build.md` — Phase 1 설계 근거
-- `.claude/memory/brainstorms/20260507-212317-sleep-build-phase2-ralph-loop-persona-vote.md` — Phase 2 설계 근거
-- `.claude/plans/20260504-194208-vibe-flow-sleep-build-phase1.md` — Phase 1 구현 plan
-- `.claude/plans/20260507-213353-sleep-build-phase2-ralph-vote.md` — Phase 2 구현 plan
+- `.claude/memory/brainstorms/20260507-212317-auto-build-phase2-ralph-loop-persona-vote.md` — Phase 2 설계 근거
+- `.claude/plans/20260504-194208-vibe-flow-auto-build-phase1.md` — Phase 1 구현 plan
+- `.claude/plans/20260507-213353-auto-build-phase2-ralph-vote.md` — Phase 2 구현 plan

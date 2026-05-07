@@ -1,8 +1,8 @@
 #!/bin/bash
 set -u
-# sleep-build-safety.sh — PreToolUse 안전 hook for /sleep-build 자율 사이클
+# auto-build-safety.sh — PreToolUse 안전 hook for /auto-build 자율 사이클
 #
-# SLEEP_BUILD_MODE=1 일 때만 활성. 비-자율 모드(env 미설정)에는 영향 0.
+# AUTO_BUILD_MODE=1 일 때만 활성. 비-자율 모드(env 미설정)에는 영향 0.
 # 차단 규약: stderr에 사유 출력 + exit 2 (Claude Code PreToolUse 차단).
 #
 # 차단 카테고리:
@@ -11,7 +11,7 @@ set -u
 #   3. file count cap  — (T4)
 
 # 자율 모드 아니면 즉시 통과
-if [ "${SLEEP_BUILD_MODE:-}" != "1" ]; then
+if [ "${AUTO_BUILD_MODE:-}" != "1" ]; then
   exit 0
 fi
 
@@ -28,9 +28,9 @@ CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null)
 
 block() {
   local reason="$1"
-  echo "[sleep-build-safety] BLOCKED — ${reason}" >&2
-  echo "[sleep-build-safety] command: ${CMD}" >&2
-  echo "[sleep-build-safety] 자율 사이클은 destructive op 금지. 수동 사이클로 전환 후 재시도." >&2
+  echo "[auto-build-safety] BLOCKED — ${reason}" >&2
+  echo "[auto-build-safety] command: ${CMD}" >&2
+  echo "[auto-build-safety] 자율 사이클은 destructive op 금지. 수동 사이클로 전환 후 재시도." >&2
   exit 2
 }
 
@@ -77,19 +77,19 @@ fi
 # ──────────────────────────────────────────────────────────────
 # T4: token cap (현재 사이클 누적 토큰 초과 시 차단)
 # ──────────────────────────────────────────────────────────────
-TOKEN_CAP="${SLEEP_BUILD_TOKEN_CAP:-200000}"
-RUNS_LOG=".claude/memory/sleep-build-runs.jsonl"
+TOKEN_CAP="${AUTO_BUILD_TOKEN_CAP:-200000}"
+RUNS_LOG=".claude/memory/auto-build-runs.jsonl"
 
-if [ -f "$RUNS_LOG" ] && [ -n "${SLEEP_BUILD_RUN_ID:-}" ]; then
+if [ -f "$RUNS_LOG" ] && [ -n "${AUTO_BUILD_RUN_ID:-}" ]; then
   # 현재 run_id의 모든 라인 중 가장 최근 tokens_in/tokens_out 합산
-  CUR_TOKENS=$(jq -r --arg rid "$SLEEP_BUILD_RUN_ID" '
+  CUR_TOKENS=$(jq -r --arg rid "$AUTO_BUILD_RUN_ID" '
       select(.run_id == $rid) | (.tokens_in // 0) + (.tokens_out // 0)
     ' "$RUNS_LOG" 2>/dev/null | awk '{s+=$1} END {print s+0}')
 
   if [ -n "$CUR_TOKENS" ] && [ "$CUR_TOKENS" -gt "$TOKEN_CAP" ] 2>/dev/null; then
-    echo "[sleep-build-safety] BLOCKED — token cap 초과" >&2
-    echo "[sleep-build-safety] 누적: ${CUR_TOKENS} / cap: ${TOKEN_CAP}" >&2
-    echo "[sleep-build-safety] exit_reason=token_cap_exceeded — 사이클 abort 권장" >&2
+    echo "[auto-build-safety] BLOCKED — token cap 초과" >&2
+    echo "[auto-build-safety] 누적: ${CUR_TOKENS} / cap: ${TOKEN_CAP}" >&2
+    echo "[auto-build-safety] exit_reason=token_cap_exceeded — 사이클 abort 권장" >&2
     exit 2
   fi
 fi
@@ -97,9 +97,9 @@ fi
 # ──────────────────────────────────────────────────────────────
 # T4: file count cap (HARD-GATE 20+ 자율 차단)
 # ──────────────────────────────────────────────────────────────
-FILE_CAP="${SLEEP_BUILD_FILE_CAP:-19}"
+FILE_CAP="${AUTO_BUILD_FILE_CAP:-19}"
 
-# 현재 branch가 sleep-build branch(feat/sleep-*)일 때만 검사
+# 현재 branch가 auto-build branch(feat/sleep-*)일 때만 검사
 CUR_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
 if echo "$CUR_BRANCH" | grep -qE '^feat/sleep-'; then
   # main과의 diff 파일 수 (merge-base 기준 — main으로부터 분기 시점)
@@ -111,9 +111,9 @@ if echo "$CUR_BRANCH" | grep -qE '^feat/sleep-'; then
     TOTAL=$((CHANGED + UNCOMMITTED))
 
     if [ "$TOTAL" -gt "$FILE_CAP" ] 2>/dev/null; then
-      echo "[sleep-build-safety] BLOCKED — file count cap 초과" >&2
-      echo "[sleep-build-safety] 변경 파일: ${TOTAL} / cap: ${FILE_CAP} (HARD-GATE 20+ 진입 직전)" >&2
-      echo "[sleep-build-safety] exit_reason=file_cap_exceeded — 사이클 abort, 수동 plan 분할 권장" >&2
+      echo "[auto-build-safety] BLOCKED — file count cap 초과" >&2
+      echo "[auto-build-safety] 변경 파일: ${TOTAL} / cap: ${FILE_CAP} (HARD-GATE 20+ 진입 직전)" >&2
+      echo "[auto-build-safety] exit_reason=file_cap_exceeded — 사이클 abort, 수동 plan 분할 권장" >&2
       exit 2
     fi
   fi
@@ -123,17 +123,17 @@ fi
 # Phase 2: max_iterations cap (Ralph wrapper iter 카운트 초과 시 차단)
 # jsonl에서 가장 큰 iteration 값 jq 추출 → cap 초과 시 abort
 # ──────────────────────────────────────────────────────────────
-MAX_ITER="${SLEEP_BUILD_MAX_ITERATIONS:-30}"
+MAX_ITER="${AUTO_BUILD_MAX_ITERATIONS:-30}"
 
-if [ -f "$RUNS_LOG" ] && [ -n "${SLEEP_BUILD_RUN_ID:-}" ]; then
-  CUR_ITER=$(jq -r --arg rid "$SLEEP_BUILD_RUN_ID" '
+if [ -f "$RUNS_LOG" ] && [ -n "${AUTO_BUILD_RUN_ID:-}" ]; then
+  CUR_ITER=$(jq -r --arg rid "$AUTO_BUILD_RUN_ID" '
       select(.run_id == $rid) | (.iteration // 0)
     ' "$RUNS_LOG" 2>/dev/null | sort -rn | head -1)
 
   if [ -n "$CUR_ITER" ] && [ "$CUR_ITER" -gt "$MAX_ITER" ] 2>/dev/null; then
-    echo "[sleep-build-safety] BLOCKED — max iterations 초과" >&2
-    echo "[sleep-build-safety] 현재 iter: ${CUR_ITER} / cap: ${MAX_ITER}" >&2
-    echo "[sleep-build-safety] exit_reason=max_iterations_exceeded — Ralph wrapper 종료" >&2
+    echo "[auto-build-safety] BLOCKED — max iterations 초과" >&2
+    echo "[auto-build-safety] 현재 iter: ${CUR_ITER} / cap: ${MAX_ITER}" >&2
+    echo "[auto-build-safety] exit_reason=max_iterations_exceeded — Ralph wrapper 종료" >&2
     exit 2
   fi
 fi

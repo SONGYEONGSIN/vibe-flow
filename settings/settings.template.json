@@ -89,7 +89,7 @@
           },
           {
             "type": "command",
-            "command": ".claude/hooks/sleep-build-safety.sh",
+            "command": ".claude/hooks/auto-build-safety.sh",
             "timeout": 5000
           }
         ]

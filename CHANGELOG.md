@@ -2,16 +2,28 @@
 
 ## [Unreleased]
 
+### 변경 (Breaking — 식별자 rename, 동작 변경 0)
+- **`sleep-build` → `auto-build` 전면 rename** — Phase 2 도입(Ralph loop + persona vote)으로 "수면 중 자동 빌드" 초기 의미가 본질 변경 → 이름을 의미와 정합화.
+  - 디렉토리: `core/skills/sleep-build/` → `core/skills/auto-build/`
+  - hook: `sleep-build-safety.sh` → `auto-build-safety.sh`
+  - env var: `SLEEP_BUILD_*` → `AUTO_BUILD_*` (MODE / TOKEN_CAP / FILE_CAP / MAX_ITERATIONS / RUN_ID)
+  - jsonl event type: `sleep_build_*` → `auto_build_*` (start/done/abort) — **dashboard 짝 PR 필요**
+  - jsonl 파일: `sleep-build-runs.jsonl` → `auto-build-runs.jsonl` (과거 데이터 마이그레이션 X)
+  - settings.template.json hook 경로 + env (사용자 로컬 `.claude/settings.json`은 `bash setup.sh` 재실행 또는 수동 갱신 필요)
+  - docs/superpowers/{plans,specs}/ 파일명 + 내용
+  - 시스템 메모리 `project_sleep_build_runtime_limit.md` → `project_auto_build_runtime_limit.md`
+  - 한국어 산문의 "sleep-build" 표기는 보존 (case-by-case 별 PR)
+
 ### 추가
-- **`/sleep-build` Phase 2 — Ralph loop + persona voting** — 단발 사이클을 multi-iteration Ralph wrapper로 확장 + ambiguity 발생 시 24 agent 풀에서 카테고리별 3~5명 자동 dispatch + moderator 중재로 무인 결정. 진정한 무인 사이클 (디자인 결정 포함, 본격 SaaS 빌드 가능).
-  - 신규 `core/skills/sleep-build/data/persona-mapping.json` — 카테고리 7개(design/auth/perf/architecture/ui/test/docs) → persona 풀 매핑
-  - 신규 `core/skills/sleep-build/scripts/persona-vote.sh` — vote dispatch 명령 stdout (orchestrator가 실 Agent tool 호출) + jsonl `vote_triggered` 이벤트
+- **`/auto-build` Phase 2 — Ralph loop + persona voting** — 단발 사이클을 multi-iteration Ralph wrapper로 확장 + ambiguity 발생 시 24 agent 풀에서 카테고리별 3~5명 자동 dispatch + moderator 중재로 무인 결정. 진정한 무인 사이클 (디자인 결정 포함, 본격 SaaS 빌드 가능).
+  - 신규 `core/skills/auto-build/data/persona-mapping.json` — 카테고리 7개(design/auth/perf/architecture/ui/test/docs) → persona 풀 매핑
+  - 신규 `core/skills/auto-build/scripts/persona-vote.sh` — vote dispatch 명령 stdout (orchestrator가 실 Agent tool 호출) + jsonl `vote_triggered` 이벤트
   - `orchestrator.md` 확장 — `## Ralph Loop Wrapper` 섹션 (iter 변수, 종료 조건 3, branch base = 직전 iter tip), P3 P3a/P3b 분기 (P3b: vote 호출 → moderator 중재 → 결정 주입)
-  - `sleep-build-safety.sh` cap 상향 — token 130k → 200k (vote 1회당 ~5k × 30 iter = 150k 여유), 신규 `SLEEP_BUILD_MAX_ITERATIONS` 30 차단
+  - `auto-build-safety.sh` cap 상향 — token 130k → 200k (vote 1회당 ~5k × 30 iter = 150k 여유), 신규 `AUTO_BUILD_MAX_ITERATIONS` 30 차단
   - `SKILL.md` 스킵 조건 완화 — "디자인 결정 포함" / "HARD-GATE 전체 등급" 제거 (vote가 자동 결정 / Ralph가 PR 분할)
   - `evals.json` 9 → 13 케이스 (Phase 2 vote/Ralph 4 신규), version 2.0.0
-  - 설계 근거: `.claude/memory/brainstorms/20260507-212317-sleep-build-phase2-ralph-loop-persona-vote.md`
-  - 구현 plan: `.claude/plans/20260507-213353-sleep-build-phase2-ralph-vote.md` (T1~T12)
+  - 설계 근거: `.claude/memory/brainstorms/20260507-212317-auto-build-phase2-ralph-loop-persona-vote.md`
+  - 구현 plan: `.claude/plans/20260507-213353-auto-build-phase2-ralph-vote.md` (T1~T12)
 - **외부 sync로 누적된 agents 12 + skills 23 import** — `core/agents/` 12 (api-architect, architecture-reviewer, devops-engineer, frontend-design-specialist, performance-optimizer, product-strategist, project-planner, security-specialist, supabase-db-specialist, technical-writer, test-writer, ux-researcher), `core/skills/` 23 (agent-browser, b2b-landing, codebase-analyzer, debate, dependency-manager, deploy-safety-guard, ebook-writing, error-path-analysis, idea, korean-privacy-terms, orchestrate, performance-checker, product-thinking, remotion-studio, retro, security-audit, seo-master, site-auditor, start-docs, sync-claude-md, sync-workflow, web-design-guidelines, webapp-testing). 156 파일, +36685.
 - **`session-memory-sync.sh` Stop hook** — 세션 종료 시 `~/.claude/` 메모리를 `claude-memory` orphan branch에 background 자동 push. 머신 간(집↔회사) 동기화 자동화 — `sync-memory.sh push`를 수동 호출할 일 줄임.
   - rate limit 30분 (network 부하 방지) — `.claude/.last-memory-sync` 타임스탬프 추적
@@ -24,32 +36,32 @@
 ### 수정
 - **`sync-memory.sh` chmod +x** — 실행 권한 누락 fix (이제 직접 호출 가능, 이전엔 `bash sync-memory.sh ...` 필수)
 
-## [1.6.0] - 2026-05-05 — sleep-build (자율 사이클) + character system 정리
+## [1.6.0] - 2026-05-05 — auto-build (자율 사이클) + character system 정리
 
-vibe-flow v2 첫 사이클. **maker가 자는 시간을 가치로 만든다** — 야간 자율 사이클 토대 (`/sleep-build`) + Phase 1.1 dogfooding 강화.
+vibe-flow v2 첫 사이클. **maker가 자는 시간을 가치로 만든다** — 야간 자율 사이클 토대 (`/auto-build`) + Phase 1.1 dogfooding 강화.
 
 ### 추가
-- **`/sleep-build` Phase 1.1 — orchestrator 강화 (#32, Closes #31)** — dogfooding 발견 4 design gap 해소.
+- **`/auto-build` Phase 1.1 — orchestrator 강화 (#32, Closes #31)** — dogfooding 발견 4 design gap 해소.
   - F1 (high): P0.1 배포 fail-fast — hook + run-log + orchestrator.md 미배포 시 즉시 abort `deployment_missing`
   - F3 (high): P1 자율 spec 직접 작성 — `/brainstorm` 스킬 호출 X. orchestrator가 prepared 4문항 답변에서 5 H2 헤더 spec 합성. 합성 실패 시 abort
   - F4 (medium): P2 HARD-GATE 분기 — `inline` → P3 직행, `brief` → plan 생성, `full` → abort
   - F5 (medium): P4 project-aware verify — `/verify` 의존 X. `package.json scripts` (test/build/lint/typecheck) detect 후 실재 명세만 실행
   - evals.json +4 케이스 — 결정 트리 회귀 검증
-- **`/sleep-build "<task>"` Core 스킬 — Phase 1 MVP** — 단일 task one-shot 자율 사이클. brainstorm → plan → 구현(TDD) → /verify → /commit → /finish 까지 maker가 자는 동안 완주.
-  - 진입점: `core/skills/sleep-build/SKILL.md`. 본체 시퀀스: `orchestrator.md` (P0 전처리 → P1~P5 → P-end 후처리)
-  - 안전 hook: `core/hooks/sleep-build-safety.sh` (PreToolUse). `SLEEP_BUILD_MODE=1` 일 때만 활성. destructive op 6+ 차단(`rm -rf`, `git reset --hard`, `git push --force`, `--no-verify`, `chmod 777`, fork bomb), token cap (`SLEEP_BUILD_TOKEN_CAP` 기본 130k), file count cap (`SLEEP_BUILD_FILE_CAP` 기본 19, HARD-GATE 20+ 자율 차단)
-  - 사이클 이력: `.claude/memory/sleep-build-runs.jsonl` (start/abort/done 이벤트, NFC 한글 경로 정규화)
-  - eval: `core/skills/sleep-build/evals/evals.json` 5 케이스 (orchestrator phase 헤더 / hook 차단 / hook 비활성 통과 / innocent 통과 / run-log append)
+- **`/auto-build "<task>"` Core 스킬 — Phase 1 MVP** — 단일 task one-shot 자율 사이클. brainstorm → plan → 구현(TDD) → /verify → /commit → /finish 까지 maker가 자는 동안 완주.
+  - 진입점: `core/skills/auto-build/SKILL.md`. 본체 시퀀스: `orchestrator.md` (P0 전처리 → P1~P5 → P-end 후처리)
+  - 안전 hook: `core/hooks/auto-build-safety.sh` (PreToolUse). `AUTO_BUILD_MODE=1` 일 때만 활성. destructive op 6+ 차단(`rm -rf`, `git reset --hard`, `git push --force`, `--no-verify`, `chmod 777`, fork bomb), token cap (`AUTO_BUILD_TOKEN_CAP` 기본 130k), file count cap (`AUTO_BUILD_FILE_CAP` 기본 19, HARD-GATE 20+ 자율 차단)
+  - 사이클 이력: `.claude/memory/auto-build-runs.jsonl` (start/abort/done 이벤트, NFC 한글 경로 정규화)
+  - eval: `core/skills/auto-build/evals/evals.json` 5 케이스 (orchestrator phase 헤더 / hook 차단 / hook 비활성 통과 / innocent 통과 / run-log append)
   - 설계 근거: `.claude/memory/brainstorms/20260504-103257-vibe-flow-v2-overnight-autonomous-build.md`
-  - 구현 plan: `.claude/plans/20260504-194208-vibe-flow-sleep-build-phase1.md` (T1~T10)
+  - 구현 plan: `.claude/plans/20260504-194208-vibe-flow-auto-build-phase1.md` (T1~T10)
   - **Out of scope**: 다중 task 큐(Phase 2), CronCreate 야간 스케줄(Phase 2), dashboard `/morning`(Phase 3), retrospective 자가 진화(Phase 4)
 - **GitHub Actions templates — `perf.yml` (#28)** — Lighthouse CI workflow. PR push 시 URL 1개 자동 측정 → comment 형태 결과. opt-in (manual copy from `templates/.github/workflows/`). 1.5.0의 verify/eval-regression/security 3종에 이어 4번째 템플릿.
 
 ### 호환
-- ✓ 1.5.0 Core 20 + Extension 11 스킬 모두 유지 (Core 21 = 20 + /sleep-build)
-- ✓ Hook 25 → 26 (sleep-build-safety.sh 추가)
-- ✓ 자율 모드 토글은 `SLEEP_BUILD_MODE=1` env로 격리 — 비-자율 작업에 영향 0
-- 짝 운영 dashboard 1.1.0 ([dashboard CHANGELOG](https://github.com/SONGYEONGSIN/vibe-flow-dashboard/blob/main/CHANGELOG.md)) 와 sleep_build_* 이벤트 형식 정합 (run-log.sh 출력 ↔ event-map.ts mapping)
+- ✓ 1.5.0 Core 20 + Extension 11 스킬 모두 유지 (Core 21 = 20 + /auto-build)
+- ✓ Hook 25 → 26 (auto-build-safety.sh 추가)
+- ✓ 자율 모드 토글은 `AUTO_BUILD_MODE=1` env로 격리 — 비-자율 작업에 영향 0
+- 짝 운영 dashboard 1.1.0 ([dashboard CHANGELOG](https://github.com/SONGYEONGSIN/vibe-flow-dashboard/blob/main/CHANGELOG.md)) 와 auto_build_* 이벤트 형식 정합 (run-log.sh 출력 ↔ event-map.ts mapping)
 
 ## [1.5.0] - 2026-05-04 — bite-sized 스킬 + hook 일괄 보강
 

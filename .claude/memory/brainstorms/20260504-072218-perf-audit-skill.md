@@ -1,0 +1,48 @@
+# Brainstorm: performance audit — Lighthouse 통합
+
+## 의도
+- **산출물**: `/perf-audit <url>` 스킬 — Lighthouse CLI 래핑, 핵심 Web Vitals 추출, events.jsonl 이력
+- **사용자**: vibe coder, deploy 후 또는 큰 UI 변경 후 성능 점검 시점
+- **트리거**: ROADMAP 미완. 미루면 vibe-flow의 mechanical enforcement 일관성에서 perf 영역만 빈 채로 남음
+- **성공**: (a) URL 인자만으로 실행 (stack-agnostic), (b) 5+ Web Vitals, (c) events.jsonl 이력 누적, (d) pass/warn/fail 판정
+
+## 제약
+- Lighthouse CLI = Chrome 의존 (npx 자동 다운로드 ~150MB, 첫 실행 느림)
+- 30s+ 실행 — hook 부적합, on-demand만
+- 동작 가능한 URL 필요 (사용자 책임)
+- stack-agnostic — Next.js 한정 X
+- 외부 도구 — `npx -y lighthouse` 즉석 실행
+
+## 대안 비교
+
+| 항목 | A. 스킬 | B. CI template만 | C. bundle analyzer | D. Web Vitals 파서 | Z. do nothing |
+|------|--------|---------------|------------------|------------------|--------------|
+| 비용 | 1~2h | 30분 | 2h+ | 2h+ | 0 |
+| 응답 | 30s+ | 비동기 | 5s | 지속 | n/a |
+| stack | generic | generic | webpack/Next | client lib 의존 | n/a |
+
+## 추천 + 근거
+
+**대안 A 채택.**
+
+1. /security, /verify처럼 명시 호출 + events 푸시 패턴 일관
+2. URL만 있으면 동작 → stack-agnostic
+3. 점진적 — A 안정화 후 B(CI template) 후속 별도 PR
+4. `npx -y lighthouse` 사용자 환경 비침투
+
+**기각 B**: 사용자 실시간 못 봄
+**기각 C**: webpack/Next 한정 — generic 위배
+**기각 D**: 클라이언트 계측 부담
+
+## 구현 스케치
+- `/perf-audit <url> [--json]`
+- 실행: `npx -y lighthouse <url> --quiet --chrome-flags="--headless --no-sandbox" --output=json --output-path=stdout`
+- 추출: performance score, FCP, LCP, CLS, TBT, Speed Index
+- 판정: ≥ 90 PASS / ≥ 50 WARN / < 50 FAIL
+- 이벤트: `{type:"perf_audit", url, score, lcp_ms, cls, tbt_ms, fcp_ms, verdict, ts}`
+
+## 다음 단계
+- HARD-GATE: 2~3 파일 (1-5 인라인)
+- branch `feat/perf-audit-skill`
+- files: `core/skills/perf-audit/SKILL.md` (신규), `core/skills/perf-audit/evals/evals.json` (신규), README Core 19→20, REFERENCE.md, ROADMAP [x]
+- 후속 (별도 PR): `templates/.github/workflows/perf.yml` CI 자동화

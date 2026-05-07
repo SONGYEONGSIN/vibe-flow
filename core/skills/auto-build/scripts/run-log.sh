@@ -1,13 +1,13 @@
 #!/bin/bash
 set -uo pipefail
-# run-log.sh — sleep-build 사이클 이벤트 jsonl append helper
+# run-log.sh — auto-build 사이클 이벤트 jsonl append helper
 #
 # 사용법:
 #   run-log.sh start <run_id> [key=value ...]
 #   run-log.sh abort <run_id> [key=value ...]
 #   run-log.sh done  <run_id> [key=value ...]
 #
-# 출력: .claude/memory/sleep-build-runs.jsonl 에 1 라인 append
+# 출력: .claude/memory/auto-build-runs.jsonl 에 1 라인 append
 # 키 예: phase, branch, spec_file, plan_id, tokens_in, tokens_out, files_changed, pr_url, exit_reason
 
 usage() {
@@ -33,7 +33,7 @@ if command -v python3 >/dev/null 2>&1; then
 fi
 
 LOG_DIR=".claude/memory"
-LOG_FILE="${LOG_DIR}/sleep-build-runs.jsonl"
+LOG_FILE="${LOG_DIR}/auto-build-runs.jsonl"
 mkdir -p "$LOG_DIR"
 
 TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
