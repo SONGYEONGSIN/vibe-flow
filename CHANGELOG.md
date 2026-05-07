@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### 추가
+- **`setup.sh --clean` / `--clean-dry-run` 플래그** — target 프로젝트 `.claude/`에서 **source에 없는 obsolete hook/skill 자동 삭제**. rename 후 기존 sleep-build 같은 이전 이름 자산이 target에 남는 문제 해결.
+  - 감지: `.claude/hooks/*.sh` 중 `core/hooks/`에 없는 것 + `.claude/skills/*/` 중 `core/skills/`에 없는 것
+  - `--clean-dry-run` — 감지만, 삭제 X (사전 검토용)
+  - `--clean` — 즉시 삭제 + install 단계 계속
+  - `settings.local.json`의 stale hook 등록은 **수동 편집 안내만** (자동 갱신 X — 사용자 custom hook 보호)
+  - 보호: source 출신만 삭제 (사용자 추가 custom hook/skill 보존 — `.claude/`에 있고 `core/`에도 있으면 건드림 X)
+
 ### 변경 (Breaking — 식별자 rename, 동작 변경 0)
 - **`sleep-build` → `auto-build` 전면 rename** — Phase 2 도입(Ralph loop + persona vote)으로 "수면 중 자동 빌드" 초기 의미가 본질 변경 → 이름을 의미와 정합화.
   - 디렉토리: `core/skills/sleep-build/` → `core/skills/auto-build/`

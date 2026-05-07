@@ -58,6 +58,8 @@ INFO_EXT=""
 CHECK_ONLY=false
 REMOVE_EXT=""
 EXTENSIONS_TO_INSTALL=""
+CLEAN=false
+CLEAN_DRY_RUN=false
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -68,6 +70,8 @@ while [ $# -gt 0 ]; do
     --info) shift; INFO_EXT="$1" ;;
     --check) CHECK_ONLY=true ;;
     --remove-extension) shift; REMOVE_EXT="$1" ;;
+    --clean) CLEAN=true ;;
+    --clean-dry-run) CLEAN=true; CLEAN_DRY_RUN=true ;;
     --extensions)
       shift
       if [ -n "$EXTENSIONS_TO_INSTALL" ]; then
@@ -339,7 +343,81 @@ echo "=== vibe-flow setup ==="
 echo "Project: $PROJECT_NAME"
 echo "Target:  $PROJECT_DIR"
 [ "$WITH_ORCHESTRATORS" = true ] && echo "Mode:    with orchestrators"
+[ "$CLEAN" = true ] && [ "$CLEAN_DRY_RUN" = true ] && echo "Mode:    --clean-dry-run (감지만)"
+[ "$CLEAN" = true ] && [ "$CLEAN_DRY_RUN" = false ] && echo "Mode:    --clean (obsolete 삭제 활성)"
 echo ""
+
+# ──────────────────────────────────────────────────────────────
+# --clean: source에 없는 obsolete hooks/skills를 .claude/에서 삭제
+# 감지 기준: target의 .claude/hooks/*.sh 중 source의 core/hooks/에 없는 것
+#           target의 .claude/skills/*/ 중 source의 core/skills/에 없는 것
+# 사용자 추가 custom 파일 보존을 위해, source 출신만 체크 (한계: source에서 git mv된
+# 이름 변경 추적은 불가 — 단순히 "source 현재에 없는 것 = obsolete" 가정).
+# 안전: --clean-dry-run으로 미리 검토 권장
+# ──────────────────────────────────────────────────────────────
+if [ "$CLEAN" = true ] && [ -d "$PROJECT_DIR/.claude" ]; then
+  echo "[clean] obsolete 항목 감지..."
+
+  # 감지 + (즉시 삭제 또는 dry-run 출력)
+  CLEAN_FOUND=false
+  CLEAN_HOOKS_DELETED=""
+
+  # hooks 검사
+  if [ -d "$PROJECT_DIR/.claude/hooks" ]; then
+    for f in "$PROJECT_DIR/.claude/hooks"/*.sh; do
+      [ -f "$f" ] || continue
+      basename_f="$(basename "$f")"
+      if [ ! -f "$SCRIPT_DIR/core/hooks/$basename_f" ]; then
+        CLEAN_FOUND=true
+        if [ "$CLEAN_DRY_RUN" = true ]; then
+          echo "    [hook] $f"
+        else
+          rm -f "$f" && echo "    deleted (hook): $f"
+          CLEAN_HOOKS_DELETED="${CLEAN_HOOKS_DELETED}${basename_f} "
+        fi
+      fi
+    done
+  fi
+
+  # skills 검사 (디렉토리 단위)
+  if [ -d "$PROJECT_DIR/.claude/skills" ]; then
+    for d in "$PROJECT_DIR/.claude/skills"/*/; do
+      [ -d "$d" ] || continue
+      basename_d="$(basename "$d")"
+      if [ ! -d "$SCRIPT_DIR/core/skills/$basename_d" ]; then
+        CLEAN_FOUND=true
+        if [ "$CLEAN_DRY_RUN" = true ]; then
+          echo "    [skill] $d"
+        else
+          rm -rf "$d" && echo "    deleted (skill): $d"
+        fi
+      fi
+    done
+  fi
+
+  if [ "$CLEAN_FOUND" = false ]; then
+    echo "  ✓ obsolete 항목 없음"
+  fi
+
+  # settings.local.json stale hook 등록 안내 (자동 X)
+  if [ "$CLEAN_DRY_RUN" = false ] && [ -n "$CLEAN_HOOKS_DELETED" ] && [ -f "$PROJECT_DIR/.claude/settings.local.json" ]; then
+    STALE_FOUND=false
+    for hook_name in $CLEAN_HOOKS_DELETED; do
+      if grep -q "$hook_name" "$PROJECT_DIR/.claude/settings.local.json" 2>/dev/null; then
+        [ "$STALE_FOUND" = false ] && echo "" && echo "  ⚠ settings.local.json의 hook 등록은 자동 갱신 X — 수동 확인:"
+        STALE_FOUND=true
+        echo "    [stale] $hook_name 등록 라인 발견 → 편집 필요"
+      fi
+    done
+  fi
+  echo ""
+
+  # dry-run이면 install 단계 skip
+  if [ "$CLEAN_DRY_RUN" = true ]; then
+    echo "=== dry-run 종료 ==="
+    exit 0
+  fi
+fi
 
 # 평면 .claude/ 출신 마이그레이션 감지 (mkdir 전에 호출)
 detect_and_migrate
