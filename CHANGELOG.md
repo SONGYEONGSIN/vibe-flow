@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### 추가
+- **`/sleep-build` Phase 2 — Ralph loop + persona voting** — 단발 사이클을 multi-iteration Ralph wrapper로 확장 + ambiguity 발생 시 24 agent 풀에서 카테고리별 3~5명 자동 dispatch + moderator 중재로 무인 결정. 진정한 무인 사이클 (디자인 결정 포함, 본격 SaaS 빌드 가능).
+  - 신규 `core/skills/sleep-build/data/persona-mapping.json` — 카테고리 7개(design/auth/perf/architecture/ui/test/docs) → persona 풀 매핑
+  - 신규 `core/skills/sleep-build/scripts/persona-vote.sh` — vote dispatch 명령 stdout (orchestrator가 실 Agent tool 호출) + jsonl `vote_triggered` 이벤트
+  - `orchestrator.md` 확장 — `## Ralph Loop Wrapper` 섹션 (iter 변수, 종료 조건 3, branch base = 직전 iter tip), P3 P3a/P3b 분기 (P3b: vote 호출 → moderator 중재 → 결정 주입)
+  - `sleep-build-safety.sh` cap 상향 — token 130k → 200k (vote 1회당 ~5k × 30 iter = 150k 여유), 신규 `SLEEP_BUILD_MAX_ITERATIONS` 30 차단
+  - `SKILL.md` 스킵 조건 완화 — "디자인 결정 포함" / "HARD-GATE 전체 등급" 제거 (vote가 자동 결정 / Ralph가 PR 분할)
+  - `evals.json` 9 → 13 케이스 (Phase 2 vote/Ralph 4 신규), version 2.0.0
+  - 설계 근거: `.claude/memory/brainstorms/20260507-212317-sleep-build-phase2-ralph-loop-persona-vote.md`
+  - 구현 plan: `.claude/plans/20260507-213353-sleep-build-phase2-ralph-vote.md` (T1~T12)
 - **외부 sync로 누적된 agents 12 + skills 23 import** — `core/agents/` 12 (api-architect, architecture-reviewer, devops-engineer, frontend-design-specialist, performance-optimizer, product-strategist, project-planner, security-specialist, supabase-db-specialist, technical-writer, test-writer, ux-researcher), `core/skills/` 23 (agent-browser, b2b-landing, codebase-analyzer, debate, dependency-manager, deploy-safety-guard, ebook-writing, error-path-analysis, idea, korean-privacy-terms, orchestrate, performance-checker, product-thinking, remotion-studio, retro, security-audit, seo-master, site-auditor, start-docs, sync-claude-md, sync-workflow, web-design-guidelines, webapp-testing). 156 파일, +36685.
 - **`session-memory-sync.sh` Stop hook** — 세션 종료 시 `~/.claude/` 메모리를 `claude-memory` orphan branch에 background 자동 push. 머신 간(집↔회사) 동기화 자동화 — `sync-memory.sh push`를 수동 호출할 일 줄임.
   - rate limit 30분 (network 부하 방지) — `.claude/.last-memory-sync` 타임스탬프 추적
