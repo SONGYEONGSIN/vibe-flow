@@ -1,10 +1,10 @@
 ---
 name: auto-build
-description: multi-iteration Ralph loop + persona vote 자율 사이클 — maker가 자는 동안 brainstorm → plan → 구현(TDD + ambiguity 시 24 agent 자동 vote) → /verify → /commit → /finish 까지 완주. branch 격리 + destructive op 차단 + token/file/iter cap으로 안전 보장. 사용법 /auto-build "<task description>"
+description: multi-iteration Ralph loop + persona vote 자율 사이클 — 사용자가 다른 작업 하는 동안 brainstorm → plan → 구현(TDD + ambiguity 시 24 agent 자동 vote) → /verify → /commit → /finish 까지 완주. branch 격리 + destructive op 차단 + token/file/iter cap으로 안전 보장. 사용법 /auto-build "<task description>"
 effort: large
 ---
 
-vibe-flow v2의 자율 워크플로우 — Phase 2 (Ralph loop + persona voting). maker는 잠자기 전 task 1개를 명시하고, 깨어나서 working PR(또는 명시적 abort + 부분 진행 보존 branch)을 morning review 한다.
+vibe-flow v2의 자율 워크플로우 — Phase 2 (Ralph loop + persona voting). 사용자는 task 1개를 명시하고 사이클 종료 후 working PR(또는 명시적 abort + 부분 진행 보존 branch)을 review 한다. 시간대 무관 — 점심시간/저녁/주말/잠자기 전 등 사용자가 다른 작업 하는 동안 자율 진행.
 
 ## 사용 시점
 
@@ -27,7 +27,7 @@ vibe-flow v2의 자율 워크플로우 — Phase 2 (Ralph loop + persona voting)
 3. **token cap** — 사이클당 누적 token이 `AUTO_BUILD_TOKEN_CAP`(기본 200000) 초과 시 abort
 4. **file count cap** — branch git diff 파일 수가 `AUTO_BUILD_FILE_CAP`(기본 19) 초과 시 abort. 단 Ralph wrapper가 75% 도달 시 P5 강제 push + 새 branch로 우회.
 5. **max_iterations cap** — Ralph wrapper iter 카운트가 `AUTO_BUILD_MAX_ITERATIONS`(기본 30) 초과 시 abort `max_iterations_exceeded`
-6. **실패 시 abort** — exit reason을 `.claude/memory/auto-build-runs.jsonl`에 명시 + branch 보존(폐기 X) → maker morning review
+6. **실패 시 abort** — exit reason을 `.claude/memory/auto-build-runs.jsonl`에 명시 + branch 보존(폐기 X) → 사이클 종료 후 maker review
 
 ## 선행 조건 (P0가 자동 검증, 부재 시 즉시 abort)
 
@@ -73,7 +73,7 @@ task description 가이드:
 |------|------|
 | 사이클 시작 직전 | maker 본인 — task 명시화 + working tree clean |
 | 사이클 진행 중 | `/brainstorm`, `/plan`, `/verify`, `/commit`, `/finish` (orchestrator가 자동 호출) |
-| 사이클 종료 후 | maker 본인 — morning review (PR 머지 또는 abort branch 폐기) |
+| 사이클 종료 후 | maker 본인 — review (PR 머지 또는 abort branch 폐기) |
 | 누적 데이터 분석 | `/telemetry` (auto_build_* 이벤트 추세), `/budget --tokens` (사이클당 비용) |
 
 ## 메시지 버스 알림 (선택적)
@@ -91,7 +91,7 @@ task description 가이드:
 - **사용자 합의 없이 main에 직접 변경 금지** — 항상 신규 branch
 - **safety hook 미등록 환경에서는 즉시 abort** — `AUTO_BUILD_MODE` 활성 전 hook 존재 확인
 - **사이클 도중 maker 추가 입력 요청 금지** — 모호하면 abort 우선 (`brainstorm` 4문항 추가 질문 시도 = abort 신호)
-- **branch 자동 폐기 금지** — 실패 사이클도 branch는 morning review 자료
+- **branch 자동 폐기 금지** — 실패 사이클도 branch는 사이클 종료 후 review 자료
 - **token cap / file cap 초과는 silent skip 금지** — 반드시 jsonl `exit_reason` 명시
 - **Phase 2: vote가 ambiguity 결정 자동화** — 단, vote 카테고리 매핑조차 안 되는 본질 결정은 abort `vote_low_confidence`
 - **Phase 3 진입 전** — 다중 task 큐, cron 스케줄, dashboard 통합은 Phase 3 (CronCreate 통합)에서 다룸

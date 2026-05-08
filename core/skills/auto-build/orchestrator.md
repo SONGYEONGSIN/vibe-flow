@@ -296,7 +296,7 @@ RED 단계에서 결정이 막힐 때 (예: "버튼 색상 라벤더 vs 블루",
 ## 실패 공통 정책
 
 자율 사이클의 모든 abort는:
-1. **branch 폐기 X** — maker morning review 자료로 보존
+1. **branch 폐기 X** — 사이클 종료 후 maker review 자료로 보존
 2. **부분 진행 commit 보존** — 이미 커밋된 변경은 유지
 3. **jsonl `exit_reason` 명시** — 다음 사이클 calibration 자료
 4. **사용자 추가 입력 대기 금지** — abort = 즉시 사이클 종료

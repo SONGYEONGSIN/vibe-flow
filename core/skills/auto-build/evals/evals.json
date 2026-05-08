@@ -160,7 +160,7 @@
     }
   ],
   "out_of_scope": [
-    "실제 야간 자율 빌드 end-to-end 검증 — maker 수동 dogfooding 1회로 calibration",
+    "실제 task end-to-end 자율 빌드 검증 — maker 수동 dogfooding 1회로 calibration (시간대 무관)",
     "token cap calibration — Phase 1 dogfooding 결과 기반 AUTO_BUILD_TOKEN_CAP 조정",
     "PR 자동 생성/머지 검증 — `/finish` `--path pr` 동작은 별도 스킬 책임"
   ]
