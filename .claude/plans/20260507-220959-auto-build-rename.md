@@ -1,7 +1,8 @@
 ---
 plan_id: 20260507-220959-auto-build-rename
-status: in_progress
+status: done
 created: 2026-05-07T13:09:59Z
+completed: 2026-05-08T11:55:00Z
 hard_gate: full
 worktree: 비적용 (mechanical rename, 충돌 위험 낮음)
 source: user-direct
@@ -180,3 +181,8 @@ mechanical grep-replace + 디렉토리 mv + 단계별 검증. **producer(vibe-fl
 | 시각 | 단계 | 상태 변경 | 비고 |
 |------|------|----------|------|
 | 2026-05-07T13:09:59Z | - | plan 생성 | 사용자 합의 (전체 등급, T1~T15) |
+| 2026-05-07T13:17:07Z | T1~T9 | vibe-flow PR #40 머지 | sleep-build → auto-build 디렉토리/hook/env/jsonl/docs |
+| 2026-05-07T (dashboard #14) | T10~T13 | dashboard PR #14 머지 | event-map / dialogue-pool / docs / CHANGELOG |
+| 2026-05-07T22:19:00Z | T14 | 시스템 메모리 rename | `project_auto_build_runtime_limit.md` (0 hit 확인) |
+| 2026-05-08T11:55:00Z | T15 | 최종 검증 통과 | vibe-flow / dashboard / 메모리 — 코드 식별자 hit 0 |
+| 2026-05-08T (dashboard #15) | 산문 분리 | dashboard `event-map.ts:162` 주석 갱신 | `/sleep-build` → `/auto-build` (D2 별 PR로 분리). vibe-flow 산문은 의도된 잔존(rename 작업 자체 기록)으로 NOOP |
