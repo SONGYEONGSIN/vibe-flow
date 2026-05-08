@@ -56,7 +56,21 @@ check_skill_md() {
     fi
   done
   local desc
-  desc=$(echo "$fm" | awk '/^description:/' | sed 's/^description: *//')
+  desc=$(echo "$fm" | awk '
+    /^description:/ {
+      sub(/^description:[[:space:]]*/, "")
+      if ($0 == "|" || $0 == ">" || $0 == "|-" || $0 == ">-" || $0 == "|+" || $0 == ">+") {
+        mode=$0; next
+      }
+      print; exit
+    }
+    mode != "" {
+      if (/^[a-zA-Z_][a-zA-Z0-9_-]*:/) { exit }
+      line=$0
+      sub(/^[[:space:]]+/, "", line)
+      print line
+    }
+  ')
   local desc_len=${#desc}
   if [ "$desc_len" -lt 20 ]; then
     err "$f: description < 20자 (현재 ${desc_len})"
