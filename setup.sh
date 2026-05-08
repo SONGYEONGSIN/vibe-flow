@@ -6,6 +6,7 @@
 #   cd /your/project
 #   bash /path/to/vibe-flow/setup.sh
 #   bash /path/to/vibe-flow/setup.sh --with-orchestrators
+#   bash /path/to/vibe-flow/setup.sh --upgrade  # 기존 settings.local.json 백업 후 재생성 (신규 hook 반영)
 
 set -e
 
@@ -60,6 +61,7 @@ REMOVE_EXT=""
 EXTENSIONS_TO_INSTALL=""
 CLEAN=false
 CLEAN_DRY_RUN=false
+UPGRADE=false
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -72,6 +74,7 @@ while [ $# -gt 0 ]; do
     --remove-extension) shift; REMOVE_EXT="$1" ;;
     --clean) CLEAN=true ;;
     --clean-dry-run) CLEAN=true; CLEAN_DRY_RUN=true ;;
+    --upgrade) UPGRADE=true ;;
     --extensions)
       shift
       if [ -n "$EXTENSIONS_TO_INSTALL" ]; then
@@ -480,18 +483,32 @@ for src in "$SCRIPT_DIR/core/rules/"*.md; do
   safe_copy "$src" "$PROJECT_DIR/.claude/rules/$(basename "$src")"
 done
 
-# Settings 템플릿 복사 (기존 파일이 없을 때만)
+# Settings 템플릿 복사
+# - 기본: 기존 파일이 없을 때만 생성 (사용자 커스텀 보존)
+# - --upgrade: 기존 파일을 .bak.<TIMESTAMP>로 백업 후 template 기반 재생성
+#   (신규 hook 추가 후 기존 setup된 프로젝트 일괄 갱신용)
 echo "[5/$TOTAL_STEPS] Settings..."
-if [ ! -f "$PROJECT_DIR/.claude/settings.local.json" ]; then
+SETTINGS_FILE="$PROJECT_DIR/.claude/settings.local.json"
+if [ ! -f "$SETTINGS_FILE" ] || [ "$UPGRADE" = true ]; then
+  # 기존 파일 있으면 --upgrade 모드 — 백업
+  if [ -f "$SETTINGS_FILE" ]; then
+    cp "$SETTINGS_FILE" "${SETTINGS_FILE}.bak.${TIMESTAMP}"
+    echo "  ↻ backup: settings.local.json.bak.${TIMESTAMP}"
+  fi
   # 훅 경로를 프로젝트 절대 경로로 치환
   ESCAPED_DIR=$(printf '%s\n' "$PROJECT_DIR" | sed 's/[&/\]/\\&/g')
   sed "s|\\.claude/hooks/|${ESCAPED_DIR}/.claude/hooks/|g" \
     "$SCRIPT_DIR/settings/settings.template.json" \
-    > "$PROJECT_DIR/.claude/settings.local.json"
-  echo "  Created settings.local.json (훅 경로를 절대 경로로 설정)"
-  echo "  env 섹션에 프로젝트별 환경변수를 추가하세요"
+    > "$SETTINGS_FILE"
+  if [ "$UPGRADE" = true ]; then
+    echo "  Regenerated settings.local.json (--upgrade)"
+    echo "  사용자 커스텀(env, permissions 등)이 있었다면 .bak에서 수동 머지"
+  else
+    echo "  Created settings.local.json (훅 경로를 절대 경로로 설정)"
+    echo "  env 섹션에 프로젝트별 환경변수를 추가하세요"
+  fi
 else
-  echo "  settings.local.json already exists, skipped"
+  echo "  settings.local.json already exists, skipped (--upgrade로 강제 재생성 가능)"
 fi
 
 # Scripts 복사 (instinct store + observability)
