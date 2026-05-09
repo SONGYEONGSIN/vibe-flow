@@ -59,13 +59,21 @@ vibe-flow v2의 자율 워크플로우 — Phase 2 (Ralph loop + persona voting)
 /auto-build "<task description>"
 ```
 
-task description 가이드:
-- 단일 산출물 명시 (예: "extensions/X 디렉토리에 /Y-audit 스킬 추가, OWASP 패턴 5개 검출")
-- 4문항 답변 형식 권장 — `/brainstorm`이 추가 질문 없이 통과하도록 prepare:
-  - 무엇을: ...
-  - 누가: ...
-  - 왜 지금: ...
-  - 성공: ...
+task description **4문항 필수** — orchestrator P1이 누락 시 즉시 abort `task_description_incomplete`:
+
+- **무엇을**: 단일 산출물 명시
+- **누가**: 사용자/대상 (예: maker 본인, 팀, 외부 사용자)
+- **왜 지금**: task의 동기/맥락 (예: 회귀 fix, 성능 이슈, dogfooding calibration)
+- **성공**: 검증 가능한 기준 (예: `npm test` 통과, PR 머지, 특정 metric)
+
+### 예시
+
+```
+/auto-build "무엇을: extensions/X 디렉토리에 /Y-audit 스킬 추가 — OWASP 패턴 5개 검출 + audit 결과 jsonl 기록.
+누가: maker 본인 — vibe-flow 보안 강화.
+왜 지금: 최근 보안 리뷰에서 X 영역 검출 누락 발견.
+성공: 5 OWASP 패턴 evals.json 케이스 추가 + bash scripts/eval-regression-check.sh PASS."
+```
 
 ## 다음 스킬과의 연계
 

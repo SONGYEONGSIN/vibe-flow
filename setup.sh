@@ -337,9 +337,9 @@ install_extension() {
 }
 
 if [ "$WITH_ORCHESTRATORS" = true ]; then
-  TOTAL_STEPS=8
+  TOTAL_STEPS=9
 else
-  TOTAL_STEPS=7
+  TOTAL_STEPS=8
 fi
 
 echo "=== vibe-flow setup ==="
@@ -589,9 +589,40 @@ BUDGETEOF
   echo "  Created .claude/budget.json (default limits)"
 fi
 
+# .gitignore — runtime 파일 ignore 패턴 (auto-build cycle의 working tree clean 보장)
+echo "[8/$TOTAL_STEPS] .gitignore patterns..."
+GITIGNORE="$PROJECT_DIR/.gitignore"
+GITIGNORE_PATTERNS=(
+  ".claude/events.jsonl"
+  ".claude/store.db"
+  ".claude/session-logs/"
+  ".claude/metrics/"
+  ".claude/messages/inbox/"
+  ".claude/messages/archive/"
+  ".claude/messages/broadcast/"
+  ".claude/messages/.last-debate-trigger"
+  ".claude/.last-memory-sync"
+  ".claude/agent-memory/"
+  ".claude/memory-sync.log"
+  ".claude/memory/auto-build-runs.jsonl"
+)
+[ -f "$GITIGNORE" ] || touch "$GITIGNORE"
+GITIGNORE_ADDED=0
+for p in "${GITIGNORE_PATTERNS[@]}"; do
+  if ! grep -qxF "$p" "$GITIGNORE"; then
+    echo "$p" >> "$GITIGNORE"
+    GITIGNORE_ADDED=$((GITIGNORE_ADDED + 1))
+  fi
+done
+if [ "$GITIGNORE_ADDED" -gt 0 ]; then
+  echo "  ${GITIGNORE_ADDED} pattern(s) appended"
+else
+  echo "  All patterns already present"
+fi
+
 # Orchestrator 설정 (선택)
 if [ "$WITH_ORCHESTRATORS" = true ]; then
-  echo "[8/$TOTAL_STEPS] Orchestrators..."
+  echo "[9/$TOTAL_STEPS] Orchestrators..."
 
   # Claude Squad config
   if command -v cs &>/dev/null; then
