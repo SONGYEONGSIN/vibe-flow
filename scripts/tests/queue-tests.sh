@@ -262,6 +262,33 @@ else
 fi
 teardown
 
+# ── Test 10: DRYRUN=0 (미설정) → entry 보존 + exit 1 ────────
+echo "Test 10: DRYRUN=0 — entry 보존 (소실 방지)"
+setup_fixture
+bash "$QUEUE" add "must not be aborted" >/dev/null
+# DRYRUN 미설정 + 실 trigger 미구현 → exit 1 + entry는 running 그대로
+QUEUE_STORE="$QUEUE_STORE" QUEUE_LOCK_DIR="$QUEUE_LOCK_DIR" \
+  bash "$RUN_QUEUE" >/dev/null 2>&1
+EXIT_CODE=$?
+if [ "$EXIT_CODE" -eq 1 ]; then
+  echo "  ✓ 10.1 exit 1 (실 trigger 미구현 신호)"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ 10.1 expected exit 1, got $EXIT_CODE"
+  FAIL=$((FAIL + 1))
+fi
+# entry status는 running (aborted 아님)
+ALL=$(bash "$QUEUE" list --all)
+if echo "$ALL" | grep -q "running.*must not be aborted"; then
+  echo "  ✓ 10.2 entry running 보존 (aborted 회피)"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ 10.2 entry aborted 마킹 발생 (소실)"
+  echo "    list --all: $ALL"
+  FAIL=$((FAIL + 1))
+fi
+teardown
+
 # ── 결과 ───────────────────────────────────────────────────
 echo ""
 echo "─────────────────────────────────────────"
