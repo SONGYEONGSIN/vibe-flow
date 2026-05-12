@@ -460,6 +460,14 @@ for src in "$SCRIPT_DIR/core/hooks/"*.sh; do
 done
 chmod +x "$PROJECT_DIR/.claude/hooks/"*.sh
 
+# git post-commit hook 배포 — 모든 git commit을 events.jsonl에 emit
+# .git/hooks/는 git이 추적 X 이므로 머신별 설치 필요
+if [ -d "$PROJECT_DIR/.git/hooks" ]; then
+  cp "$SCRIPT_DIR/core/hooks/git-post-commit.sh" "$PROJECT_DIR/.git/hooks/post-commit"
+  chmod +x "$PROJECT_DIR/.git/hooks/post-commit"
+  echo "  ↳ .git/hooks/post-commit 배포 (commit_pushed 이벤트 emit)"
+fi
+
 # Skills 복사 (루트 .md 파일 모두 + 하위 디렉토리 포함)
 echo "[3/$TOTAL_STEPS] Skills..."
 for skill_dir in "$SCRIPT_DIR/core/skills"/*/; do
