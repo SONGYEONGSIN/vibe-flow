@@ -76,8 +76,8 @@
 
 | Cycle | trigger cwd | 산출물 위치 | 선행 조건 |
 |-------|------------|----------|----------|
-| 1차 | vibe-flow source repo 자체 | vibe-flow source repo (hooks/skills/scripts + telemetry SKILL.md) | source repo `.claude/` self-install (`.claude/hooks/`, `.claude/skills/auto-build/` 배포) |
-| 2차 | vibe-flow-dashboard source repo | dashboard source repo (event-map.ts, dialogue-pool.json, event-map.test.ts) | dashboard repo에 vibe-flow setup 배포 |
+| 1차 | vibe-flow source repo 자체 | vibe-flow source repo (hooks/skills/scripts + telemetry SKILL.md) | source repo `.claude/` self-install — `docs/superpowers/source-repo-self-install.md` 참조 |
+| 2차 | vibe-flow-dashboard source repo | dashboard source repo (event-map.ts, dialogue-pool.json, event-map.test.ts) | dashboard repo에 vibe-flow setup 배포 (`bash setup.sh`) |
 
 **부적합 trigger 위치**:
 - test-1 같은 외부 deploy 환경 (auto-build-test-1) — multi-repo 발생, F6 finding(run_id `20260512T104326Z-3b07` P2 abort) 참조

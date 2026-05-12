@@ -620,6 +620,37 @@ else
   echo "  All patterns already present"
 fi
 
+# self-install mode — source repo cwd 감지 시 (vibe-flow source에서 dogfooding)
+# install 결과(.claude/hooks/ 등)를 .gitignore에 자동 추가하여 source 더러워짐 방지
+if [ "$SCRIPT_DIR" = "$PROJECT_DIR" ]; then
+  echo "  ↳ source repo self-install 감지 — 추가 패턴 적용"
+  SELF_INSTALL_PATTERNS=(
+    ".claude/hooks/"
+    ".claude/skills/"
+    ".claude/scripts/"
+    ".claude/agents/"
+    ".claude/rules/"
+    ".claude/validate.sh"
+    ".claude/agents.json"
+    ".claude/budget.json"
+    ".claude/.vibe-flow.json"
+    ".claude/settings.local.json"
+    ".claude/settings.template.json"
+  )
+  SELF_ADDED=0
+  for p in "${SELF_INSTALL_PATTERNS[@]}"; do
+    if ! grep -qxF "$p" "$GITIGNORE"; then
+      echo "$p" >> "$GITIGNORE"
+      SELF_ADDED=$((SELF_ADDED + 1))
+    fi
+  done
+  if [ "$SELF_ADDED" -gt 0 ]; then
+    echo "  ${SELF_ADDED} self-install pattern(s) appended"
+  else
+    echo "  Self-install patterns already present"
+  fi
+fi
+
 # Orchestrator 설정 (선택)
 if [ "$WITH_ORCHESTRATORS" = true ]; then
   echo "[9/$TOTAL_STEPS] Orchestrators..."
