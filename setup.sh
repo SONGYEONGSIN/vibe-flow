@@ -636,6 +636,13 @@ if [ "$SCRIPT_DIR" = "$PROJECT_DIR" ]; then
     ".claude/.vibe-flow.json"
     ".claude/settings.local.json"
     ".claude/settings.template.json"
+    ".claude/settings.local.json.bak.*"
+    ".claude/memory/reviews/"
+    ".claude/memory/brainstorms/.gitkeep"
+    ".claude/plans/.gitkeep"
+    ".worktreeinclude"
+    "CLAUDE.md"
+    "playwright.config.ts"
   )
   SELF_ADDED=0
   for p in "${SELF_INSTALL_PATTERNS[@]}"; do
