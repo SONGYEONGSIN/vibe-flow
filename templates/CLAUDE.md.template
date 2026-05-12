@@ -53,12 +53,13 @@ npx tsc --noEmit     # 타입 체크
 
 ## Rules
 
-프로젝트 규칙은 `.claude/rules/`에 분리 관리:
+프로젝트 규칙은 `.claude/rules/`에 분리 관리 (Karpathy 권장 — *leaves에 specific하게*):
 
-- `conventions.md` — 설계 선행 원칙, 코드 스타일, Server Action 패턴
-- `git.md` — Conventional Commits, HARD-GATE 설계 등급, Git Worktree
-- `donts.md` — 금지 사항, 완료 기준, 합리화 방지 표
-- `tdd.md` — TDD Iron Law (RED-GREEN-REFACTOR 강제)
+- `karpathy-principles.md` — LLM 코딩 4 원칙 (Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven Execution) + 각 원칙과 다른 rules/skills 간 cross-link
+- `conventions.md` — 설계 선행 원칙, 코드 스타일, Server Action 패턴 *(Karpathy 1, 4 매핑)*
+- `git.md` — Conventional Commits, HARD-GATE 설계 등급, Git Worktree *(Karpathy 3 매핑)*
+- `donts.md` — 금지 사항, 완료 기준, 합리화 방지 표 *(Karpathy 2, 3 매핑)*
+- `tdd.md` — TDD Iron Law (RED-GREEN-REFACTOR 강제) *(Karpathy 4 매핑)*
 - `debugging.md` — 4단계 체계적 디버깅 프로세스
 - `design.md` — 디자인 토큰, 색상 규칙, 공통 컴포넌트
 
