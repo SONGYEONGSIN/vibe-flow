@@ -53,6 +53,8 @@ sync-memory.conf
 .claude/agent-memory/
 .claude/memory-sync.log
 .claude/memory/auto-build-runs.jsonl
+.claude/memory/auto-build-queue.jsonl
+.claude/.queue.lock/
 .claude/hooks/
 .claude/skills/
 .claude/scripts/
