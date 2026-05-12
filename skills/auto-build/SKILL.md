@@ -104,12 +104,63 @@ task description **4문항 필수** — orchestrator P1이 누락 시 즉시 abo
 - **Phase 2: vote가 ambiguity 결정 자동화** — 단, vote 카테고리 매핑조차 안 되는 본질 결정은 abort `vote_low_confidence`
 - **Phase 3 진입 전** — 다중 task 큐, cron 스케줄, dashboard 통합은 Phase 3 (CronCreate 통합)에서 다룸
 
+## Queue 관리 (Phase 3.0 PR-A)
+
+`/auto-build`는 큐 기반 다중 task 진행을 위해 영속 store(`.claude/memory/auto-build-queue.jsonl`)에 task entry를 적재한다. 본 PR-A는 큐 CRUD만 — `run-queue`(큐 첫 task pop + 자율 사이클 trigger)는 PR-B scope.
+
+### 호출
+
+```bash
+bash core/skills/auto-build/scripts/queue.sh add "<4문항 포맷 task>" [depends_on_id]
+bash core/skills/auto-build/scripts/queue.sh list [--all]
+bash core/skills/auto-build/scripts/queue.sh remove <id>
+bash core/skills/auto-build/scripts/queue.sh clear
+```
+
+### 동작
+
+- **append-only**: entry 추가/상태 변경 모두 jsonl 라인 append. in-place 수정 0.
+- **entry payload**: `{id, task, created_ts, status, depends_on?}`. `id`는 `<UTC ISO 8601 (no sep)>-<4hex>`. `status`는 `queued | done | aborted`.
+- **상태 변경**: `remove`/`clear`/PR-B run-queue 종료 시 별 라인 `{op:"status_update", id, new_status, ts}` append. `list`는 entry별 최신 status fold하여 표시.
+- **lock**: `mkdir lockdir` 원자성 활용 (macOS flock 기본 미설치 대응).
+- **depends_on**: 짝 cycle 의존성 표현 — PR-B run-queue가 prev entry status=done인지 확인 후 진입 (이번 PR-A scope X, schema 필드만 보장).
+
+### 예시
+
+```bash
+# 큐 적재
+bash core/skills/auto-build/scripts/queue.sh add "$(cat <<'EOF'
+무엇을: ...
+누가: ...
+왜 지금: ...
+성공: ...
+EOF
+)"
+# queued: 20260512T204900Z-a1b2
+
+# 큐 확인
+bash core/skills/auto-build/scripts/queue.sh list
+# 20260512T204900Z-a1b2  queued  2026-05-12T20:49:00Z  무엇을: ...
+
+# 큐 비우기
+bash core/skills/auto-build/scripts/queue.sh clear
+```
+
+### 검증
+
+```bash
+bash scripts/tests/queue-tests.sh  # 4 케이스 (add/list/remove/clear) ALL PASS
+```
+
 ## 관련 파일
 
 - `core/skills/auto-build/orchestrator.md` — Ralph wrapper + P0~P-end + P3 ambiguity 분기
 - `core/skills/auto-build/scripts/persona-vote.sh` — vote dispatch 명령 + moderator 중재 helper (Phase 2 신규)
 - `core/skills/auto-build/data/persona-mapping.json` — 카테고리(7) → persona 풀 매핑 (Phase 2 신규)
 - `core/skills/auto-build/scripts/run-log.sh` — `.claude/memory/auto-build-runs.jsonl` append helper
+- `core/skills/auto-build/scripts/queue.sh` — 다중 task 큐 CRUD (Phase 3.0 PR-A)
+- `.claude/memory/auto-build-queue.jsonl` — 큐 store (append-only, 런타임 생성)
+- `scripts/tests/queue-tests.sh` — queue.sh smoke 4 케이스
 - `core/hooks/auto-build-safety.sh` — PreToolUse 안전 hook (token/file/iter cap)
 - `.claude/memory/auto-build-runs.jsonl` — 사이클 이력 (런타임 생성)
 - `.claude/memory/brainstorms/20260504-103257-vibe-flow-v2-overnight-autonomous-build.md` — Phase 1 설계 근거

@@ -264,7 +264,32 @@ vibe-flow `core/hooks/tdd-enforce.sh`가 `src/.../data/x.ts`에 대해 `__tests_
 
 → token cap 200k 적정 / max_iter 30 small-medium 단일 cycle엔 과잉 / vote 1 sample 유지
 
-## 다음 세션 진입점: PR-A queue 슬래시 스킬 (cycle 8)
+## Cycle 8 (run_id 20260512T114728Z-5799) — PR-A queue 슬래시 스킬 완주 (PR #61)
+
+**Task**: spec line 285-289 (Phase 3 brainstorm PR-A 4문항 포맷, vibe-flow source repo cwd)
+
+**결과**: P0 ✓ → P1 ✓ (3 alternative) → P2 ✓ (brief plan T1-T4) → P3 ✓ (T1-T3 통합 GREEN, T4 doc/evals) → P4 ✓ (bash -n + smoke 16/16 + eval-regression 7/7) → P5 ✓ (PR #61) → P-end ✓
+
+**산출물 (7 files, 620 insertions)**:
+- `core/skills/auto-build/scripts/queue.sh` — 4 sub-command (add/list/remove/clear), mkdir lockdir + NFC + jq fold
+- `scripts/tests/queue-tests.sh` — 4 케이스 16/16 PASS
+- `core/skills/auto-build/SKILL.md` — "Queue 관리" 섹션
+- `core/skills/auto-build/evals/evals.json` — 3 신규 케이스 (queue-add/list/skill-section)
+- `.gitignore` — queue.jsonl + .queue.lock/
+- brainstorm + plan
+
+**Calibration (cycle 8, 1 sample)**:
+| 입력 | 값 |
+|------|-----|
+| iter | 1 / 30 (cap 과잉, cycle 2/6/7과 일관) |
+| vote | 0 (brainstorm 추천 명확) |
+| file count | 7 / 19 (brief grade) |
+
+**Sub-finding (RED→GREEN 중)**: jq `[inputs]` 패턴은 `-n` 옵션 필요. `-s` (slurp)이 더 간결. test의 `grep -c ... || echo 0` 패턴은 "0\n0" 누적 버그 — `grep ... | wc -l` 대체.
+
+**Surgical change**: `docs/architecture.html` 자동 reset 변경은 본 cycle scope 외 — `git restore`로 제외.
+
+## 다음 세션 진입점: PR-B run-queue 슬래시 스킬 (cycle 9)
 
 **위치**: vibe-flow source repo cwd (self-install 완료 상태, F1~F9 모두 해소)
 
@@ -293,3 +318,17 @@ vibe-flow `core/hooks/tdd-enforce.sh`가 `src/.../data/x.ts`에 대해 `__tests_
 **vote 발화 가능성**: 낮음 (3 명령 모두 명세 명확). brief grade trade-off 단일 선택.
 
 **예상 calibration**: small task token ~30-50k, iter 1, vote 0.
+
+### 같이 진행: statusLine fix PR (F10 잠재)
+
+**증거**: 2026-05-12 세션에서 사용자 화면에 statusLine이 `🔧✓`만 표시. 원인 — vibe-flow setup.sh가 project `.claude/settings.local.json`에 statusLine을 `bash $CLAUDE_PROJECT_DIR/.claude/scripts/statusline.sh`로 정의해서 user-level `~/.claude/statusline.sh`(풍부한 model/git/ctx/plan tier/rate limit 표시)를 override.
+
+**임시 fix**: 사용자 settings.local.json에서 statusLine 키 제거 — 단, setup.sh 다음 실행 시 재추가.
+
+**영구 fix 방향**:
+- setup.sh의 statusLine 기본 정의 제거 (사용자 default = user-level fallback)
+- 또는 project statusline.sh를 user-level과 비슷한 풍부도로 확장
+
+**PR scope**: 작은 fix (setup.sh의 statusLine 정의 부분 + settings.template.json 동기화). inline grade ~2-3 파일.
+
+**PR-A와 같이 진행**: PR-A queue 슬래시 스킬 cycle 8 완료 후 별 PR로 statusLine fix (또는 PR-A 자율 사이클 중 발견되면 같이).

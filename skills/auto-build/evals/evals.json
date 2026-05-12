@@ -157,6 +157,41 @@
         "exit_code": 2,
         "stderr_contains": "max iterations"
       }
+    },
+    {
+      "id": "queue-add-appends-entry",
+      "description": "Phase 3.0 PR-A — queue.sh add 1회 호출 시 jsonl 라인 1개 append + jq empty 통과 + status=queued + id 필드 존재",
+      "setup": {
+        "env": {
+          "QUEUE_STORE": "/tmp/auto-build-queue-eval-add.jsonl"
+        }
+      },
+      "input": "rm -f /tmp/auto-build-queue-eval-add.jsonl && bash core/skills/auto-build/scripts/queue.sh add 'eval task body' >/dev/null && head -1 /tmp/auto-build-queue-eval-add.jsonl | jq -e '.status == \"queued\" and has(\"id\") and .task == \"eval task body\"' >/dev/null && echo OK",
+      "expected": {
+        "stdout_contains": "OK"
+      }
+    },
+    {
+      "id": "queue-list-shows-queued",
+      "description": "Phase 3.0 PR-A — queue.sh add 2회 + list 명령이 두 entry 모두 queued 상태로 표시 (fold 정상)",
+      "setup": {
+        "env": {
+          "QUEUE_STORE": "/tmp/auto-build-queue-eval-list.jsonl"
+        }
+      },
+      "input": "rm -f /tmp/auto-build-queue-eval-list.jsonl && bash core/skills/auto-build/scripts/queue.sh add 'one' >/dev/null && bash core/skills/auto-build/scripts/queue.sh add 'two' >/dev/null && bash core/skills/auto-build/scripts/queue.sh list | grep -c queued",
+      "expected": {
+        "stdout_min": "2"
+      }
+    },
+    {
+      "id": "queue-skill-section-present",
+      "description": "Phase 3.0 PR-A — SKILL.md에 'Queue 관리' 섹션 + 4 명령(add/list/remove/clear) 모두 명시",
+      "setup": {},
+      "input": "grep -cE 'queue\\.sh (add|list|remove|clear)' core/skills/auto-build/SKILL.md",
+      "expected": {
+        "stdout_min": "4"
+      }
     }
   ],
   "out_of_scope": [
