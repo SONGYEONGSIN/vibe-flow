@@ -66,7 +66,7 @@ DAY_7_AGO=$(date -u -v-7d +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
 SKILL_TYPES=(
   brainstorm plan finish release
   scaffold test worktree
-  verify security commit_created
+  verify security commit_created commit_pushed
   review_pr review_received
   status learn_save onboard menu inbox budget
   eval skill_evolve design_sync design_audit
@@ -78,6 +78,7 @@ SKILL_TYPES=(
 type_to_label() {
   case "$1" in
     commit_created) echo "/commit" ;;
+    commit_pushed) echo "커밋" ;;
     learn_save) echo "/learn" ;;
     skill_evolve) echo "/evolve" ;;
     pair_session) echo "/pair" ;;

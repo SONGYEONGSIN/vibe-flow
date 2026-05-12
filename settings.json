@@ -22,7 +22,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash ~/.claude/statusline.sh",
+    "command": "bash /Users/yss/.claude/statusline.sh",
     "refreshInterval": 10
   },
   "enabledPlugins": {

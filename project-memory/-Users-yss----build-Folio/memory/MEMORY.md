@@ -9,3 +9,8 @@
 - [Dashboard dynamic [slug] + 4 패턴 demo 패턴](feedback_dashboard_pages_pattern.md) — findSidebarMeta + 4 패턴 분류 + layout.tsx 추출 + Sidebar Link/active
 - [chrome rebrand: PIVOT → OPS Console](project_pivot_to_ops_console.md) — 2026-05-08, >_ 터미널 프롬프트 로고
 - [한자 시각 표기 절대 금지](feedback_no_hanja.md) — Folio UI 어디에도 한자(漢字) 사용 금지, 한국어는 한글로만
+- [조직·권한 DB 연동 — CLOSED 2026-05-10](project_team_db_integration.md) — operators 테이블 + 4상태 enum epic 완료. reference 보존 (Supabase 링크 / 파일 위치)
+- [Supabase 마이그레이션 운영 함정](feedback_supabase_migration_gotchas.md) — SQL Editor paste / RLS+GRANT / PostgREST cache / 부분 실행 / `language sql` $$ 파서 / service_role GRANT
+- [메뉴별 권한 — CLOSED](project_menu_permission_next.md) — PR #16/#17로 클로즈
+- [다음 세션 시드 — InspectorListBody refactor epic 부분 완료](project_next_session_seed.md) — 2026-05-12 종료, PR #75~#78 stacked 미머지, InspectorListBody 800줄 달성, ListPattern 미손
+- [Stacked PR 4개 임계점](feedback_stacked_pr_threshold.md) — 5개 이상 stacked PR 누적 시 epic 조기 종료 자연스러움. 매몰비용 편향 회피

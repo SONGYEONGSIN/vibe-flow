@@ -52,6 +52,22 @@ PERSONA_COUNT=$(echo "$PERSONAS" | wc -l | tr -d ' ')
 # Question truncate (jsonl event용 80자, dispatch 라인은 full)
 Q_TRUNC=$(echo "$QUESTION" | head -c 80)
 
+# Prompt template — agent의 자율 부산물 / 스킬 트리거 회피용 (F4)
+# orchestrator는 각 AGENT_DISPATCH 라인을 실제 Agent 호출로 변환할 때 본 template 사용
+cat <<'PROMPT_TEMPLATE_END'
+# === VOTE PROMPT TEMPLATE ===
+# [VOTE-ONLY MODE — 자율 스킬 트리거 / 부산물 작업 금지]
+#
+# 답변은 정확히 다음 4 라인 형식으로만 출력:
+#   DECISION: <옵션 1자 — A/B/C 등 brainstorm spec 대안 ID>
+#   CONFIDENCE: <0.0~1.0>
+#   REASON: <한 문장 50자 이내>
+#   PERSONA: <persona id>
+#
+# ⚠️ 4 라인 외 분석/설명/부산물/자동 스킬 발동 금지.
+# === END TEMPLATE ===
+PROMPT_TEMPLATE_END
+
 # AGENT_DISPATCH 라인 출력 (각 persona별)
 while IFS= read -r persona; do
   [ -z "$persona" ] && continue

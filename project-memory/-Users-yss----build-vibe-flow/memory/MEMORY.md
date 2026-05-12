@@ -4,4 +4,7 @@
 - [macOS NFD/NFC 한글 경로](feedback_macos_nfd_nfc.md) — git/pwd는 NFD, 파일/로그는 NFC. python3 unicodedata.normalize('NFC') 필수
 - [useReducer same-ref 반환](feedback_reducer_same_ref.md) — reducer가 매번 새 array 반환 + useEffect deps 새 객체 = OOM 무한 루프. 변경 없으면 same ref
 - [dogfooding-first 원칙](feedback_dogfooding_first.md) — 자율/복잡 워크플로우는 5분 dogfooding이 1시간 plan보다 결정적, auto-build PR #30 직후 4 finding 발굴
-- [auto-build Phase 1 운영 한계](project_auto_build_runtime_limit.md) — 세션 alive 필요 (a) 세션 유지가 유일 검증 경로, Phase 2 CronCreate 진입 전까지
+- [auto-build 운영 한계 (Phase 2 머지 후)](project_auto_build_runtime_limit.md) — Ralph loop + vote 자동화는 머지, 세션 alive는 여전 필요(Phase 3 cron 전까지). 첫 실 task dogfooding 보류
+- [auto-build는 anytime 도구](feedback_auto_build_anytime.md) — "야간 한정" 프레임 회피, 사용자가 언제든 트리거 가능한 자율 사이클 도구로 취급
+- [setup.sh 갭 — auto-build P0 차단 (resolved PR #49)](project_setup_sh_gaps_p0_block.md) — 첫 P0 abort 원인. PR #49로 fix. history 보존
+- [첫 dogfooding cycle 완주 + 3 finding](project_first_dogfooding_cycle_findings.md) — Cycle 2 success (P5 commit). token/iter 일부 calibration. F1 4문항 강제, F2 .gitignore runtime 패턴, F3 한글 SLUG — 3 후속 PR
