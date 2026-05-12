@@ -145,6 +145,30 @@ else
 fi
 teardown
 
+# ── Test 5: stale lock 자동 회수 (SIGKILL 시뮬레이션) ────────
+echo "Test 5: stale lock auto-recovery"
+setup_fixture
+# 가짜 lockdir + 죽은 PID (대형 PID = 거의 확실히 미존재) 시뮬레이션
+mkdir -p "$QUEUE_LOCK_DIR"
+echo "99999999" > "$QUEUE_LOCK_DIR/pid"
+# add 호출 — stale 회수 후 성공해야
+if bash "$QUEUE" add "after stale" >/dev/null 2>&1; then
+  LINE=$(head -1 "$QUEUE_STORE")
+  assert_jq_eq "5.1 add 성공 (stale 회수)" '.task' "after stale" "$LINE"
+else
+  echo "  ✗ 5.1 add 실패 (stale 미회수)"
+  FAIL=$((FAIL + 1))
+fi
+# lockdir 정상 해제
+if [ ! -d "$QUEUE_LOCK_DIR" ]; then
+  echo "  ✓ 5.2 lockdir 해제 완료"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ 5.2 lockdir 잔존"
+  FAIL=$((FAIL + 1))
+fi
+teardown
+
 # ── 결과 ───────────────────────────────────────────────────
 echo ""
 echo "─────────────────────────────────────────"

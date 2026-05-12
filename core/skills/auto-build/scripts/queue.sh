@@ -23,18 +23,29 @@ QUEUE_LOCK_DIR="${QUEUE_LOCK_DIR:-${PROJECT_ROOT}/.claude/.queue.lock}"
 mkdir -p "$(dirname "$QUEUE_STORE")"
 [ -f "$QUEUE_STORE" ] || touch "$QUEUE_STORE"
 
-# ── lock helpers (macOS flock 미기본 — mkdir 원자성 활용) ──
+# ── lock helpers (macOS flock 미기본 — mkdir 원자성 활용 + stale 회수) ──
+# stale 정책: SIGKILL/전원차단 후 lockdir 잔존 시 lockdir/pid의 프로세스가 죽었으면 회수.
+# mkdir 자체는 원자적이므로 회수 race는 mkdir 재시도가 흡수한다.
 acquire_lock() {
   local tries=50
   while ! mkdir "$QUEUE_LOCK_DIR" 2>/dev/null; do
+    # stale 검사: lockdir/pid 읽고 kill -0
+    local stale_pid=""
+    [ -f "$QUEUE_LOCK_DIR/pid" ] && stale_pid=$(cat "$QUEUE_LOCK_DIR/pid" 2>/dev/null || echo "")
+    if [ -n "$stale_pid" ] && ! kill -0 "$stale_pid" 2>/dev/null; then
+      # owner 죽음 — 회수
+      rm -rf "$QUEUE_LOCK_DIR" 2>/dev/null || true
+      continue
+    fi
     tries=$((tries - 1))
-    [ "$tries" -le 0 ] && { echo "queue: lock acquisition timeout" >&2; exit 2; }
+    [ "$tries" -le 0 ] && { echo "queue: lock acquisition timeout (held by pid $stale_pid)" >&2; exit 2; }
     sleep 0.05
   done
+  echo $$ > "$QUEUE_LOCK_DIR/pid"
 }
 
 release_lock() {
-  rmdir "$QUEUE_LOCK_DIR" 2>/dev/null || true
+  rm -rf "$QUEUE_LOCK_DIR" 2>/dev/null || true
 }
 
 trap 'release_lock' EXIT INT TERM
