@@ -36,9 +36,9 @@
 
 | 항목 | 정의 |
 |------|------|
-| **event-map.ts** | `if (type === "commit_pushed") return [{ agent: "developer", action: "typing", dialogueKey: "commit" }]` 형태의 새 분기 |
+| **event-map.ts** | `if (type === "commit_pushed") return [{ agent: "developer", action: "jump", dialogueKey: "commit" }]` 형태의 새 분기 (action은 dashboard CharacterAction enum `idle \| walk-to \| jump \| clap` 중 선택, F8 fix: typing→jump) |
 | **dialogue-pool.json** | `developer` 에이전트에 신규 dialogueKey `commit` — 예: `["커밋!", "⚡ 한 줄", "진행 중"]` (정확한 dialogue는 auto-build brainstorm이 결정) |
-| **단위 테스트** | `event-map.test.ts`에 commit_pushed 분기 1 케이스 추가 (mapEvent({type:"commit_pushed", ...}) → developer typing 매칭) |
+| **단위 테스트** | `event-map.test.ts`에 commit_pushed 분기 1 케이스 추가 (mapEvent({type:"commit_pushed", ...}) → developer jump 매칭) |
 
 ---
 

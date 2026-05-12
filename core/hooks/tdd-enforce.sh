@@ -61,6 +61,27 @@ for EXT in test spec; do
   done
 done
 
+# F9: ancestor __tests__/ 검색 — sibling dir 패턴 미발견 시 부모 최대 3 레벨까지 탐색
+# (예: src/.../data/x.ts 의 test가 src/.../lib/__tests__/x.test.ts 인 경우)
+if [ -z "$TEST_FOUND" ]; then
+  SEARCH_ROOT="$DIRNAME"
+  for _ in 1 2 3; do
+    SEARCH_ROOT=$(dirname "$SEARCH_ROOT")
+    [ "$SEARCH_ROOT" = "/" ] && break
+    [ "$SEARCH_ROOT" = "." ] && break
+    CANDIDATE=$(find "$SEARCH_ROOT" -path '*/__tests__/*' \
+      \( -name "$BASENAME.test.ts"   -o -name "$BASENAME.test.tsx" \
+      -o -name "$BASENAME.test.js"   -o -name "$BASENAME.test.jsx" \
+      -o -name "$BASENAME.spec.ts"   -o -name "$BASENAME.spec.tsx" \
+      -o -name "$BASENAME.spec.js"   -o -name "$BASENAME.spec.jsx" \) \
+      -type f 2>/dev/null | head -1)
+    if [ -n "$CANDIDATE" ]; then
+      TEST_FOUND="$CANDIDATE"
+      break
+    fi
+  done
+fi
+
 # 테스트 있으면 통과
 [ -n "$TEST_FOUND" ] && exit 0
 
