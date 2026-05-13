@@ -289,7 +289,34 @@ vibe-flow `core/hooks/tdd-enforce.sh`가 `src/.../data/x.ts`에 대해 `__tests_
 
 **Surgical change**: `docs/architecture.html` 자동 reset 변경은 본 cycle scope 외 — `git restore`로 제외.
 
-## 다음 세션 진입점: PR-B run-queue 슬래시 스킬 (cycle 9)
+## Cycle 9 (run_id 20260512T123341Z-d1af) — PR-B run-queue wrapper 완주 (PR #62)
+
+**Task**: PR-A merged 후 후속 — queue.sh next/status-update + run-queue.sh 신규
+
+**결과**: P0 ✓ → P1 ✓ (3 alternative) → P2 ✓ (brief plan T1-T4) → P3 ✓ (T1-T4 GREEN) → P4 ✓ (bash -n + smoke 25/25 + eval-regression 7/7) → P5 ✓ (PR #62) → review → P0 fix commit → P-end ✓
+
+**산출물 (7 files, 525 insertions)**:
+- `core/skills/auto-build/scripts/queue.sh` — next + status-update sub-command (+50 lines)
+- `core/skills/auto-build/scripts/run-queue.sh` — wrapper 신규 (~70 lines after P0 fix)
+- `scripts/tests/queue-tests.sh` — Test 6-10 추가 (27/27 PASS 후 fix)
+- SKILL.md / evals.json / brainstorm / plan
+
+**Calibration (cycle 9, 1 sample)**:
+| 입력 | 값 |
+|------|-----|
+| iter | 1 / 30 |
+| vote | 0 |
+| file count | 7 / 19 (brief grade) |
+| review P0 | 2건 발견 → fix commit |
+
+**Review P0 finding (cycle 8 동일 패턴)**:
+- P0-1: child env 미상속 — run-queue가 QUEUE_STORE를 local var만 평가, child queue.sh가 PROJECT_ROOT 재계산 → cwd 분기 위험. fix: `export QUEUE_STORE QUEUE_LOCK_DIR`
+- P0-2: DRYRUN=0 entry 영구 소실 — 사용자 실수 시 첫 entry aborted 마킹 + 소실. fix: running 보존 + stderr 복구 가이드 + exit 1
+- 부가 fix: `set -euo pipefail`, DRYRUN_FAIL exit code 0→1, MAX_CYCLES silent fallback → stderr 알림
+
+**Phase 3.0 본체 완료** — PR-A queue CRUD (#61, f38d299) + PR-B run-queue wrapper (#62, 06d5cd0).
+
+## 다음 세션 진입점: PR-C schedule 통합 (Phase 3.1, cycle 10)
 
 **위치**: vibe-flow source repo cwd (self-install 완료 상태, F1~F9 모두 해소)
 
@@ -319,7 +346,15 @@ vibe-flow `core/hooks/tdd-enforce.sh`가 `src/.../data/x.ts`에 대해 `__tests_
 
 **예상 calibration**: small task token ~30-50k, iter 1, vote 0.
 
-### 같이 진행: statusLine fix PR (F10 잠재)
+### statusLine fix PR (F10) — resolved PR #63
+
+**Status**: merged 2026-05-13 (commit `ae1d129`). 1 파일 / +1/-4 (inline grade).
+
+**Fix**: `settings/settings.template.json`에서 statusLine 키 제거. 사용자 default = user-level `~/.claude/statusline.sh` fallback. `scripts/statusline.sh` 보존 (opt-in via settings.local.json 직접 추가, `VIBE_FLOW_STATUSLINE=off`로 비활성).
+
+**검증**: `jq -e 'has("statusLine") | not'` PASS, eval-regression 7/7.
+
+### 같이 진행: statusLine fix PR (F10 잠재) — historical
 
 **증거**: 2026-05-12 세션에서 사용자 화면에 statusLine이 `🔧✓`만 표시. 원인 — vibe-flow setup.sh가 project `.claude/settings.local.json`에 statusLine을 `bash $CLAUDE_PROJECT_DIR/.claude/scripts/statusline.sh`로 정의해서 user-level `~/.claude/statusline.sh`(풍부한 model/git/ctx/plan tier/rate limit 표시)를 override.
 
