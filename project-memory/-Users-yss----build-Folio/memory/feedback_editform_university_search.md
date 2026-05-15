@@ -48,8 +48,8 @@ const matches = universityNameSuggestions
 ```
 
 **핵심**:
-- `justSelected` state로 선택 후 dropdown close (services 패턴 동일 — [[feedback_signup_password_pattern]] 외 services 검색 dropdown 학습 동일)
-- 빈 query에서도 dropdown 노출 (focus 즉시 검색 UX)
+- `justSelected` state로 선택 후 dropdown close
+- **빈 query에서는 dropdown 미노출** — 입력 시에만 검색 결과 표시 (사용자 2026-05-15 명시: "services 미리 노출은 어색, backup처럼 입력 시에만")
 - 정확 일치 entry도 검색 결과에 포함 (자기 자신 제외 X)
 - 자유 입력 허용 — 검색 매칭 없으면 그대로 등록 (placeholder "검색하거나 직접 입력")
 
