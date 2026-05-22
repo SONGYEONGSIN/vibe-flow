@@ -20,10 +20,10 @@ for arg in "$@"; do
 done
 
 # 실제 파일 수 카운트
-AGENT_COUNT=$(ls "$ROOT_DIR/agents/"*.md 2>/dev/null | wc -l | tr -d ' ')
-HOOK_COUNT=$(ls "$ROOT_DIR/hooks/"*.sh 2>/dev/null | grep -v _common.sh | wc -l | tr -d ' ')
-SKILL_COUNT=$(ls -d "$ROOT_DIR/skills/"*/ 2>/dev/null | wc -l | tr -d ' ')
-RULE_COUNT=$(ls "$ROOT_DIR/rules/"*.md 2>/dev/null | wc -l | tr -d ' ')
+AGENT_COUNT=$(ls "$ROOT_DIR/core/agents/"*.md 2>/dev/null | wc -l | tr -d ' ')
+HOOK_COUNT=$(ls "$ROOT_DIR/core/hooks/"*.sh 2>/dev/null | grep -v _common.sh | wc -l | tr -d ' ')
+SKILL_COUNT=$(ls -d "$ROOT_DIR/core/skills/"*/ 2>/dev/null | wc -l | tr -d ' ')
+RULE_COUNT=$(ls "$ROOT_DIR/core/rules/"*.md 2>/dev/null | wc -l | tr -d ' ')
 
 echo "=== 실제 파일 수 ==="
 echo "  Agents: ${AGENT_COUNT}개"
