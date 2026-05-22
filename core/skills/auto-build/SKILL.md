@@ -18,6 +18,26 @@ vibe-flow v2의 자율 워크플로우 — Phase 2 (Ralph loop + persona voting)
 
 > **Phase 2 변경**: "디자인 결정 포함" / "HARD-GATE 전체 등급" 스킵 조건 제거 — vote가 디자인 결정 자동 처리, Ralph wrapper가 file_cap 75% 도달 시 PR 분할 후 다음 iter 진입.
 
+## 비교 — 4 자율 워크플로우
+
+vibe-flow 환경에서 사용 가능한 자율 진행 방식 4종. 상황별 매칭:
+
+| 방식 | 다음 턴 시작 조건 | 종료 조건 | 적용 케이스 |
+|------|------|------|------|
+| `/auto-build` (vibe-flow) | P1~P5 sequential 완주 | TDD + `/verify` 통과 후 commit/PR | full cycle (branch 격리 + persona vote + TDD discipline 필요) |
+| `/goal <condition>` (Claude Code v2.1.139+) | 이전 턴 종료 | 평가자(기본 Haiku)가 condition 충족 판정 | 단순 1-shot 완수 조건 ("all tests pass", "lint clean") |
+| `/loop [interval] <cmd>` (Claude Code built-in) | 시간 간격 경과 | 사용자 중지 or 모델 종료 판단 | 정기 polling (PR 머지 대기, deploy 상태 watch) |
+| Phase 3 cron schedule | 사전 정의된 시각 | trigger 1회 후 종료 | 세션 독립 정기 실행 (야간 dogfooding, 매일 아침 triage) |
+
+**선택 가이드**:
+- TDD/branch 격리/persona vote가 필요한 full cycle인가? → `/auto-build`
+- 평가 가능한 단일 condition으로 묶이는 작업인가? → `/goal`
+- 시간 기반 반복인가? → `/loop` (세션 내) 또는 cron schedule (세션 독립)
+- `/goal`은 평가자가 대화에 surface된 것만 판단 — 검증 출력을 conversation에 명시적으로 띄워야 함. 조건 최대 4,000자, session 1개 goal 한계
+- `/auto-build` 내부 verify 단계에 `/goal` 채택은 ROI 낮음 (P1→P5 명시 흐름이 단일 condition으로 표현 어려움)
+
+> `/goal` 공식 문서: https://code.claude.com/docs/en/goal
+
 ## 안전 계약
 
 `/auto-build`는 자율 모드 진입 시 다음을 **반드시** 준수한다:
