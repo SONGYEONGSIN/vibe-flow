@@ -59,8 +59,8 @@ fi
 
 # ── architecture.html 수치 업데이트 ──
 if [ -f "$ARCH_HTML" ]; then
-  # Rules (N) — span 태그 안의 숫자
-  sed -i '' "s/Rules <span[^>]*>([0-9]*)/Rules <span style=\"color:#00d4aa;font-size:24.0px;\">(${RULE_COUNT}/g" "$ARCH_HTML"
+  # Rules (N — span 태그 안의 숫자 (현 HTML 구조: `(6</span></div>` — 닫는 괄호는 span 밖에 없음)
+  sed -i '' "s/Rules <span[^>]*>([0-9]*/Rules <span style=\"color:#00d4aa;font-size:24.0px;\">(${RULE_COUNT}/g" "$ARCH_HTML"
 
   # Skills (N), Hooks Pipeline (N), Agents (N) — span 태그 안
   sed -i '' "s/>Skills <span style=\"color:#00d4aa;\">([0-9]*)/>Skills <span style=\"color:#00d4aa;\">(${SKILL_COUNT})/g" "$ARCH_HTML"
