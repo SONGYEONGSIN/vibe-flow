@@ -1,6 +1,6 @@
 ---
 name: services-import-mjs-service-id
-description: "import 스크립트가 CSV 원본 service_id를 그대로 사용하여 upsert(onConflict='service_id'). 마이그레이션으로 재부여한 service_id가 *재import 시 원본 값으로 덮어쓰여짐*. 재import 전 export 절차 필요"
+description: "[CLOSED 2026-05-15 PR #107] import 스크립트가 CSV 원본 service_id를 그대로 upsert해 마이그레이션 재부여 효과 사라짐 위험. 옵션 A 채택 — Folio가 source-of-truth, 스크립트 DEPRECATED. 정책 결정 절차의 historical 기록"
 metadata: 
   node_type: memory
   type: feedback
@@ -27,20 +27,14 @@ CSV의 `service_id` 컬럼을 그대로 사용. `upsert({ onConflict: 'service_i
 
 ## How to apply
 
-### 옵션 A — 재import 안 함
-가장 안전. services source-of-truth가 Folio DB가 됨 (Sheets는 더 이상 동기 안 함). 새 서비스는 신규 등록 UI로.
+### 채택 — 옵션 A: 재import 안 함 (2026-05-15 결정, PR #107)
 
-### 옵션 B — 재부여된 service_id로 CSV export 후 import
-1. Supabase에서 services 전체를 export (CSV) — 새 service_id 반영된 상태
-2. 그 CSV를 새 source로 사용. 다음 import는 이 CSV.
-3. 원본 Sheets는 운영부 참조용으로만 (Folio와 동기 안 함)
+Folio DB가 services source-of-truth. Sheets는 더 이상 Folio와 동기 안 함. 신규 services row는 `/dashboard/services` UI로 등록. `scripts/services-import.mjs` 헤더에 DEPRECATED 표기 + 본 정책 명시. 스크립트 자체는 historical 기록으로 보존 (재실행 X).
 
-### 옵션 C — services-import.mjs를 service_id 무시 mode로
-- import 스크립트에 `--ignore-service-id` flag 추가
-- 그 mode에서는 service_id를 *생성* (max+1 또는 학교키*1000+seq)
-- `onConflict: 'university_name + service_name'` 등 다른 자연키로 변경
+### 기각된 대안
 
-옵션 A가 가장 surgical. 사용자가 services를 Folio source-of-truth로 인정한 상태(`source: 'folio_create' | 'google_sheet_import'` 컬럼 의도)면 자연스러움.
+- **옵션 B (재부여 CSV export 후 import)**: 운영부 Sheets 동기 메리트가 없어 의미 약함
+- **옵션 C (--ignore-service-id 모드)**: 스크립트 수정 + 자연키 onConflict 도입 — 복잡도 vs 가치 비효율
 
 ## 관련
 
