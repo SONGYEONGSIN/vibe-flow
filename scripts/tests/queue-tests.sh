@@ -52,11 +52,14 @@ setup_fixture() {
   TMP=$(mktemp -d)
   export QUEUE_STORE="$TMP/auto-build-queue.jsonl"
   export QUEUE_LOCK_DIR="$TMP/.lock"
+  # Phase 3.1 PR-C1: FIRINGS_STORE 격리 — 실 production 경로의 cap 누적이
+  # 회귀 테스트 차단하는 것 방지 (run-queue.sh MAX_FIRINGS_PER_DAY 기본 2)
+  export FIRINGS_STORE="$TMP/auto-build-firings.jsonl"
 }
 
 teardown() {
   rm -rf "$TMP"
-  unset QUEUE_STORE QUEUE_LOCK_DIR
+  unset QUEUE_STORE QUEUE_LOCK_DIR FIRINGS_STORE
 }
 
 # ── Test 1: add — entry 1개 append ──────────────────────────
