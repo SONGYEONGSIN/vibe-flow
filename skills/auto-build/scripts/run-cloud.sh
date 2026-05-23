@@ -45,6 +45,11 @@ if [ "$DRYRUN" = "1" ]; then
   echo "$MOCK_PR_URL"
   bash "$QUEUE_SH" status-update "$ID" "done" >/dev/null
   echo "run-cloud: cycle done (DRYRUN) — entry $ID" >&2
+  # PR-C4: notify-pr.sh 호출 (DRYRUN inherit — 실 webhook 안 함)
+  NOTIFY_SH="$PROJECT_ROOT/core/skills/auto-build/scripts/notify-pr.sh"
+  if [ -x "$NOTIFY_SH" ]; then
+    NOTIFY_PR_DRYRUN=1 bash "$NOTIFY_SH" "$MOCK_PR_URL" 0 >/dev/null || true
+  fi
   exit 0
 fi
 
