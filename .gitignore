@@ -53,7 +53,7 @@ sync-memory.conf
 .claude/agent-memory/
 .claude/memory-sync.log
 .claude/memory/auto-build-runs.jsonl
-.claude/memory/auto-build-queue.jsonl
+# auto-build-queue.jsonl — PR-C3 (Phase 3.1)로 git-committed 전환 (cloud agent 접근 필요)
 .claude/memory/auto-build-firings.jsonl
 .claude/.queue.lock/
 .claude/hooks/
