@@ -1,0 +1,161 @@
+#!/bin/bash
+# core/skills/auto-build/scripts/schedule-register.sh + run-queue.sh schedule 통합 smoke (Phase 3.1 PR-C1)
+# 실행: bash scripts/tests/schedule-smoke.sh
+
+set -u
+
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+REGISTER="$REPO_ROOT/core/skills/auto-build/scripts/schedule-register.sh"
+RUN_QUEUE="$REPO_ROOT/core/skills/auto-build/scripts/run-queue.sh"
+QUEUE="$REPO_ROOT/core/skills/auto-build/scripts/queue.sh"
+
+PASS=0
+FAIL=0
+
+assert_contains() {
+  local name="$1" pattern="$2" actual="$3"
+  if echo "$actual" | grep -qE "$pattern"; then
+    echo "  ✓ $name"
+    PASS=$((PASS + 1))
+  else
+    echo "  ✗ $name"
+    echo "    pattern: '$pattern'"
+    echo "    actual:  '$actual'"
+    FAIL=$((FAIL + 1))
+  fi
+}
+
+assert_exit() {
+  local name="$1" expected="$2" actual="$3"
+  if [ "$actual" = "$expected" ]; then
+    echo "  ✓ $name (exit $expected)"
+    PASS=$((PASS + 1))
+  else
+    echo "  ✗ $name (expected exit $expected, got $actual)"
+    FAIL=$((FAIL + 1))
+  fi
+}
+
+setup_fixture() {
+  TMP=$(mktemp -d)
+  export QUEUE_STORE="$TMP/auto-build-queue.jsonl"
+  export QUEUE_LOCK_DIR="$TMP/.lock"
+  export FIRINGS_STORE="$TMP/auto-build-firings.jsonl"
+}
+
+teardown() {
+  rm -rf "$TMP"
+  unset QUEUE_STORE QUEUE_LOCK_DIR FIRINGS_STORE
+}
+
+# ── Test S1: cron expression validation + DRYRUN echo ──────
+echo "Test S1: schedule-register.sh cron expr validation"
+# S1.1: invalid cron → exit 1 + stderr 포함
+OUT=$(bash "$REGISTER" "invalid-cron" 2>&1 || true)
+EC=$?
+# Note: subshell capture로 EC는 0이 됨 — 별도 capture 필요
+bash "$REGISTER" "invalid-cron" >/dev/null 2>&1
+EC=$?
+assert_exit "S1.1 invalid cron exit 1" 1 "$EC"
+OUT=$(bash "$REGISTER" "invalid-cron" 2>&1 || true)
+assert_contains "S1.1 stderr 'invalid cron expression'" "invalid cron expression" "$OUT"
+
+# S1.2: valid cron + DRYRUN=1 → exit 0 + "would register: ..."
+SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "*/30 * * * *" >/dev/null 2>&1
+EC=$?
+assert_exit "S1.2 valid cron DRYRUN exit 0" 0 "$EC"
+OUT=$(SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "*/30 * * * *" 2>&1 || true)
+assert_contains "S1.2 stdout 'would register'" "would register: \\*/30 \\* \\* \\* \\*" "$OUT"
+
+# ── Test S2: run-queue MAX_FIRINGS_PER_DAY cap ─────────────
+echo "Test S2: run-queue MAX_FIRINGS_PER_DAY cap"
+setup_fixture
+bash "$QUEUE" add "firing test 1" >/dev/null; sleep 1
+bash "$QUEUE" add "firing test 2" >/dev/null; sleep 1
+bash "$QUEUE" add "firing test 3" >/dev/null
+
+# S2.1: 1번째/2번째 firing 정상 처리 (cap=2)
+AUTO_BUILD_QUEUE_DRYRUN=1 AUTO_BUILD_QUEUE_MAX_CYCLES=1 AUTO_BUILD_QUEUE_MAX_FIRINGS_PER_DAY=2 \
+  QUEUE_STORE="$QUEUE_STORE" QUEUE_LOCK_DIR="$QUEUE_LOCK_DIR" FIRINGS_STORE="$FIRINGS_STORE" \
+  bash "$RUN_QUEUE" >/dev/null 2>&1
+EC1=$?
+AUTO_BUILD_QUEUE_DRYRUN=1 AUTO_BUILD_QUEUE_MAX_CYCLES=1 AUTO_BUILD_QUEUE_MAX_FIRINGS_PER_DAY=2 \
+  QUEUE_STORE="$QUEUE_STORE" QUEUE_LOCK_DIR="$QUEUE_LOCK_DIR" FIRINGS_STORE="$FIRINGS_STORE" \
+  bash "$RUN_QUEUE" >/dev/null 2>&1
+EC2=$?
+FIRINGS_COUNT=$(grep -c '"ts"' "$FIRINGS_STORE" 2>/dev/null || echo 0)
+if [ "$EC1" -eq 0 ] && [ "$EC2" -eq 0 ] && [ "$FIRINGS_COUNT" -eq 2 ]; then
+  echo "  ✓ S2.1 2 firings within cap (firings.jsonl: 2 lines)"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ S2.1 expected 2 successful firings + 2 lines, got EC1=$EC1 EC2=$EC2 FIRINGS=$FIRINGS_COUNT"
+  FAIL=$((FAIL + 1))
+fi
+
+# S2.2: 3번째 firing — cap 도달 → exit 0 + stderr "max firings reached" + 처리 X
+OUT=$(AUTO_BUILD_QUEUE_DRYRUN=1 AUTO_BUILD_QUEUE_MAX_CYCLES=1 AUTO_BUILD_QUEUE_MAX_FIRINGS_PER_DAY=2 \
+  QUEUE_STORE="$QUEUE_STORE" QUEUE_LOCK_DIR="$QUEUE_LOCK_DIR" FIRINGS_STORE="$FIRINGS_STORE" \
+  bash "$RUN_QUEUE" 2>&1)
+EC3=$?
+QUEUED_REMAIN=$(bash "$QUEUE" list | wc -l | tr -d ' ')
+if [ "$EC3" -eq 0 ] && [ "$QUEUED_REMAIN" -ge 1 ]; then
+  echo "  ✓ S2.2 cap reached: exit 0 + 1+ queued remain"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ S2.2 expected exit 0 + 1+ queued, got EC=$EC3 queued=$QUEUED_REMAIN"
+  FAIL=$((FAIL + 1))
+fi
+assert_contains "S2.2 stderr 'max firings reached'" "max firings reached" "$OUT"
+teardown
+
+# ── Test S3: CRON_FIRING=1 분기 — entry 보존 + firings 1 append ─
+echo "Test S3: AUTO_BUILD_QUEUE_CRON_FIRING=1 — entry running 보존"
+setup_fixture
+bash "$QUEUE" add "cron firing test" >/dev/null
+# CRON_FIRING=1 + DRYRUN=0 (실 trigger 미구현) → exit 1 + entry running 보존 + firings 1건 append
+OUT=$(AUTO_BUILD_QUEUE_CRON_FIRING=1 \
+  QUEUE_STORE="$QUEUE_STORE" QUEUE_LOCK_DIR="$QUEUE_LOCK_DIR" FIRINGS_STORE="$FIRINGS_STORE" \
+  bash "$RUN_QUEUE" 2>&1)
+EC=$?
+FIRINGS_COUNT=$(grep -c '"ts"' "$FIRINGS_STORE" 2>/dev/null || echo 0)
+ALL=$(bash "$QUEUE" list --all)
+assert_exit "S3.1 CRON_FIRING DRYRUN=0 exit 1 (실 trigger 미구현)" 1 "$EC"
+if echo "$ALL" | grep -q "running.*cron firing test"; then
+  echo "  ✓ S3.2 entry running 보존 (소실 회피)"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ S3.2 entry running 미보존"
+  echo "    list --all: $ALL"
+  FAIL=$((FAIL + 1))
+fi
+if [ "$FIRINGS_COUNT" -eq 1 ]; then
+  echo "  ✓ S3.3 firings.jsonl 1 라인 append (cap 카운트 누적)"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ S3.3 expected firings=1, got $FIRINGS_COUNT"
+  FAIL=$((FAIL + 1))
+fi
+assert_contains "S3.4 stderr 'cron-triggered firing'" "cron-triggered firing" "$OUT"
+teardown
+
+# ── Test S4: claude CLI 부재 시 schedule-register exit 2 ───
+echo "Test S4: schedule-register claude CLI 부재 → exit 2"
+# PATH 제한으로 claude CLI 가려서 시뮬레이션 (/bin + /usr/bin은 OS 표준 — claude는 brew 경로에만 존재)
+PATH="/bin:/usr/bin" SCHEDULE_REGISTER_DRYRUN=0 bash "$REGISTER" "*/30 * * * *" >/dev/null 2>&1
+EC=$?
+assert_exit "S4.1 claude CLI 부재 exit 2" 2 "$EC"
+OUT=$(PATH="/bin:/usr/bin" SCHEDULE_REGISTER_DRYRUN=0 bash "$REGISTER" "*/30 * * * *" 2>&1 || true)
+assert_contains "S4.1 stderr 'claude CLI not found'" "claude CLI not found" "$OUT"
+
+# ── 결과 ───────────────────────────────────────────────────
+echo ""
+echo "─────────────────────────────────────────"
+echo "PASS: $PASS   FAIL: $FAIL"
+
+if [ "$FAIL" -eq 0 ]; then
+  echo "✓ ALL TESTS PASSED"
+  exit 0
+else
+  echo "✗ SOME TESTS FAILED"
+  exit 1
+fi

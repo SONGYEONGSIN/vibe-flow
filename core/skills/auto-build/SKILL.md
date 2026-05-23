@@ -151,21 +151,48 @@ bash core/skills/auto-build/scripts/run-queue.sh                        # max N 
 - **lock**: `mkdir lockdir` 원자성 활용 + lockdir/pid의 `kill -0` 검사로 stale 자동 회수 (SIGKILL/전원차단 후 lockdir 잔존 시 자동 해제).
 - **depends_on**: 짝 cycle 의존성 표현 (Phase 3.1 schedule에서 활성). PR-A/B는 schema 필드만 보장.
 
-### run-queue env (PR-B)
+### run-queue env (PR-B + PR-C1)
 
 | env | 기본 | 동작 |
 |-----|------|------|
 | `AUTO_BUILD_QUEUE_MAX_CYCLES` | 3 | 1 firing당 max cycle cap. 양의 정수 아니면 fallback 3 |
 | `AUTO_BUILD_QUEUE_DRYRUN` | 0 | 1 시 echo만 (실 `/auto-build` 호출 안 함, smoke 안전 격리) |
 | `AUTO_BUILD_QUEUE_DRYRUN_FAIL` | 0 | DRYRUN 중 의도적 abort (smoke test용) |
+| `AUTO_BUILD_QUEUE_MAX_FIRINGS_PER_DAY` | 2 | 1일(UTC) max firing cap. 도달 시 즉시 exit 0. 양의 정수 아니면 fallback 2 (PR-C1) |
+| `AUTO_BUILD_QUEUE_CRON_FIRING` | 0 | 1 시 cron 컨텍스트 진입 신호 — orchestrator가 사용자 부재 가정 (PR-C1) |
 | `QUEUE_STORE` | `.claude/memory/auto-build-queue.jsonl` | jsonl 경로 (테스트 fixture override) |
 | `QUEUE_LOCK_DIR` | `.claude/.queue.lock` | lockdir 경로 |
+| `FIRINGS_STORE` | `.claude/memory/auto-build-firings.jsonl` | firings 영속화. 당일(UTC) 라인 grep -c로 cap 카운트 (PR-C1) |
 
 ### 정책
 
 - **cycle 간 abort 즉시 종료**: cycle N이 abort 시 cycle N+1 진입 X. maker review 신호 명확.
 - **실 trigger는 Phase 3.1**: PR-B의 `run-queue.sh`는 DRYRUN=1 모드 권장. DRYRUN=0 + 실 trigger는 PR-C schedule 통합 후 활성.
-- **running 잔존 회수**: cycle 도중 SIGKILL 시 entry가 running 고착. 수동 `queue.sh remove <id>` 또는 PR-C 자동 회수.
+- **running 잔존 회수**: cycle 도중 SIGKILL 시 entry가 running 고착. 수동 `queue.sh remove <id>` 또는 PR-C2 자동 회수.
+- **firings cap (PR-C1)**: 1일 max firing 도달 시 즉시 exit 0 (cron 환경에서 token 비용 폭증 차단). cap은 UTC 기준 — 자정 reset.
+- **CRON_FIRING 분기 (PR-C1)**: `AUTO_BUILD_QUEUE_CRON_FIRING=1` 시 orchestrator가 사용자 부재 가정 — vote confidence < 0.7 시 즉시 abort.
+
+## Schedule 등록 (PR-C1)
+
+cron-triggered run-queue.sh 자동 firing을 위한 helper. Claude Code `schedule` 슬래시 스킬 wrapper.
+
+```bash
+# DRYRUN — 실 등록 안 함, 확인용 (smoke 안전 격리)
+SCHEDULE_REGISTER_DRYRUN=1 bash core/skills/auto-build/scripts/schedule-register.sh "*/30 * * * *"
+# stdout: would register: */30 * * * *
+#         command: AUTO_BUILD_QUEUE_CRON_FIRING=1 bash <abs-path>/run-queue.sh
+
+# 실 등록 (사용자 manual)
+bash core/skills/auto-build/scripts/schedule-register.sh "0 */6 * * *"
+# Claude Code /schedule 슬래시 스킬 호출 → cron firing 시 AUTO_BUILD_QUEUE_CRON_FIRING=1 환경에서 run-queue 진입
+```
+
+### 정책
+
+- **cron expression validation**: 5 필드 공백 분리, 각 필드는 `*`, `*/N`, 숫자, 콤마, 하이픈만 허용
+- **claude CLI 부재 시 exit 2**: DRYRUN=0에서만 검사
+- **R6 cron 부재 abort 누적**: 5건 연속 abort 발생 시 Phase 2 retrospective hook이 자동 알림 (신규 hook X)
+- **MAX_FIRINGS_PER_DAY=2 기본**: 1일 6 cycle (firing 2 × cycle 3) — 보수 default. 사용자가 cap 확대 시 명시적 env 설정
 
 ### 예시
 
@@ -196,7 +223,8 @@ AUTO_BUILD_QUEUE_DRYRUN=1 bash core/skills/auto-build/scripts/run-queue.sh
 ### 검증
 
 ```bash
-bash scripts/tests/queue-tests.sh  # 9 케이스 (CRUD + stale lock + next + run-queue + cap + abort) ALL PASS
+bash scripts/tests/queue-tests.sh     # 10 케이스 (CRUD + stale lock + next + run-queue + cap + abort + DRYRUN=0 보존) ALL PASS
+bash scripts/tests/schedule-smoke.sh  # 4 케이스 (cron validation + firings cap + CRON_FIRING 분기, PR-C1) ALL PASS
 ```
 
 ## 관련 파일
@@ -206,9 +234,12 @@ bash scripts/tests/queue-tests.sh  # 9 케이스 (CRUD + stale lock + next + run
 - `core/skills/auto-build/data/persona-mapping.json` — 카테고리(7) → persona 풀 매핑 (Phase 2 신규)
 - `core/skills/auto-build/scripts/run-log.sh` — `.claude/memory/auto-build-runs.jsonl` append helper
 - `core/skills/auto-build/scripts/queue.sh` — 다중 task 큐 CRUD + next/status-update (Phase 3.0 PR-A/B)
-- `core/skills/auto-build/scripts/run-queue.sh` — queue 첫 task pop + 사이클 trigger wrapper (Phase 3.0 PR-B)
+- `core/skills/auto-build/scripts/run-queue.sh` — queue 첫 task pop + 사이클 trigger wrapper (Phase 3.0 PR-B + 3.1 PR-C1 firings cap)
+- `core/skills/auto-build/scripts/schedule-register.sh` — Claude Code `/schedule` 호출 wrapper (Phase 3.1 PR-C1)
 - `.claude/memory/auto-build-queue.jsonl` — 큐 store (append-only, 런타임 생성)
-- `scripts/tests/queue-tests.sh` — queue.sh + run-queue.sh smoke 9 케이스
+- `.claude/memory/auto-build-firings.jsonl` — firings 영속화 (Phase 3.1 PR-C1, 당일 cap 카운트)
+- `scripts/tests/queue-tests.sh` — queue.sh + run-queue.sh smoke 10 케이스
+- `scripts/tests/schedule-smoke.sh` — schedule-register.sh + run-queue firings smoke 4 케이스 (Phase 3.1 PR-C1)
 - `core/hooks/auto-build-safety.sh` — PreToolUse 안전 hook (token/file/iter cap)
 - `.claude/memory/auto-build-runs.jsonl` — 사이클 이력 (런타임 생성)
 - `.claude/memory/brainstorms/20260504-103257-vibe-flow-v2-overnight-autonomous-build.md` — Phase 1 설계 근거
