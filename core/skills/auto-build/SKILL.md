@@ -251,6 +251,47 @@ bash core/skills/auto-build/scripts/run-cloud.sh
 | `AUTO_BUILD_QUEUE_DRYRUN` | 0 | 1 시 mock PR URL + status_update done (smoke 안전) |
 | `QUEUE_STORE` / `QUEUE_LOCK_DIR` | (queue.sh와 동일) | 테스트 fixture override 가능 |
 
+## Cloud Safety + Queue Git (PR-C3)
+
+cloud remote agent가 queue.jsonl을 읽고 cycle 결과를 push할 수 있도록 git-committed 전환. safety hook cloud 호환은 R8 dogfooding으로 사후 검증.
+
+### queue.jsonl git-committed 전환
+
+```bash
+# 사용자 또는 cloud agent가 queue 변경 후 자동 commit/push
+QUEUE_COMMIT_DRYRUN=1 bash core/skills/auto-build/scripts/queue-commit.sh
+# stderr: would commit & push: .claude/memory/auto-build-queue.jsonl (current branch)
+
+# 실 commit + push
+bash core/skills/auto-build/scripts/queue-commit.sh
+# 변경 없으면 skip, queue.jsonl만 add (drive-by 회피)
+```
+
+### 정책
+
+- **queue.jsonl만 commit** — `git add <single-file>` 의미로 drive-by 회피 (Surgical Changes)
+- **single-writer 가정** — cloud agent 동시 2 firing 금지 (`RemoteTrigger` 1 routine 1 cron). 동시 push 충돌은 future PR-C5 scope
+- **변경 없으면 skip** — git diff cached 비교 후 commit 회피 (idempotent)
+- **branch 미명시** — 현 HEAD 사용. cloud는 main만 push 가정
+
+### R8 dogfooding 안내 (PR-C3 머지 후 manual cycle)
+
+머지 후 다음 단계로 R8 dogfooding 진행 — vote/safety hook이 cloud session에서 동작 검증:
+
+1. `RUN_ONCE_AT="<+1시간 UTC>" SCHEDULE_REGISTER_DRYRUN=0 bash schedule-register.sh --once` → payload JSON stdout
+2. 사용자가 https://claude.ai/code/routines 에 manual paste 또는 `/schedule` 슬래시 사용
+3. 1시간 후 cloud agent firing → `run-cloud.sh` 호출 → 결과 PR open 또는 entry aborted 마킹
+4. 결과 분석:
+   - **R8 성공 (A3.1)**: safety hook 정상 동작, vote 정상 dispatch → 다음 PR-C4 진입
+   - **R8 실패 (A3.3 fallback)**: orchestrator에 vote confidence floor 1.0 강제 코드 활성 별 PR 필요
+
+### env
+
+| env | 기본 | 동작 |
+|-----|------|------|
+| `QUEUE_COMMIT_DRYRUN` | 0 | 1 시 stderr echo만 (smoke 안전 격리) |
+| `QUEUE_STORE` | `.claude/memory/auto-build-queue.jsonl` | queue 경로 (테스트 fixture override) |
+
 ### 예시
 
 ```bash
@@ -294,8 +335,11 @@ bash scripts/tests/schedule-smoke.sh  # 4 케이스 (cron validation + firings c
 - `core/skills/auto-build/scripts/run-queue.sh` — queue 첫 task pop + 사이클 trigger wrapper (Phase 3.0 PR-B + 3.1 PR-C1 firings cap)
 - `core/skills/auto-build/scripts/schedule-register.sh` — RemoteTrigger create payload JSON wrapper (Phase 3.1 PR-C1.1 — cloud-native)
 - `core/skills/auto-build/scripts/run-cloud.sh` — cloud remote agent 진입점 (Phase 3.1 PR-C2)
+- `core/skills/auto-build/scripts/queue-commit.sh` — queue.jsonl 자동 git commit/push helper (Phase 3.1 PR-C3)
 - `core/skills/auto-build/data/cloud-prompt-template.md` — cloud remote agent prompt 템플릿 (PR-C1.1)
+- `.claude/memory/auto-build-queue.jsonl` — task 큐 (PR-C3 git-committed, append-only)
 - `scripts/tests/run-cloud-smoke.sh` — run-cloud.sh smoke 3 케이스 (Phase 3.1 PR-C2)
+- `scripts/tests/queue-commit-smoke.sh` — queue-commit.sh smoke 2 케이스 (Phase 3.1 PR-C3)
 - `.claude/memory/auto-build-queue.jsonl` — 큐 store (append-only, 런타임 생성)
 - `.claude/memory/auto-build-firings.jsonl` — firings 영속화 (Phase 3.1 PR-C1, 당일 cap 카운트)
 - `scripts/tests/queue-tests.sh` — queue.sh + run-queue.sh smoke 10 케이스

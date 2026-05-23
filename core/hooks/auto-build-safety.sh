@@ -9,6 +9,16 @@ set -u
 #   1. destructive op  — rm -rf, git reset --hard, git push --force, --no-verify, chmod 777, fork bomb
 #   2. token cap       — (T4)
 #   3. file count cap  — (T4)
+#
+# Cloud session 호환 (Phase 3.1 PR-C3):
+#   cloud Claude Code remote agent session에서 본 hook이 PreToolUse로 자동
+#   inherit되는지는 **R8 dogfooding 검증 필요**. 실 firing 1회로 다음 확인:
+#     (a) cloud session 진입 시 settings.template.json PreToolUse 등록 → destructive cmd 차단
+#     (b) AUTO_BUILD_MODE=1 env가 cloud session에 전파됨 (cloud-prompt-template 명시 가정)
+#     (c) auto-build-runs.jsonl 같은 local jsonl은 cloud의 ephemeral checkout이라
+#         user 머신 도달 X — cloud agent가 git commit/push 필수 (queue-commit.sh 패턴)
+#   R8 실패 시 A3.3 fallback: orchestrator가 vote confidence floor 1.0 강제 +
+#   safety 비활성 가정 추가 보수 처리.
 
 # 자율 모드 아니면 즉시 통과
 if [ "${AUTO_BUILD_MODE:-}" != "1" ]; then
