@@ -61,11 +61,11 @@ OUT=$(bash "$REGISTER" "invalid-cron" 2>&1 || true)
 assert_contains "S1.1 stderr 'invalid cron expression'" "invalid cron expression" "$OUT"
 
 # S1.2: valid cron + DRYRUN=1 → exit 0 + "would register: ..."
-SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "*/30 * * * *" >/dev/null 2>&1
+SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "0 */6 * * *" >/dev/null 2>&1
 EC=$?
 assert_exit "S1.2 valid cron DRYRUN exit 0" 0 "$EC"
-OUT=$(SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "*/30 * * * *" 2>&1 || true)
-assert_contains "S1.2 stdout 'would register'" "would register: \\*/30 \\* \\* \\* \\*" "$OUT"
+OUT=$(SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "0 */6 * * *" 2>&1 || true)
+assert_contains "S1.2 stdout 'would register'" "would register: 0 \\*/6 \\* \\* \\*" "$OUT"
 
 # ── Test S2: run-queue MAX_FIRINGS_PER_DAY cap ─────────────
 echo "Test S2: run-queue MAX_FIRINGS_PER_DAY cap"
@@ -141,11 +141,83 @@ teardown
 # ── Test S4: claude CLI 부재 시 schedule-register exit 2 ───
 echo "Test S4: schedule-register claude CLI 부재 → exit 2"
 # PATH 제한으로 claude CLI 가려서 시뮬레이션 (/bin + /usr/bin은 OS 표준 — claude는 brew 경로에만 존재)
-PATH="/bin:/usr/bin" SCHEDULE_REGISTER_DRYRUN=0 bash "$REGISTER" "*/30 * * * *" >/dev/null 2>&1
+PATH="/bin:/usr/bin" SCHEDULE_REGISTER_DRYRUN=0 bash "$REGISTER" "0 */6 * * *" >/dev/null 2>&1
 EC=$?
 assert_exit "S4.1 claude CLI 부재 exit 2" 2 "$EC"
-OUT=$(PATH="/bin:/usr/bin" SCHEDULE_REGISTER_DRYRUN=0 bash "$REGISTER" "*/30 * * * *" 2>&1 || true)
+OUT=$(PATH="/bin:/usr/bin" SCHEDULE_REGISTER_DRYRUN=0 bash "$REGISTER" "0 */6 * * *" 2>&1 || true)
 assert_contains "S4.1 stderr 'claude CLI not found'" "claude CLI not found" "$OUT"
+
+# ── Test S5: 1h min interval validation (PR-C1.1) ──────────
+echo "Test S5: 1h min interval validation"
+# S5.1: */30 sub-hour → exit 1 + stderr 'interval too short'
+SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "*/30 * * * *" >/dev/null 2>&1
+EC=$?
+assert_exit "S5.1 */30 (sub-hour) exit 1" 1 "$EC"
+OUT=$(SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "*/30 * * * *" 2>&1 || true)
+assert_contains "S5.1 stderr 'interval too short'" "interval too short" "$OUT"
+
+# S5.2: 0 */1 * * * (정확히 1h) → DRYRUN PASS
+SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "0 */1 * * *" >/dev/null 2>&1
+EC=$?
+assert_exit "S5.2 0 */1 (1h exact) exit 0" 0 "$EC"
+
+# S5.3: */5 * * * * (5분) → reject
+SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "*/5 * * * *" >/dev/null 2>&1
+EC=$?
+assert_exit "S5.3 */5 (5min) exit 1" 1 "$EC"
+
+# ── Test S6: RemoteTrigger payload JSON + prompt 템플릿 ────
+echo "Test S6: RemoteTrigger payload + prompt template"
+# S6.1: DRYRUN stdout이 valid JSON + body.prompt에 /auto-build run-cloud 토큰
+OUT=$(SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "0 */6 * * *" 2>/dev/null || true)
+if echo "$OUT" | jq -e . >/dev/null 2>&1; then
+  echo "  ✓ S6.1 stdout is valid JSON"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ S6.1 stdout not valid JSON"
+  echo "    actual: $OUT"
+  FAIL=$((FAIL + 1))
+fi
+PROMPT=$(echo "$OUT" | jq -r '.body.prompt // ""' 2>/dev/null || echo "")
+assert_contains "S6.1 body.prompt contains '/auto-build run-cloud'" "/auto-build run-cloud" "$PROMPT"
+
+# S6.2: REPO_URL env가 payload prompt에 치환됨
+OUT=$(REPO_URL="https://github.com/test/myrepo" SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "0 */6 * * *" 2>/dev/null || true)
+PROMPT=$(echo "$OUT" | jq -r '.body.prompt // ""' 2>/dev/null || echo "")
+assert_contains "S6.2 REPO_URL env reflected in prompt" "github.com/test/myrepo" "$PROMPT"
+
+# ── Test S7: run_once_at 모드 ──────────────────────────────
+echo "Test S7: --once + RUN_ONCE_AT mode"
+# S7.1: --once + RUN_ONCE_AT (RFC 3339) → payload run_once_at, cron 부재
+OUT=$(RUN_ONCE_AT="2026-05-24T03:00:00Z" SCHEDULE_REGISTER_DRYRUN=1 \
+  bash "$REGISTER" --once 2>/dev/null || true)
+EC=$?
+RUN_ONCE=$(echo "$OUT" | jq -r '.body.schedule.run_once_at // ""' 2>/dev/null || echo "")
+CRON=$(echo "$OUT" | jq -r '.body.schedule.cron // ""' 2>/dev/null || echo "")
+if [ "$RUN_ONCE" = "2026-05-24T03:00:00Z" ] && [ -z "$CRON" ]; then
+  echo "  ✓ S7.1 run_once_at populated, cron absent"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ S7.1 expected run_once_at='2026-05-24T03:00:00Z' + cron='', got run_once='$RUN_ONCE' cron='$CRON'"
+  FAIL=$((FAIL + 1))
+fi
+
+# S7.2: --once 없이 RUN_ONCE_AT 만 → reject (mode flag 강제)
+SCHEDULE_REGISTER_DRYRUN=1 RUN_ONCE_AT="2026-05-24T03:00:00Z" \
+  bash "$REGISTER" "0 */6 * * *" >/dev/null 2>&1
+EC=$?
+# 1h+ cron이라 register는 성공해야 (mode 불충족만 verify 어려움 — 다른 접근)
+# 대신: --once 인자에 cron expression이 동시에 있으면 reject
+SCHEDULE_REGISTER_DRYRUN=1 RUN_ONCE_AT="2026-05-24T03:00:00Z" \
+  bash "$REGISTER" --once "0 */6 * * *" >/dev/null 2>&1
+EC=$?
+assert_exit "S7.2 --once + cron expr 동시 사용 → exit 1" 1 "$EC"
+
+# S7.3: --once 없이 RUN_ONCE_AT 만 + 인자 0 → usage error
+SCHEDULE_REGISTER_DRYRUN=1 RUN_ONCE_AT="2026-05-24T03:00:00Z" \
+  bash "$REGISTER" >/dev/null 2>&1
+EC=$?
+assert_exit "S7.3 인자 없이 RUN_ONCE_AT만 → usage error exit 1" 1 "$EC"
 
 # ── 결과 ───────────────────────────────────────────────────
 echo ""

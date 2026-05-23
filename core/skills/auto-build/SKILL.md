@@ -172,27 +172,48 @@ bash core/skills/auto-build/scripts/run-queue.sh                        # max N 
 - **firings cap (PR-C1)**: 1일 max firing 도달 시 즉시 exit 0 (cron 환경에서 token 비용 폭증 차단). cap은 UTC 기준 — 자정 reset.
 - **CRON_FIRING 분기 (PR-C1)**: `AUTO_BUILD_QUEUE_CRON_FIRING=1` 시 orchestrator가 사용자 부재 가정 — vote confidence < 0.7 시 즉시 abort.
 
-## Schedule 등록 (PR-C1)
+## Schedule 등록 (PR-C1.1 cloud-native)
 
-cron-triggered run-queue.sh 자동 firing을 위한 helper. Claude Code `schedule` 슬래시 스킬 wrapper.
+cron-triggered cloud remote agent 자동 firing을 위한 helper. `RemoteTrigger` create API payload JSON 생성 → 사용자 manual paste 또는 `/schedule` 슬래시로 등록.
+
+> **R4 발견 (PR #67 dogfooding)**: `schedule` 스킬 = Anthropic cloud remote agent (local cron 가정 무효). `bash run-queue.sh` 직접 호출 불가 — cloud agent가 git clone 후 `/auto-build run-cloud` 슬래시(PR-C2 scope) 진입.
+
+### 사용법
 
 ```bash
-# DRYRUN — 실 등록 안 함, 확인용 (smoke 안전 격리)
-SCHEDULE_REGISTER_DRYRUN=1 bash core/skills/auto-build/scripts/schedule-register.sh "*/30 * * * *"
-# stdout: would register: */30 * * * *
-#         command: AUTO_BUILD_QUEUE_CRON_FIRING=1 bash <abs-path>/run-queue.sh
+# DRYRUN — payload JSON stdout, 실 등록 안 함 (smoke 안전 격리)
+SCHEDULE_REGISTER_DRYRUN=1 bash core/skills/auto-build/scripts/schedule-register.sh "0 */6 * * *"
+# stderr: would register: 0 */6 * * *
+# stdout: {"action":"create","body":{"schedule":{"cron":"0 */6 * * *"},"prompt":"...","repo_url":"...","branch":"main"}}
+
+# 1회용 모드 (run_once_at)
+RUN_ONCE_AT="2026-05-24T03:00:00Z" SCHEDULE_REGISTER_DRYRUN=1 \
+  bash core/skills/auto-build/scripts/schedule-register.sh --once
+# stdout: {"action":"create","body":{"schedule":{"run_once_at":"2026-05-24T03:00:00Z"},...}}
 
 # 실 등록 (사용자 manual)
 bash core/skills/auto-build/scripts/schedule-register.sh "0 */6 * * *"
-# Claude Code /schedule 슬래시 스킬 호출 → cron firing 시 AUTO_BUILD_QUEUE_CRON_FIRING=1 환경에서 run-queue 진입
+# stderr: Manual step required — Claude Code /schedule 슬래시 또는 https://claude.ai/code/routines 에 payload paste
+# stdout: <payload JSON>
 ```
 
 ### 정책
 
-- **cron expression validation**: 5 필드 공백 분리, 각 필드는 `*`, `*/N`, 숫자, 콤마, 하이픈만 허용
-- **claude CLI 부재 시 exit 2**: DRYRUN=0에서만 검사
-- **R6 cron 부재 abort 누적**: 5건 연속 abort 발생 시 Phase 2 retrospective hook이 자동 알림 (신규 hook X)
-- **MAX_FIRINGS_PER_DAY=2 기본**: 1일 6 cycle (firing 2 × cycle 3) — 보수 default. 사용자가 cap 확대 시 명시적 env 설정
+- **cron 1h 최소 간격 강제 (R4 발견)**: RemoteTrigger API가 sub-hour 거부. minute 필드는 단일 정수 0-59만 허용 (`*/30`, `*/5`, `0,30` 모두 reject). 1h+ 보장 cron만 통과
+- **prompt 템플릿 placeholder 치환**: `core/skills/auto-build/data/cloud-prompt-template.md` 읽어 `{{REPO_URL}}`, `{{BRANCH}}` 치환 후 payload `body.prompt`에 주입
+- **실 등록은 사용자 manual**: 자동 호출 X (보안/비용 보호) — DRYRUN=0이어도 stdout JSON + stderr 안내만 출력
+- **legacy `would register:` 라인 stderr 분리**: stdout은 순수 JSON (jq 파이프 안전)
+- **R6 cron 부재 abort 누적**: 5건 연속 abort 시 Phase 2 retrospective hook 자동 알림 (신규 hook X)
+- **MAX_FIRINGS_PER_DAY (local 한정, PR-C1)**: cloud firing은 cron freq 자체로 cap (1일 N firing). firings.jsonl은 local manual `run-queue.sh` 한정 (cloud 환경 무효)
+
+### env
+
+| env | 기본 | 동작 |
+|-----|------|------|
+| `SCHEDULE_REGISTER_DRYRUN` | 0 | 1 시 stdout JSON만 + stderr 안내, 실 호출 X |
+| `REPO_URL` | `git remote get-url origin` | cloud agent가 clone할 git URL |
+| `BRANCH` | `main` | cloud agent가 checkout할 branch |
+| `RUN_ONCE_AT` | (none) | `--once` 모드에서 RFC 3339 UTC 필수 (예: `2026-05-24T03:00:00Z`) |
 
 ### 예시
 
@@ -235,7 +256,8 @@ bash scripts/tests/schedule-smoke.sh  # 4 케이스 (cron validation + firings c
 - `core/skills/auto-build/scripts/run-log.sh` — `.claude/memory/auto-build-runs.jsonl` append helper
 - `core/skills/auto-build/scripts/queue.sh` — 다중 task 큐 CRUD + next/status-update (Phase 3.0 PR-A/B)
 - `core/skills/auto-build/scripts/run-queue.sh` — queue 첫 task pop + 사이클 trigger wrapper (Phase 3.0 PR-B + 3.1 PR-C1 firings cap)
-- `core/skills/auto-build/scripts/schedule-register.sh` — Claude Code `/schedule` 호출 wrapper (Phase 3.1 PR-C1)
+- `core/skills/auto-build/scripts/schedule-register.sh` — RemoteTrigger create payload JSON wrapper (Phase 3.1 PR-C1.1 — cloud-native)
+- `core/skills/auto-build/data/cloud-prompt-template.md` — cloud remote agent prompt 템플릿 (PR-C1.1)
 - `.claude/memory/auto-build-queue.jsonl` — 큐 store (append-only, 런타임 생성)
 - `.claude/memory/auto-build-firings.jsonl` — firings 영속화 (Phase 3.1 PR-C1, 당일 cap 카운트)
 - `scripts/tests/queue-tests.sh` — queue.sh + run-queue.sh smoke 10 케이스
