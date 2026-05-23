@@ -9,3 +9,5 @@
 - [setup.sh 갭 — auto-build P0 차단 (resolved PR #49)](project_setup_sh_gaps_p0_block.md) — 첫 P0 abort 원인. PR #49로 fix. history 보존
 - [auto-build dogfooding 7 cycle 완주 + F1~F9 해소](project_first_dogfooding_cycle_findings.md) — 짝 cycle 6(vibe-flow #58)/7(dashboard #17) 완주, F1~F9 모두 resolved (PRs #50/#51/#54-#59), Phase 3 진입 준비
 - [Phase 3 cron scheduler brainstorm (2026-05-12 작성)](../../.../vibe-flow/.claude/memory/brainstorms/20260512-202958-vibe-flow-phase3-cron-scheduler.md) — 4 결정 채택(schedule 스킬/N=3 cap/3.0+3.1 분할/dashboard 별 cycle). 다음 세션 진입점 = PR-A queue 슬래시 스킬 cycle 8
+- [PR-C1 R4 — schedule = cloud remote agent](project_phase3_1_r4_remote_vs_local.md) — schedule은 Anthropic cloud 실행, local cron 가정과 충돌. 1h 최소 간격 + prompt-based + firings.jsonl architectural 무효. PR-C1.1 재설계 진입점
+- [Phase 3.1 Path A cloud-native brainstorm (2026-05-23)](../../.../vibe-flow/.claude/memory/brainstorms/20260523-092812-vibe-flow-phase3-1-cloud-native-redesign.md) — R4 후 Path A 채택. 4 PR 분할 권장(PR-C1.1 schedule re-wrap / PR-C2-cloud run-cloud 슬래시 / PR-C3-safety A3.1 검증 / PR-C4-notify). 다음 세션 진입점 = Planner full grade plan
