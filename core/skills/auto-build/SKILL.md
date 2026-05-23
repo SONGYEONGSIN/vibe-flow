@@ -215,6 +215,42 @@ bash core/skills/auto-build/scripts/schedule-register.sh "0 */6 * * *"
 | `BRANCH` | `main` | cloud agent가 checkout할 branch |
 | `RUN_ONCE_AT` | (none) | `--once` 모드에서 RFC 3339 UTC 필수 (예: `2026-05-24T03:00:00Z`) |
 
+## Cloud 실행 (PR-C2)
+
+cloud remote agent 진입점 `run-cloud.sh` — 1 firing = 1 task = 1 cycle = 1 PR 정책.
+
+```bash
+# DRYRUN (smoke 안전 격리) — mock PR URL + status_update done
+AUTO_BUILD_QUEUE_DRYRUN=1 bash core/skills/auto-build/scripts/run-cloud.sh
+# stdout: https://github.com/SONGYEONGSIN/vibe-flow/pull/MOCK-<entry-id>
+# stderr: run-cloud: processing entry ... / cycle done (DRYRUN)
+
+# 실 cycle (DRYRUN=0) — PR-C3 R8 dogfooding 후 완전 활성
+bash core/skills/auto-build/scripts/run-cloud.sh
+# gh CLI 부재 시 exit 2 + entry aborted
+```
+
+### 동작
+
+1. `queue.sh next`로 queued 첫 entry pop (running 마킹)
+2. 큐 비어있으면 stderr "queue empty" + exit 0
+3. **DRYRUN=1**: mock PR URL stdout + `status-update done`
+4. **DRYRUN=0**: gh CLI 검증 → 실 `/auto-build` cycle (PR-C3 R8 후) → `gh pr create` → `status-update done|aborted`
+
+### 정책
+
+- **1 firing = 1 task = 1 cycle = 1 PR**: `AUTO_BUILD_QUEUE_MAX_CYCLES` 무시 (cron freq 자체 cap, A4.1)
+- **gh CLI 부재 시 abort**: cloud env는 gh 필수. entry `aborted` 마킹 + exit 2
+- **cloud session 가정**: `AUTO_BUILD_QUEUE_CRON_FIRING=1` 자동 set (prompt 템플릿 명시)
+- **PR-C3 dogfooding 대기**: 실 `/auto-build` dispatch는 R8 결과 후 활성. 현 PR-C2는 entry `queued` 복구 + exit 1 (소실 회피)
+
+### env
+
+| env | 기본 | 동작 |
+|-----|------|------|
+| `AUTO_BUILD_QUEUE_DRYRUN` | 0 | 1 시 mock PR URL + status_update done (smoke 안전) |
+| `QUEUE_STORE` / `QUEUE_LOCK_DIR` | (queue.sh와 동일) | 테스트 fixture override 가능 |
+
 ### 예시
 
 ```bash
@@ -257,7 +293,9 @@ bash scripts/tests/schedule-smoke.sh  # 4 케이스 (cron validation + firings c
 - `core/skills/auto-build/scripts/queue.sh` — 다중 task 큐 CRUD + next/status-update (Phase 3.0 PR-A/B)
 - `core/skills/auto-build/scripts/run-queue.sh` — queue 첫 task pop + 사이클 trigger wrapper (Phase 3.0 PR-B + 3.1 PR-C1 firings cap)
 - `core/skills/auto-build/scripts/schedule-register.sh` — RemoteTrigger create payload JSON wrapper (Phase 3.1 PR-C1.1 — cloud-native)
+- `core/skills/auto-build/scripts/run-cloud.sh` — cloud remote agent 진입점 (Phase 3.1 PR-C2)
 - `core/skills/auto-build/data/cloud-prompt-template.md` — cloud remote agent prompt 템플릿 (PR-C1.1)
+- `scripts/tests/run-cloud-smoke.sh` — run-cloud.sh smoke 3 케이스 (Phase 3.1 PR-C2)
 - `.claude/memory/auto-build-queue.jsonl` — 큐 store (append-only, 런타임 생성)
 - `.claude/memory/auto-build-firings.jsonl` — firings 영속화 (Phase 3.1 PR-C1, 당일 cap 카운트)
 - `scripts/tests/queue-tests.sh` — queue.sh + run-queue.sh smoke 10 케이스

@@ -9,6 +9,12 @@
 #   QUEUE_STORE / QUEUE_LOCK_DIR                    — queue.sh와 동일
 #   FIRINGS_STORE                                   — firings 영속화 경로 (Phase 3.1 PR-C1)
 #
+# 주의 (PR-C2 이후):
+#   firings.jsonl / MAX_FIRINGS_PER_DAY는 **local manual `run-queue.sh` 한정**
+#   의미로 축소. cloud cron firing은 `RemoteTrigger` cron freq 자체로 cap
+#   (1일 N firing). cloud agent는 ephemeral checkout이라 firings.jsonl 접근 불가.
+#   cloud 진입점은 `core/skills/auto-build/scripts/run-cloud.sh` (PR-C2).
+#
 # 동작:
 #   1. queue.sh next로 queued 첫 entry pop (running 마킹)
 #   2. DRYRUN=1 → echo + status-update done (또는 DRYRUN_FAIL=1이면 aborted)

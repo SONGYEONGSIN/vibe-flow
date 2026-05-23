@@ -22,14 +22,22 @@ git checkout {{BRANCH}}
 
 ### 자율 cycle 진입
 
-cloud session 환경에서 `/auto-build run-cloud` 슬래시 명령을 호출한다. 이 명령은 다음을 수행한다:
+cloud session 환경에서 다음 명령을 실행한다:
 
-1. `.claude/memory/auto-build-queue.jsonl` (git-committed) 첫 queued entry 1개 pop
-2. orchestrator P0~P5 cloud branch 실행 (brainstorm → plan → TDD → verify → commit)
+```bash
+AUTO_BUILD_QUEUE_CRON_FIRING=1 bash core/skills/auto-build/scripts/run-cloud.sh
+```
+
+(또는 슬래시 형태 `/auto-build run-cloud` — 동일 동작)
+
+이 명령은 다음을 수행한다:
+
+1. `.claude/memory/auto-build-queue.jsonl` (git-committed, PR-C3) 첫 queued entry 1개 pop (queue.sh next로 running 마킹)
+2. orchestrator P0~P5 cloud branch 실행 (brainstorm → plan → TDD → verify → commit) — PR-C3 R8 dogfooding 후 활성
 3. `gh pr create` 자동 호출 → PR URL stdout
 4. queue.sh status-update done (성공) 또는 aborted (실패)
 
-큐가 비어있으면 즉시 종료 (run-queue.sh와 동일 정책).
+큐가 비어있으면 stderr "queue empty" + exit 0 (run-queue.sh와 동일 정책).
 
 ### 안전 정책 (cloud session 고유)
 
