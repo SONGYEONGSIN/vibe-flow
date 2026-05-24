@@ -140,11 +140,14 @@ teardown
 
 # ── Test S4: claude CLI 부재 시 schedule-register exit 2 ───
 echo "Test S4: schedule-register claude CLI 부재 → exit 2"
-# PATH 제한으로 claude CLI 가려서 시뮬레이션 (/bin + /usr/bin은 OS 표준 — claude는 brew 경로에만 존재)
-PATH="/bin:/usr/bin" SCHEDULE_REGISTER_DRYRUN=0 bash "$REGISTER" "0 */6 * * *" >/dev/null 2>&1
+# PATH 제한으로 claude CLI 가려서 시뮬레이션 (RT_ENVIRONMENT_ID 통과 후 CLI 검사 도달)
+# Note: /bin 경로의 uuidgen이 필요 — macOS는 /usr/bin/uuidgen 제공
+PATH="/bin:/usr/bin" RT_ENVIRONMENT_ID="env_test" SCHEDULE_REGISTER_DRYRUN=0 \
+  bash "$REGISTER" "0 */6 * * *" >/dev/null 2>&1
 EC=$?
 assert_exit "S4.1 claude CLI 부재 exit 2" 2 "$EC"
-OUT=$(PATH="/bin:/usr/bin" SCHEDULE_REGISTER_DRYRUN=0 bash "$REGISTER" "0 */6 * * *" 2>&1 || true)
+OUT=$(PATH="/bin:/usr/bin" RT_ENVIRONMENT_ID="env_test" SCHEDULE_REGISTER_DRYRUN=0 \
+  bash "$REGISTER" "0 */6 * * *" 2>&1 || true)
 assert_contains "S4.1 stderr 'claude CLI not found'" "claude CLI not found" "$OUT"
 
 # ── Test S5: 1h min interval validation (PR-C1.1) ──────────
@@ -166,9 +169,9 @@ SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "*/5 * * * *" >/dev/null 2>&1
 EC=$?
 assert_exit "S5.3 */5 (5min) exit 1" 1 "$EC"
 
-# ── Test S6: RemoteTrigger payload JSON + prompt 템플릿 ────
-echo "Test S6: RemoteTrigger payload + prompt template"
-# S6.1: DRYRUN stdout이 valid JSON + body.prompt에 /auto-build run-cloud 토큰
+# ── Test S6: RemoteTrigger payload — 실 API spec shape (F10) ──
+echo "Test S6: RemoteTrigger payload (F10 shape)"
+# S6.1: DRYRUN stdout이 valid JSON + message.content에 /auto-build run-cloud 토큰
 OUT=$(SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "0 */6 * * *" 2>/dev/null || true)
 if echo "$OUT" | jq -e . >/dev/null 2>&1; then
   echo "  ✓ S6.1 stdout is valid JSON"
@@ -178,27 +181,83 @@ else
   echo "    actual: $OUT"
   FAIL=$((FAIL + 1))
 fi
-PROMPT=$(echo "$OUT" | jq -r '.body.prompt // ""' 2>/dev/null || echo "")
-assert_contains "S6.1 body.prompt contains '/auto-build run-cloud'" "/auto-build run-cloud" "$PROMPT"
+MSG_CONTENT=$(echo "$OUT" | jq -r '.body.job_config.ccr.events[0].data.message.content // ""' 2>/dev/null || echo "")
+assert_contains "S6.1 events[0].data.message.content has '/auto-build run-cloud'" "/auto-build run-cloud" "$MSG_CONTENT"
 
-# S6.2: REPO_URL env가 payload prompt에 치환됨
-OUT=$(REPO_URL="https://github.com/test/myrepo" SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "0 */6 * * *" 2>/dev/null || true)
-PROMPT=$(echo "$OUT" | jq -r '.body.prompt // ""' 2>/dev/null || echo "")
-assert_contains "S6.2 REPO_URL env reflected in prompt" "github.com/test/myrepo" "$PROMPT"
+# S6.2: REPO_URL env가 sources[0].git_repository.url에 반영 (.git suffix 제거)
+OUT=$(REPO_URL="https://github.com/test/myrepo.git" SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "0 */6 * * *" 2>/dev/null || true)
+SRC_URL=$(echo "$OUT" | jq -r '.body.job_config.ccr.session_context.sources[0].git_repository.url // ""' 2>/dev/null || echo "")
+if [ "$SRC_URL" = "https://github.com/test/myrepo" ]; then
+  echo "  ✓ S6.2 sources[0].git_repository.url has REPO_URL (.git stripped)"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ S6.2 expected 'https://github.com/test/myrepo', got '$SRC_URL'"
+  FAIL=$((FAIL + 1))
+fi
+
+# S6.3: environment_id (DRYRUN placeholder)
+ENV_ID=$(echo "$OUT" | jq -r '.body.job_config.ccr.environment_id // ""' 2>/dev/null || echo "")
+if [ -n "$ENV_ID" ]; then
+  echo "  ✓ S6.3 environment_id present ('$ENV_ID')"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ S6.3 environment_id missing"
+  FAIL=$((FAIL + 1))
+fi
+
+# S6.4: mcp_connections empty array 명시 (F12)
+MCP_LEN=$(echo "$OUT" | jq -r '.body.mcp_connections | length' 2>/dev/null || echo "-1")
+if [ "$MCP_LEN" = "0" ]; then
+  echo "  ✓ S6.4 mcp_connections == [] 명시 (F12)"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ S6.4 expected mcp_connections length 0, got '$MCP_LEN'"
+  FAIL=$((FAIL + 1))
+fi
+
+# S6.5: events[0].data.uuid 형식 (8-4-4-4-12 lowercase hex)
+UUID=$(echo "$OUT" | jq -r '.body.job_config.ccr.events[0].data.uuid // ""' 2>/dev/null || echo "")
+if [[ "$UUID" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
+  echo "  ✓ S6.5 data.uuid lowercase UUID 형식"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ S6.5 invalid uuid format: '$UUID'"
+  FAIL=$((FAIL + 1))
+fi
+
+# S6.6: RT_ENVIRONMENT_ID env override
+OUT=$(RT_ENVIRONMENT_ID="env_TESTPLACEHOLDER" SCHEDULE_REGISTER_DRYRUN=1 \
+  bash "$REGISTER" "0 */6 * * *" 2>/dev/null || true)
+ENV_ID=$(echo "$OUT" | jq -r '.body.job_config.ccr.environment_id // ""' 2>/dev/null || echo "")
+if [ "$ENV_ID" = "env_TESTPLACEHOLDER" ]; then
+  echo "  ✓ S6.6 RT_ENVIRONMENT_ID env reflected"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ S6.6 expected 'env_TESTPLACEHOLDER', got '$ENV_ID'"
+  FAIL=$((FAIL + 1))
+fi
+
+# S6.7: 실 등록(DRYRUN=0) 시 RT_ENVIRONMENT_ID 미설정 → exit 4
+unset RT_ENVIRONMENT_ID
+SCHEDULE_REGISTER_DRYRUN=0 PATH="/bin:/usr/bin" bash "$REGISTER" "0 */6 * * *" >/dev/null 2>&1
+EC=$?
+assert_exit "S6.7 DRYRUN=0 + RT_ENVIRONMENT_ID 미설정 → exit 4" 4 "$EC"
+OUT=$(SCHEDULE_REGISTER_DRYRUN=0 PATH="/bin:/usr/bin" bash "$REGISTER" "0 */6 * * *" 2>&1 || true)
+assert_contains "S6.7 stderr 'RT_ENVIRONMENT_ID env required'" "RT_ENVIRONMENT_ID env required" "$OUT"
 
 # ── Test S7: run_once_at 모드 ──────────────────────────────
 echo "Test S7: --once + RUN_ONCE_AT mode"
-# S7.1: --once + RUN_ONCE_AT (RFC 3339) → payload run_once_at, cron 부재
+# S7.1: --once + RUN_ONCE_AT (RFC 3339) → 최상위 run_once_at, cron_expression 부재
 OUT=$(RUN_ONCE_AT="2026-05-24T03:00:00Z" SCHEDULE_REGISTER_DRYRUN=1 \
   bash "$REGISTER" --once 2>/dev/null || true)
 EC=$?
-RUN_ONCE=$(echo "$OUT" | jq -r '.body.schedule.run_once_at // ""' 2>/dev/null || echo "")
-CRON=$(echo "$OUT" | jq -r '.body.schedule.cron // ""' 2>/dev/null || echo "")
+RUN_ONCE=$(echo "$OUT" | jq -r '.body.run_once_at // ""' 2>/dev/null || echo "")
+CRON=$(echo "$OUT" | jq -r '.body.cron_expression // ""' 2>/dev/null || echo "")
 if [ "$RUN_ONCE" = "2026-05-24T03:00:00Z" ] && [ -z "$CRON" ]; then
-  echo "  ✓ S7.1 run_once_at populated, cron absent"
+  echo "  ✓ S7.1 run_once_at populated, cron_expression absent"
   PASS=$((PASS + 1))
 else
-  echo "  ✗ S7.1 expected run_once_at='2026-05-24T03:00:00Z' + cron='', got run_once='$RUN_ONCE' cron='$CRON'"
+  echo "  ✗ S7.1 expected run_once_at='2026-05-24T03:00:00Z' + cron_expression='', got run_once='$RUN_ONCE' cron='$CRON'"
   FAIL=$((FAIL + 1))
 fi
 
