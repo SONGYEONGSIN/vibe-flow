@@ -387,3 +387,7 @@ bash scripts/tests/schedule-smoke.sh  # 4 케이스 (cron validation + firings c
 - `.claude/memory/brainstorms/20260507-212317-auto-build-phase2-ralph-loop-persona-vote.md` — Phase 2 설계 근거
 - `.claude/plans/20260504-194208-vibe-flow-auto-build-phase1.md` — Phase 1 구현 plan
 - `.claude/plans/20260507-213353-auto-build-phase2-ralph-vote.md` — Phase 2 구현 plan
+
+## R9 dogfooding marker (cloud cycle 첫 실 task — 2026-05-24)
+
+본 marker는 R9 dogfooding 사이클이 cloud session에서 정상 동작했음을 표시한다. PR 머지 후 R9 검증 완료.
