@@ -1,27 +1,31 @@
 #!/bin/bash
-# /auto-build schedule 등록 helper — Claude Code schedule 스킬 호출 wrapper (Phase 3.1 PR-C1)
+# /auto-build schedule 등록 helper — RemoteTrigger create payload 생성 (Phase 3.1 F10/F11/F12 fix)
 #
 # 사용:
 #   bash core/skills/auto-build/scripts/schedule-register.sh "<cron-expression>"
+#   RUN_ONCE_AT=<RFC3339> bash core/skills/auto-build/scripts/schedule-register.sh --once
 #
-# env:
-#   SCHEDULE_REGISTER_DRYRUN=1 — 실제 schedule 등록 안 함, "would register: ..." stdout만 출력 (smoke 안전 격리)
+# 필수 env (DRYRUN=0 실 paste 시):
+#   RT_ENVIRONMENT_ID — 사용자 계정별 Anthropic environment ID (claude.ai/code/routines 에서 확인)
 #
-# 동작:
-#   1. cron expression 5 필드 정규식 검증 (실패 시 exit 1)
-#   2. DRYRUN=1 → stdout "would register: <expr>" + exit 0
-#   3. DRYRUN=0 → claude CLI 존재 검사 (없으면 exit 2) → claude /schedule 호출
+# 선택 env:
+#   RT_ROUTINE_NAME (기본 "vibe-flow auto-build")
+#   RT_MODEL (기본 "claude-sonnet-4-6")
+#   REPO_URL (기본 `git remote get-url origin`)
+#   SCHEDULE_REGISTER_DRYRUN=1 — 실제 등록 안 함, payload JSON만 stdout (smoke 안전 격리)
 #
-# 정책 (PR-C1):
-#   실 등록(DRYRUN=0)은 사용자 manual 호출 권장. cron firing 시 run-queue.sh가
-#   AUTO_BUILD_QUEUE_CRON_FIRING=1 env로 진입하여 orchestrator가 cron 컨텍스트 인지.
+# 출력:
+#   stdout — RemoteTrigger create payload JSON (action+body wrapper). 사용자가 그대로
+#            RemoteTrigger tool action="create" + body=<payload.body> 형태로 paste 가능
+#
+# 정책 (PR-C1.1 → F10 fix):
+#   payload.body는 실 RemoteTrigger API spec와 일치 (job_config.ccr.environment_id /
+#   events[].data.message.content / session_context.sources[].git_repository.url /
+#   mcp_connections:[] 명시). 사용자가 별도 변환 불필요.
 
 set -u
 
 # ── 인자 파싱 ──────────────────────────────────────────────
-# 사용법:
-#   $0 "<cron-expression>"                  — 재귀 cron 모드
-#   RUN_ONCE_AT=<RFC3339> $0 --once         — 1회용 모드
 MODE="cron"
 CRON_EXPR=""
 RUN_ONCE_AT_VALUE="${RUN_ONCE_AT:-}"
@@ -36,7 +40,6 @@ if [ "${1:-}" = "--once" ]; then
     echo "error: --once 모드는 RUN_ONCE_AT env (RFC 3339 UTC) 필수" >&2
     exit 1
   fi
-  # RFC 3339 형식 검증 (YYYY-MM-DDTHH:MM:SSZ)
   if ! [[ "$RUN_ONCE_AT_VALUE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]; then
     echo "error: RUN_ONCE_AT='$RUN_ONCE_AT_VALUE' invalid RFC 3339 UTC (expected YYYY-MM-DDTHH:MM:SSZ)" >&2
     exit 1
@@ -53,8 +56,6 @@ fi
 
 # ── cron expression validation (cron 모드만) ───────────────
 if [ "$MODE" = "cron" ]; then
-  # 5 필드(공백 분리) — 각 필드는 `*`, `*/N`, 숫자, 콤마, 하이픈만 허용
-  # noglob: `*` 단독 필드가 디렉토리 글로브로 확장되는 것 방지
   set -f
   read -ra FIELDS <<< "$CRON_EXPR"
   set +f
@@ -79,12 +80,7 @@ if [ "$MODE" = "cron" ]; then
   fi
 fi
 
-# ── Payload 생성 (PR-C1.1 cloud-native) ────────────────────
-# RemoteTrigger create API payload JSON 빌드:
-#   - body.schedule.cron: <CRON_EXPR>
-#   - body.prompt: cloud-prompt-template.md 본문 (placeholder 치환됨)
-# env: REPO_URL (기본 `git remote get-url origin`), BRANCH (기본 main)
-
+# ── Payload 생성 (F10 fix: 실 RemoteTrigger API spec) ──────
 DRYRUN="${SCHEDULE_REGISTER_DRYRUN:-0}"
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 TEMPLATE_PATH="$PROJECT_ROOT/core/skills/auto-build/data/cloud-prompt-template.md"
@@ -94,75 +90,108 @@ if [ ! -f "$TEMPLATE_PATH" ]; then
   exit 3
 fi
 
-# env defaults
-REPO_URL="${REPO_URL:-$(git remote get-url origin 2>/dev/null || echo '<unknown>')}"
-BRANCH="${BRANCH:-main}"
+# 실 등록(DRYRUN=0)에서만 RT_ENVIRONMENT_ID 필수 — dryrun은 smoke 호환 위해 placeholder 허용
+RT_ENVIRONMENT_ID_VALUE="${RT_ENVIRONMENT_ID:-}"
+if [ "$DRYRUN" != "1" ] && [ -z "$RT_ENVIRONMENT_ID_VALUE" ]; then
+  echo "error: RT_ENVIRONMENT_ID env required (계정별 Anthropic environment ID — claude.ai/code/routines 에서 확인)" >&2
+  exit 4
+fi
+RT_ENVIRONMENT_ID_VALUE="${RT_ENVIRONMENT_ID_VALUE:-env_REPLACE_WITH_YOUR_ID}"
 
-# placeholder 치환 (sed로 단순 치환 — &/\는 escape, # delimiter)
-TEMPLATE_BODY=$(sed -e "s#{{REPO_URL}}#${REPO_URL//\#/\\#}#g" \
-                    -e "s#{{BRANCH}}#${BRANCH//\#/\\#}#g" \
-                    "$TEMPLATE_PATH")
+# defaults
+RT_ROUTINE_NAME_VALUE="${RT_ROUTINE_NAME:-vibe-flow auto-build}"
+RT_MODEL_VALUE="${RT_MODEL:-claude-sonnet-4-6}"
+REPO_URL_RAW="${REPO_URL:-$(git remote get-url origin 2>/dev/null || echo '<unknown>')}"
+# sources[].git_repository.url은 .git suffix 없는 형태 사용 (R8/R9 routine 패턴)
+REPO_URL_VALUE="${REPO_URL_RAW%.git}"
 
-# payload JSON 빌드 (jq -n으로 안전한 string escape)
-# MODE에 따라 schedule 필드 분기: cron OR run_once_at
+# message UUID (RemoteTrigger 각 events entry 고유)
+if ! command -v uuidgen >/dev/null 2>&1; then
+  echo "uuidgen not found — required for message UUID" >&2
+  exit 5
+fi
+MSG_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+
+# F11: prompt 본문은 git clone block 제거됨 (sources가 자동 checkout)
+# placeholder 치환 — 본문에 변수 토큰 남아있으면 sed로 안전 치환
+TEMPLATE_BODY=$(sed -e "s#{{REPO_URL}}#${REPO_URL_VALUE//\#/\\#}#g" "$TEMPLATE_PATH")
+
+# session_context.allowed_tools — orchestrator P0~P5에 필요한 최소 도구
+ALLOWED_TOOLS_JSON='["Bash","Read","Write","Edit","Glob","Grep"]'
+
+# payload body 빌드 — schedule 필드는 MODE에 따라 최상위 run_once_at 또는 cron_expression
 if [ "$MODE" = "once" ]; then
-  PAYLOAD=$(jq -nc \
-    --arg run_once "$RUN_ONCE_AT_VALUE" \
-    --arg prompt "$TEMPLATE_BODY" \
-    --arg repo "$REPO_URL" \
-    --arg branch "$BRANCH" \
-    '{
-      action: "create",
-      body: {
-        schedule: { run_once_at: $run_once },
-        prompt: $prompt,
-        repo_url: $repo,
-        branch: $branch
-      }
-    }')
+  SCHEDULE_KEY="run_once_at"
+  SCHEDULE_VAL="$RUN_ONCE_AT_VALUE"
   DISPLAY_SCHED="run_once_at=$RUN_ONCE_AT_VALUE"
 else
-  PAYLOAD=$(jq -nc \
-    --arg cron "$CRON_EXPR" \
-    --arg prompt "$TEMPLATE_BODY" \
-    --arg repo "$REPO_URL" \
-    --arg branch "$BRANCH" \
-    '{
-      action: "create",
-      body: {
-        schedule: { cron: $cron },
-        prompt: $prompt,
-        repo_url: $repo,
-        branch: $branch
-      }
-    }')
+  SCHEDULE_KEY="cron_expression"
+  SCHEDULE_VAL="$CRON_EXPR"
   DISPLAY_SCHED="$CRON_EXPR"
 fi
 
+# F12: mcp_connections:[] 명시 — 미지정 시 cloud가 4개 connector 자동 attach 회피
+PAYLOAD=$(jq -nc \
+  --arg name "$RT_ROUTINE_NAME_VALUE" \
+  --arg env_id "$RT_ENVIRONMENT_ID_VALUE" \
+  --arg prompt "$TEMPLATE_BODY" \
+  --arg repo "$REPO_URL_VALUE" \
+  --arg uuid "$MSG_UUID" \
+  --arg model "$RT_MODEL_VALUE" \
+  --argjson tools "$ALLOWED_TOOLS_JSON" \
+  --arg sched_key "$SCHEDULE_KEY" \
+  --arg sched_val "$SCHEDULE_VAL" \
+  '{
+    action: "create",
+    body: ({
+      name: $name,
+      job_config: {
+        ccr: {
+          environment_id: $env_id,
+          events: [{
+            data: {
+              message: { content: $prompt, role: "user" },
+              parent_tool_use_id: null,
+              session_id: "",
+              type: "user",
+              uuid: $uuid
+            }
+          }],
+          session_context: {
+            allowed_tools: $tools,
+            model: $model,
+            sources: [{ git_repository: { url: $repo } }]
+          }
+        }
+      },
+      mcp_connections: []
+    } + { ($sched_key): $sched_val })
+  }')
+
 if [ "$DRYRUN" = "1" ]; then
-  # legacy 한 줄(PR-C1)은 stderr로 분리 — stdout은 JSON only (jq 파이프 안전)
   echo "would register: $DISPLAY_SCHED" >&2
   echo "$PAYLOAD"
   exit 0
 fi
 
 # ── 실 등록 (DRYRUN=0) ─────────────────────────────────────
-# RemoteTrigger API는 claude.ai 인증 필요 — `claude` CLI 호출로 위임
 if ! command -v claude >/dev/null 2>&1; then
   echo "claude CLI not found — install Claude Code first" >&2
   exit 2
 fi
 
-# 실 호출은 사용자 manual 권장 — 자동 호출은 보안/비용 이유로 안내만 출력
 cat >&2 <<EOM
 Manual step required:
   1. Open Claude Code interactive session
-  2. Invoke: /schedule (load skill)
-  3. Paste the following payload to RemoteTrigger create:
+  2. RemoteTrigger tool 호출 — action="create" + body=<아래 payload의 body 객체>
+     (또는 /schedule 스킬 사용)
+  3. 응답에서 routine id 확인 (trig_...)
+
+  payload (실 API spec — 그대로 paste 가능):
 
 $PAYLOAD
 
-  Or use the Anthropic dashboard: https://claude.ai/code/routines
+  Dashboard: https://claude.ai/code/routines
 EOM
 echo "$PAYLOAD"
 exit 0

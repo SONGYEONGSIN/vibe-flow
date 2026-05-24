@@ -1,10 +1,8 @@
-# Cloud Remote Agent Prompt Template (Phase 3.1 PR-C1.1)
+# Cloud Remote Agent Prompt Template (Phase 3.1 PR-C1.1 / F10-F12 fix)
 
-본 prompt는 `schedule-register.sh`가 `RemoteTrigger create` payload의 `body.prompt`에 주입한다. cron firing 시 Anthropic cloud remote agent가 새 격리 session을 받아 본 prompt를 실행한다.
+본 prompt는 `schedule-register.sh`가 RemoteTrigger create payload의 `body.job_config.ccr.events[0].data.message.content`에 주입한다. cron firing 시 Anthropic cloud remote agent가 새 격리 session을 받아 본 prompt를 실행한다.
 
-**Placeholders** (`schedule-register.sh`가 `sed`로 치환):
-- `{{REPO_URL}}` — git remote (예: `https://github.com/SONGYEONGSIN/vibe-flow`)
-- `{{BRANCH}}` — checkout 대상 (기본 `main`)
+`session_context.sources[0].git_repository.url`이 자동으로 checkout + `cd`를 수행하므로 prompt 본문은 별도의 `git clone` 단계를 포함하지 않는다 (F11).
 
 ---
 
@@ -12,17 +10,9 @@
 
 당신은 cron firing에 의해 spawn된 Anthropic cloud Claude Code remote agent다. vibe-flow Phase 3.1 cloud-native auto-build cycle을 실행한다.
 
-### 진입 시 즉시 실행
-
-```bash
-git clone {{REPO_URL}} vibe-flow
-cd vibe-flow
-git checkout {{BRANCH}}
-```
-
 ### 자율 cycle 진입
 
-cloud session 환경에서 다음 명령을 실행한다:
+working dir이 이미 vibe-flow git repo로 설정돼 있다. 다음을 실행한다:
 
 ```bash
 AUTO_BUILD_QUEUE_CRON_FIRING=1 bash core/skills/auto-build/scripts/run-cloud.sh
