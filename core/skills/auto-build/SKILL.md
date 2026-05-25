@@ -391,3 +391,7 @@ bash scripts/tests/schedule-smoke.sh  # 4 케이스 (cron validation + firings c
 ## R9 dogfooding marker (cloud cycle 첫 실 task — 2026-05-24)
 
 본 marker는 R9 dogfooding 사이클이 cloud session에서 정상 동작했음을 표시한다. PR 머지 후 R9 검증 완료.
+
+## R10 dogfooding marker (cloud cycle 두 번째 실 task — 2026-05-25)
+
+본 marker는 R10 dogfooding 사이클이 safety hook + vote 코드 path + orchestrator P0~P5 모두 정상 통과했음을 표시한다.
