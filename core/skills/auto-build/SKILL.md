@@ -395,3 +395,7 @@ bash scripts/tests/schedule-smoke.sh  # 4 케이스 (cron validation + firings c
 ## R10 dogfooding marker (cloud cycle 두 번째 실 task — 2026-05-25)
 
 본 marker는 R10 dogfooding 사이클이 safety hook + vote 코드 path + orchestrator P0~P5 모두 정상 통과했음을 표시한다.
+
+## R11 dogfooding marker (cloud cycle 세 번째 실 task — 2026-05-25)
+
+본 marker는 R11 dogfooding 사이클로 F14/F15 (PR #77) 신규 로그 형식 — safety hook PASS stderr + orchestrator P3a/P3b 진입 stderr — 이 cloud session에서 정상 출력되는지 검증 완료를 표시한다.
