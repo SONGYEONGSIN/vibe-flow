@@ -1,6 +1,6 @@
 ---
-name: phase3-1-f10-resolved-r10-pending
-description: Phase 3.1 cloud-native R8(queue empty) + R9(real task) dogfooding 모두 PASS, F10/F11/F12 (P0 payload shape mismatch) PR #74로 resolved. safety hook + vote 실 검증은 R10 dogfooding 남음.
+name: phase3-1-f14-f15-resolved-r11-pending
+description: Phase 3.1 R10 Functional PASS + F14/F15 observability gap PR #77로 해소 (safety hook PASS 로그 + orchestrator vote 4종 stderr). 다음 = R11 dogfooding (destructive op 차단 + 새 로그 형식 cloud session 확인).
 metadata: 
   node_type: memory
   type: project
@@ -41,25 +41,72 @@ R8/R9는 docs/queue empty task라 다음 항목 발동 안 됨:
 - `auto-build-safety.sh` PreToolUse hook의 cloud session wiring (destructive op 시도)
 - vote confidence floor (0.7) — orchestrator P0~P5 실 진입
 
-## How to apply (다음 세션 진입점)
+### R10 결과 (2026-05-25 KST 12:01~12:04 firing) — Functional PASS
 
-### 옵션 A — R10 dogfooding (진행 중, firing 대기)
-**상태**: 2026-05-25T00:57:28Z routine 등록 완료. firing 시각 = 2026-05-25T03:00:00Z (KST 12:00).
+**routine**: `trig_0151y4Y7iXZo3UcmWry1Cuai` (run_once_fired, auto-disabled)
+**PR**: [#75](https://github.com/SONGYEONGSIN/vibe-flow/pull/75) — `docs(auto-build): R10 dogfooding marker` (머지됨, commit 2859e4c)
+**cloud session**: session_01YMEhGNc3j5pGarZbzBZSjC (cycle 약 3분)
 
-**routine**: `trig_0151y4Y7iXZo3UcmWry1Cuai` ("vibe-flow R10 dogfooding")
-**queue entry**: 20260525T005552Z-332a (R9-style SKILL.md marker + 삽입 위치 자율)
-**enqueue commit**: b152950
-**brainstorm spec**: `.claude/memory/brainstorms/20260525-094106-vibe-flow-phase3-1-r10-task-selection.md` (대안 B 보정안)
+✅ **명시 확인** (cloud session log + PR diff):
+- orchestrator P0~P5 전체 진행 (P0 deployment/branch → P1 brainstorm → P2 skip inline → P3 RED→GREEN → P4 verify → P5 commit/push/PR → P-end cleanup)
+- HARD-GATE 등급 자율 판정 ("hard_gate: inline" — 1 파일 변경)
+- brainstorm 스킬 자율 사용 (대안 A/B 비교 + 추천 근거 spec 생성)
+- RED-GREEN TDD 의식 수행
+- Surgical change 자율 판단 (queue.jsonl 변경을 "cycle-tracking overhead, not content violation"으로 평가)
+- queue.jsonl git-committed status update (running 12:01:17 → done 12:04:12)
+- PR 자동 생성 + brainstorm spec 자동 commit + GitHub MCP 활용
+- anomaly 0건
 
-**firing 후 확인할 것**:
-- safety hook PreToolUse wired (cloud session log)
-- vote 코드 path 통과 + confidence 출력
-- orchestrator P0~P5 + PR 자동 생성 + queue git-committed status update
-- routine `ended_reason: "run_once_fired"` + auto-disable
+⚠️ **확인 수단 부재** (silent pass 추정):
+- safety hook (auto-build-safety.sh) PreToolUse 발동 명시 메시지 없음 — destructive op 없었으므로 silent pass 가능성 / 또는 wire 안 됨 (구분 불가)
+- vote confidence 수치 출력 없음 — inline grade + 1-file edit이라 vote 호출 자체가 안 됐을 가능성
 
-**예상 PR**: `docs(auto-build): R10 dogfooding marker`. 머지 후 R10 PASS로 본 memory update.
+## Finding F14/F15 — Resolved (PR #77, commit cbd57d1)
 
-**후속 R11** (별 firing): destructive op 유도 task로 safety hook 차단 단독 검증.
+**F14 — auto-build-safety.sh PASS 로그 추가** ✅:
+- 자율 모드 통과 시 stderr 1줄 `[auto-build-safety] PASS — tool=<X> reason=<Y>` 출력
+- 3 exit 0 path 명시 (non-Bash-tool / empty-command / all-checks-ok)
+- AUTO_BUILD_SAFETY_QUIET=1 env로 무음화 가능 (default verbose)
+- 비-자율 모드 silent 유지 (영향 0)
+- BLOCKED 경로는 기존 명시 로그 그대로
+
+**F15 — orchestrator.md vote 관찰 로그 4종 명세 추가** ✅:
+- ambiguity 정의 명확화 (복수 합리적 선택지 한정)
+- P3a 진입 / P3b 진입 / vote 결과 (5 persona) / moderator 결정 stderr 형식 표준화
+- "관찰 가능성 종합" 섹션으로 사용자 review 가이드
+
+**local .claude/hooks/auto-build-safety.sh sync** ✅:
+- PR #77은 core/hooks/ 수정. local installed copy(.claude/hooks/, untracked)는 cp로 별도 sync 완료. R11 firing이 local local cycle 시 hook 적용 보장. cloud session도 fresh clone으로 core/hooks 적용.
+
+## R11 routine 등록 (2026-05-25, firing 대기)
+
+**상태**: 2026-05-25T08:56:43Z 등록. firing = 2026-05-25T10:00:00Z (KST 19:00, 약 1.5시간 후).
+
+**routine**: `trig_01Bqyk2oKM2eZm41m9kLPfGG` ("vibe-flow R11 dogfooding")
+**queue entry**: 20260525T082401Z-bc00 (SKILL.md R11 marker + 위치 자율)
+**enqueue commit**: 2632232
+**검증 초점**: F14/F15 (PR #77) 신규 로그 형식이 cloud session에서 출력되는지
+- `[auto-build-safety] PASS — tool=<X> reason=<Y>` (자율 모드 wire 명시)
+- `[orchestrator] P3a step=Tn — no ambiguity detected, direct flow` (inline grade라 P3a 예상)
+- vote 4종 stderr (이 task는 P3a 예상이라 못 볼 가능성, R12 분리)
+
+**예상 PR**: `docs(auto-build): R11 dogfooding marker`. 머지 후 R11 PASS + Phase 3.1 종료 게이트 통과.
+
+## 다음 세션 진입점
+
+### 옵션 A — R11 결과 확인 + Phase 3.1 종료 (KST 19:00 이후)
+1. destructive op (`rm`, `git reset --hard` 등) 유도 task enqueue
+2. 새 routine 등록 (run_once_at +1h+α, RT_ENVIRONMENT_ID 동일)
+3. firing 후 cloud session log에서 safety hook 차단 메시지 확인
+4. R11 결과로 F14 부분 해소 (차단 동작 확인), wire 자체 확인은 F14 fix 후 가능
+
+### 옵션 B — F14/F15 보강 PR
+`auto-build-safety.sh` script에 invocation마다 명시 stderr 추가. `orchestrator.md`에 vote 호출 phase + confidence 출력 형식 명시. ~45분, 1~2 파일 변경. R11 전 적용 시 R11에서 wire 명시 확인 가능.
+
+### 옵션 C — Phase 3.1 종료
+R10 functional PASS로 Phase 3.1 본 목표(cloud-native cycle 실 동작) 달성. F14/F15는 observability 개선 항목이라 Phase 4 또는 별도 cycle로 분리 가능.
+
+**우선 순위 권장**: 옵션 B (F14/F15 fix) → 옵션 A (R11 wire 명시 검증) → 옵션 C 순. 단 즉시 종료 원하면 C도 합리적.
 
 ### 옵션 B — PR-D dashboard /morning (별 cycle)
 master plan 결정 4번. cloud cycle 결과 시각화. R10과 독립.
@@ -69,13 +116,16 @@ R10 PASS 시 Phase 3.1 종료 + Phase 4 plan 진입.
 
 **우선 순위 권장**: 옵션 A (R10 새 payload 검증) → 옵션 C → 옵션 B 순.
 
-**머지된 5 PR (Phase 3.1)**:
+**머지된 PR 9건 (Phase 3.1 + 보강)**:
 - #69 — schedule-register.sh RemoteTrigger payload (F10으로 재설계됨, PR #74에서 해소)
 - #70 — run-cloud.sh cloud 진입점 + 1 firing = 1 PR 정책
 - #71 — queue.jsonl git-committed + safety cloud probe
 - #72 — notify-pr.sh + R10 cost threshold warning
 - #73 — R9 dogfooding marker (R9 firing 결과물)
 - #74 — F10/F11/F12 클린업
+- #75 — R10 dogfooding marker (R10 cloud cycle 자동 생성, 2026-05-25 KST 12:04)
+- #76 — Karpathy 5번째 원칙 Context Engineering + donts 2 룰 (vibe-flow harness gap closure)
+- #77 — F14/F15 observability (safety PASS 로그 + orchestrator vote 4종 stderr)
 
 **Master plan**: `.claude/plans/20260523-093000-vibe-flow-phase3-1-cloud-native-master.md`
 
