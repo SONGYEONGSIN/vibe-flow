@@ -36,6 +36,14 @@ paths:
 - **무관한 dead code 발견 시 언급만 하고 삭제하지 마라** — 별도 PR/이슈로 분리. drive-by 정리는 리뷰 부담만 키운다.
 - **본인 변경이 만든 orphan만 정리** — import/변수/함수가 이번 변경으로 미사용이 됐다면 제거. 기존부터 dead였던 것은 건드리지 않는다.
 - **인접 코드 "개선" 금지** — 안 깨진 거 리팩토링하지 않는다. 변경된 모든 줄이 사용자 요청에 직접 연결돼야 한다.
+- **이해하지 못한 주석 임의 수정/삭제 금지** — 작성 의도가 명확하지 않은 주석은 보존한다. Karpathy 관찰 (X): *"agents change/remove comments and code they don't sufficiently understand as side effects, even if orthogonal to the task."* 의심스러우면 사용자에게 묻거나 별도 작업으로 분리.
+
+## 컨텍스트 윈도우 보호
+
+Karpathy `context engineering` 원칙 (`rules/karpathy-principles.md` §5) 의 실 적용 룰.
+
+- **긴 명령 출력은 파일로 리다이렉트, `tee` 금지** — `command > /tmp/out.log 2>&1` 패턴. `tee`는 stdout을 컨텍스트 윈도우에 흘려보내 노이즈를 만든다. Karpathy verbatim (autoresearch program.md): *"redirect everything... do NOT use `tee` or let output flood your context."*
+- **대형 검색/조회 결과는 subagent에 위임** — 50+ 파일 grep, 전체 디렉토리 트리 dump, 큰 로그 분석 등은 Explore/general-purpose agent로 격리해 main context 보호.
 
 ## 완료 기준
 
