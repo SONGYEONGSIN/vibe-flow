@@ -30,8 +30,8 @@ routine trig_011woisTENWwbqZC9tUcBkN4 → PR #73 머지 (commit b4e74c9). sessio
 **F11 — cloud-prompt-template.md 클린업** ✅:
 sources 자동 checkout 활용, prompt에서 `git clone/cd/git checkout` 3줄 제거 + `{{BRANCH}}` placeholder 단순화.
 
-**F12 — mcp_connections:[] 명시** ✅:
-미지정 시 Gmail/Drive/Notion/Calendar 4개 connector 자동 attach 차단.
+**F12 — mcp_connections:[] 명시** ⚠️ 부분 무효:
+payload에 `mcp_connections: []` 명시 전송했으나 R10 등록 (trig_0151y4Y7iXZo3UcmWry1Cuai) 응답에 4개 connector (Gmail/Drive/Notion/Calendar) 여전히 attached. cloud platform이 user-account default를 override하는 것으로 추정. payload-level fix는 완료, cloud-level fix는 별도 메커니즘 필요 (또는 cloud platform 측). R8/R9 모두 connector 무관 정상 작동했으므로 실 동작 영향 X.
 
 **테스트**: schedule-smoke.sh 29/29 PASS (S6 7-case 추가). 실 env_id dryrun output이 R8 routine API 응답과 1:1 match.
 
@@ -43,21 +43,23 @@ R8/R9는 docs/queue empty task라 다음 항목 발동 안 됨:
 
 ## How to apply (다음 세션 진입점)
 
-### 옵션 A — R10 dogfooding (권장)
-1. safety/vote 검증 가능한 task enqueue (소규모 코드 변경, 예: 새 unit test 1건 추가)
-2. 새 payload (PR #74)로 routine 등록:
-   ```bash
-   export RT_ENVIRONMENT_ID=env_01LzzJu6SBt6PNRPrhG7S43A  # 사용자 계정 id
-   export REPO_URL=https://github.com/SONGYEONGSIN/vibe-flow
-   RUN_ONCE_AT="<RFC3339>" bash core/skills/auto-build/scripts/schedule-register.sh --once
-   # stdout payload의 body를 RemoteTrigger action=create + body=<...>로 paste
-   ```
-3. firing 후 cloud session log 확인:
-   - safety hook wired 여부 (PreToolUse 메시지)
-   - vote confidence 출력
-   - orchestrator P0~P5 진행
-   - PR 자동 생성 + URL stdout
-4. R10 결과로 본 memory update
+### 옵션 A — R10 dogfooding (진행 중, firing 대기)
+**상태**: 2026-05-25T00:57:28Z routine 등록 완료. firing 시각 = 2026-05-25T03:00:00Z (KST 12:00).
+
+**routine**: `trig_0151y4Y7iXZo3UcmWry1Cuai` ("vibe-flow R10 dogfooding")
+**queue entry**: 20260525T005552Z-332a (R9-style SKILL.md marker + 삽입 위치 자율)
+**enqueue commit**: b152950
+**brainstorm spec**: `.claude/memory/brainstorms/20260525-094106-vibe-flow-phase3-1-r10-task-selection.md` (대안 B 보정안)
+
+**firing 후 확인할 것**:
+- safety hook PreToolUse wired (cloud session log)
+- vote 코드 path 통과 + confidence 출력
+- orchestrator P0~P5 + PR 자동 생성 + queue git-committed status update
+- routine `ended_reason: "run_once_fired"` + auto-disable
+
+**예상 PR**: `docs(auto-build): R10 dogfooding marker`. 머지 후 R10 PASS로 본 memory update.
+
+**후속 R11** (별 firing): destructive op 유도 task로 safety hook 차단 단독 검증.
 
 ### 옵션 B — PR-D dashboard /morning (별 cycle)
 master plan 결정 4번. cloud cycle 결과 시각화. R10과 독립.
