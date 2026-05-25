@@ -4,6 +4,8 @@ set -u
 #
 # AUTO_BUILD_MODE=1 일 때만 활성. 비-자율 모드(env 미설정)에는 영향 0.
 # 차단 규약: stderr에 사유 출력 + exit 2 (Claude Code PreToolUse 차단).
+# 통과 규약: 자율 모드에서는 stderr에 PASS 1줄 출력 + exit 0 (wire 명시 — F14).
+#   AUTO_BUILD_SAFETY_QUIET=1 로 PASS 로그 무음화 가능 (default verbose).
 #
 # 차단 카테고리:
 #   1. destructive op  — rm -rf, git reset --hard, git push --force, --no-verify, chmod 777, fork bomb
@@ -20,7 +22,7 @@ set -u
 #   R8 실패 시 A3.3 fallback: orchestrator가 vote confidence floor 1.0 강제 +
 #   safety 비활성 가정 추가 보수 처리.
 
-# 자율 모드 아니면 즉시 통과
+# 자율 모드 아니면 즉시 통과 (비-자율 영향 0 — silent)
 if [ "${AUTO_BUILD_MODE:-}" != "1" ]; then
   exit 0
 fi
@@ -28,13 +30,24 @@ fi
 INPUT=$(cat)
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
 
+pass() {
+  # F14: 자율 모드 통과 시 wire 명시 — AUTO_BUILD_SAFETY_QUIET=1 로 무음화 가능
+  if [ "${AUTO_BUILD_SAFETY_QUIET:-0}" != "1" ]; then
+    echo "[auto-build-safety] PASS — tool=${TOOL_NAME:-<unknown>} reason=$1" >&2
+  fi
+}
+
 # Bash 외에는 destructive 패턴 검증 X (Write/Edit는 결과 파일 검증이 security-lint 책임)
 if [ "$TOOL_NAME" != "Bash" ]; then
+  pass "non-Bash-tool"
   exit 0
 fi
 
 CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null)
-[ -z "$CMD" ] && exit 0
+if [ -z "$CMD" ]; then
+  pass "empty-command"
+  exit 0
+fi
 
 block() {
   local reason="$1"
@@ -148,4 +161,5 @@ if [ -f "$RUNS_LOG" ] && [ -n "${AUTO_BUILD_RUN_ID:-}" ]; then
   fi
 fi
 
+pass "all-checks-ok"
 exit 0
