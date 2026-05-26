@@ -15,6 +15,9 @@
 working dir이 이미 vibe-flow git repo로 설정돼 있다. 다음을 실행한다:
 
 ```bash
+# F16: cloud session에 PreToolUse hook + settings wire (cloud 전용 bootstrap)
+bash core/skills/auto-build/scripts/cloud-init.sh
+
 AUTO_BUILD_QUEUE_CRON_FIRING=1 bash core/skills/auto-build/scripts/run-cloud.sh
 ```
 

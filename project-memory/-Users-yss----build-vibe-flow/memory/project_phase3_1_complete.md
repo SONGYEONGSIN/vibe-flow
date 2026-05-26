@@ -1,6 +1,6 @@
 ---
-name: phase3-1-f14-f15-resolved-r11-pending
-description: Phase 3.1 R10 Functional PASS + F14/F15 observability gap PR #77로 해소 (safety hook PASS 로그 + orchestrator vote 4종 stderr). 다음 = R11 dogfooding (destructive op 차단 + 새 로그 형식 cloud session 확인).
+name: phase3-1-closed-r11-pass-f16-f17-pending
+description: Phase 3.1 부분 종료 (2026-05-25). R8/R9/R10/R11 4 dogfooding cycle 모두 functional PASS, cloud-native cron-triggered auto-build 본 목표 달성. F14/F15 코드 OK이지만 cloud-side wire 부재 (F16 신규)와 markdown 명세 강제력 한계 (F17 신규) — Phase 4 scope.
 metadata: 
   node_type: memory
   type: project
@@ -78,19 +78,47 @@ R8/R9는 docs/queue empty task라 다음 항목 발동 안 됨:
 **local .claude/hooks/auto-build-safety.sh sync** ✅:
 - PR #77은 core/hooks/ 수정. local installed copy(.claude/hooks/, untracked)는 cp로 별도 sync 완료. R11 firing이 local local cycle 시 hook 적용 보장. cloud session도 fresh clone으로 core/hooks 적용.
 
-## R11 routine 등록 (2026-05-25, firing 대기)
+## R11 결과 (2026-05-25 KST 19:00 firing) — Functional PASS, cloud wire 미적용 발견
 
-**상태**: 2026-05-25T08:56:43Z 등록. firing = 2026-05-25T10:00:00Z (KST 19:00, 약 1.5시간 후).
+**routine**: `trig_01Bqyk2oKM2eZm41m9kLPfGG` (run_once_fired, auto-disabled)
+**PR**: [#78](https://github.com/SONGYEONGSIN/vibe-flow/pull/78) — `docs(auto-build): R11 dogfooding marker` (머지됨, commit b9fd688)
+**cloud session**: session_01SS6DK9akCbtc3PXtdRcqaX (cycle 약 3분 12초, 10:01:53Z → 10:05:05Z)
 
-**routine**: `trig_01Bqyk2oKM2eZm41m9kLPfGG` ("vibe-flow R11 dogfooding")
-**queue entry**: 20260525T082401Z-bc00 (SKILL.md R11 marker + 위치 자율)
-**enqueue commit**: 2632232
-**검증 초점**: F14/F15 (PR #77) 신규 로그 형식이 cloud session에서 출력되는지
-- `[auto-build-safety] PASS — tool=<X> reason=<Y>` (자율 모드 wire 명시)
-- `[orchestrator] P3a step=Tn — no ambiguity detected, direct flow` (inline grade라 P3a 예상)
-- vote 4종 stderr (이 task는 P3a 예상이라 못 볼 가능성, R12 분리)
+✅ **명시 확인** (R10과 동일 패턴):
+- orchestrator P0~P5 진행, brainstorm 자율 사용, surgical change, queue git-committed status update
 
-**예상 PR**: `docs(auto-build): R11 dogfooding marker`. 머지 후 R11 PASS + Phase 3.1 종료 게이트 통과.
+❌ **F14/F15 cloud-side 미적용 발견** (사용자 cloud session log 확인):
+- `[auto-build-safety] PASS` stderr 안 보임
+- `[orchestrator] P3a` stderr 안 보임
+- → PR #77 fix 자체는 OK (local 검증), cloud session 측 메커니즘 부재
+
+**부수 finding**: cloud agent 보고 — "eval-regression-check.sh: yq failure is pre-existing and unrelated, P4 verify passes". yq 관련 별 issue 잠재.
+
+## 신규 Finding F16/F17 — cloud-side observability 메커니즘 부재
+
+**F16 (P1) — cloud session hook wire 메커니즘 부재**:
+- `settings/settings.template.json:91` 이 PreToolUse `.claude/hooks/auto-build-safety.sh` 등록
+- 그러나 `.claude/hooks/auto-build-safety.sh` 및 `.claude/settings.json` **모두 git untracked**
+- cloud session은 fresh clone + setup.sh 실행 단계 없음 → settings + hooks **모두 부재** → hook wire 자체 불가능
+- **fix 방향**: (a) `.claude/hooks/` + `.claude/settings.json` git track + commit / (b) `cloud-prompt-template.md`에 setup 단계 추가 / (c) settings.template.json을 .claude/settings.json으로 cloud-side install하는 별 메커니즘
+
+**F17 (P2) — orchestrator.md 명세 강제력 한계**:
+- markdown 가이드라인이라 cloud agent가 P3a/P3b 진입 시 stderr 출력 의식하지 않을 수 있음
+- cycle log에 orchestrator.md Read 호출 자체가 있었는지도 미확인
+- **fix 방향**: 명세를 코드 강제력으로 변환 — `run-cloud.sh` 또는 orchestrator wrapper가 P3 entry 시 stderr 자동 출력 (markdown → script 책임 이전)
+
+## Phase 3.1 부분 종료 선언 (2026-05-25)
+
+**달성**: cloud-native cron-triggered auto-build cycle 본 목표 — 4회 dogfooding (R8 queue empty / R9 docs / R10 vote-ish / R11 observability test) 모두 functional PASS. cycle 평균 3분 내 자율 PR 생성.
+
+**미완**: cloud-side observability (F14/F15 코드 OK이지만 wire 안 됨, F16/F17이 후속).
+
+**Phase 4 scope 권장**:
+- F16 (P1) — cloud session hook wire 메커니즘 fix
+- F17 (P2) — orchestrator 명세 강제력 강화
+- R12 — F16 fix 후 wire 명시 검증 firing (destructive op 차단 단독 검증 겸용)
+- yq pre-existing failure 별 finding 조사
+- (선택) PR-D dashboard /morning 별 cycle
 
 ## 다음 세션 진입점
 
@@ -116,16 +144,17 @@ R10 PASS 시 Phase 3.1 종료 + Phase 4 plan 진입.
 
 **우선 순위 권장**: 옵션 A (R10 새 payload 검증) → 옵션 C → 옵션 B 순.
 
-**머지된 PR 9건 (Phase 3.1 + 보강)**:
+**머지된 PR 10건 (Phase 3.1 + 보강)**:
 - #69 — schedule-register.sh RemoteTrigger payload (F10으로 재설계됨, PR #74에서 해소)
 - #70 — run-cloud.sh cloud 진입점 + 1 firing = 1 PR 정책
 - #71 — queue.jsonl git-committed + safety cloud probe
 - #72 — notify-pr.sh + R10 cost threshold warning
 - #73 — R9 dogfooding marker (R9 firing 결과물)
 - #74 — F10/F11/F12 클린업
-- #75 — R10 dogfooding marker (R10 cloud cycle 자동 생성, 2026-05-25 KST 12:04)
+- #75 — R10 dogfooding marker (R10 cloud cycle 자동 생성)
 - #76 — Karpathy 5번째 원칙 Context Engineering + donts 2 룰 (vibe-flow harness gap closure)
-- #77 — F14/F15 observability (safety PASS 로그 + orchestrator vote 4종 stderr)
+- #77 — F14/F15 observability code (safety PASS 로그 + orchestrator vote 4종 stderr) — cloud-side 미적용 발견
+- #78 — R11 dogfooding marker (R11 cloud cycle 자동 생성, cloud wire gap finding)
 
 **Master plan**: `.claude/plans/20260523-093000-vibe-flow-phase3-1-cloud-native-master.md`
 
