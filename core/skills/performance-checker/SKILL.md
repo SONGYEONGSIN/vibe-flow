@@ -54,7 +54,7 @@ fi
 ### Step 1: 빌드 점검 [Critical]
 
 ```bash
-npm run build 2>&1 | tee /tmp/perf_build.txt
+npm run build > /tmp/perf_build.txt 2>&1
 echo "빌드 종료 코드: $?"
 ```
 
@@ -290,7 +290,7 @@ Performance Check Report
 
 ```bash
 # 1. 빌드 + First Load JS 확인
-npm run build 2>&1 | tee /tmp/perf_build.txt
+npm run build > /tmp/perf_build.txt 2>&1
 grep "First Load JS\| kB\| MB" /tmp/perf_build.txt
 
 # 2. gzip 크기 상위 10개 청크
