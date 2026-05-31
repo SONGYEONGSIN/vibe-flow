@@ -14,7 +14,7 @@
 - [ ] 정적 페이지 생성 중 오류 없음
 
 ```bash
-npm run build 2>&1 | tee /tmp/perf_build.txt
+npm run build > /tmp/perf_build.txt 2>&1
 echo "종료 코드: $?"
 grep -iE "^(error|Error TS|Type error|Failed)" /tmp/perf_build.txt | head -20
 ```
