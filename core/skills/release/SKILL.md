@@ -1,7 +1,7 @@
 ---
 name: release
 effort: medium
-description: 릴리즈 — conventional commits에서 semver 자동 판단, CHANGELOG.md 갱신, git tag + push. /release [version]
+description: 릴리즈 — conventional commits에서 semver 자동 판단, CHANGELOG.md 갱신, git tag + push. "릴리즈 만들어", "버전 올리자", "태그 발행", "CHANGELOG 갱신" 요청 시 사용. /release [version]
 ---
 
 Chops release 스킬 패턴 적용. Conventional Commits 기반 semver 자동 결정 + CHANGELOG 관리 + 사용자 확인 후 태그.

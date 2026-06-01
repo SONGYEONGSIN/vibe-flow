@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Conventional Commit 메시지를 자동 생성하고 커밋한다
+description: Conventional Commit 메시지를 자동 생성하고 커밋한다. "커밋해줘", "이거 커밋", "변경사항 커밋", "메시지 자동 작성" 요청 시 사용. 사용법 /commit
 effort: low
 ---
 

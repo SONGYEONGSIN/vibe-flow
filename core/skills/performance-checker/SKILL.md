@@ -1,6 +1,6 @@
 ---
 name: performance-checker
-description: '"성능 점검", "빌드 체크", "사이트 검증", "배포 전 점검" 요청 시 사용.'
+description: Next.js 빌드 성능 정적 분석 (번들 사이즈, tree-shaking, dependency 분포). site-auditor 내부 워커 — 직접 호출은 비권장. URL 런타임 측정은 /perf-audit. "빌드 점검", "번들 사이즈", "Next.js 성능", "배포 전 빌드 체크" 요청 시 자동 trigger.
 user-invocable: false
 ---
 
