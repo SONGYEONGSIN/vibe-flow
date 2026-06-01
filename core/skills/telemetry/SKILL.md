@@ -1,31 +1,44 @@
 ---
 name: telemetry
-description: 본인 1 머신 events.jsonl 분석 — Top 5 / Active / Stale / 개선 후보 / 추세. 기본 30일, --period 7|30|90 옵션으로 기간 조정. 4 모드 (all/skills/trends/--json).
+description: 본인 1 머신 사용량 분석 — Top 5 / Active / Stale / 개선 후보 / 추세. 두 데이터 소스 — `--source events` (default, .claude/events.jsonl) / `--source session` (~/.claude/projects/<project>/*.jsonl raw 호출 빈도, F-D2 R3 instrumentation gap 우회). 기본 30일, --period 7|30|90. 4 모드 (all/skills/trends/--json). "텔레메트리 보여줘", "사용량", "내 패턴" 요청 시 사용.
 model: claude-sonnet-4-6
 ---
 
 # /telemetry
 
-vibe-flow의 본인 1 머신 events.jsonl을 분석해 메이커 의사결정 데이터를 출력한다. 기본 분석 기간 30일, `--period 7|30|90`으로 조정 가능.
+vibe-flow의 본인 1 머신 사용량을 분석해 메이커 의사결정 데이터를 출력한다. 기본 분석 기간 30일, `--period 7|30|90`으로 조정 가능. 두 데이터 소스 지원:
+
+| Source | 데이터 위치 | 측정 대상 | 한계 |
+|--------|-----------|----------|------|
+| `events` (default) | `.claude/events.jsonl` | 자체 hook이 기록한 의미 있는 이벤트 (brainstorm/plan_created/commit_created 등) | instrumentation gap — Skill 자동 trigger + Agent dispatch는 PR #81(`tool-invocation-tracker.sh`) 머지 이후만 기록 |
+| `session` (F-D2 R3) | `~/.claude/projects/<project>/*.jsonl` | Claude Code raw 세션 로그의 Skill tool / Agent tool 호출 직접 추출 | 의미 있는 events(brainstorm/plan_created)는 부재 |
+
+**권장 사용**:
+- 일상 점검: `--source events` (의미 있는 활동 단위)
+- 실 호출 빈도 정밀 측정: `--source session` (instrumentation gap 우회, raw 데이터)
+- 둘 다 보고 싶으면: 두 번 실행 후 비교
 
 ## 트리거
 
-- `/telemetry` — 종합 보고서 (30일)
+- `/telemetry` — 종합 보고서 (30일, events)
 - `/telemetry skills` — Top 5 + Active + Stale만
 - `/telemetry trends` — 추이만
 - `/telemetry --json` — JSON 출력
-- `/telemetry --period 7|30|90` — 분석 기간 조정 (다른 모드와 조합 가능: `/telemetry skills --period 7`)
+- `/telemetry --period 7|30|90` — 분석 기간 조정 (다른 모드와 조합 가능)
+- `/telemetry --source session` — Claude Code raw 세션 로그 분석 (F-D2 R3)
+- `/telemetry skills --source session --period 7` — 조합 가능
 
 ## 절차
 
-### 1. 모드 + 기간 파싱
+### 1. 모드 + 기간 + 소스 파싱
 
 ```bash
 # 기본값
 MODE="all"
 PERIOD_DAYS=30
+SOURCE="events"   # events (default) | session (F-D2 R3)
 
-# 인자 순회 — --period 와 mode 동시 허용
+# 인자 순회 — --period / --source / mode 동시 허용
 while [ $# -gt 0 ]; do
   case "$1" in
     --period)
@@ -33,6 +46,13 @@ while [ $# -gt 0 ]; do
       case "$1" in
         7|30|90) PERIOD_DAYS="$1" ;;
         *) echo "warn: --period $1 무효, 30일로 대체 (허용: 7|30|90)" >&2 ;;
+      esac
+      ;;
+    --source)
+      shift
+      case "$1" in
+        events|session) SOURCE="$1" ;;
+        *) echo "warn: --source $1 무효, events로 대체 (허용: events|session)" >&2 ;;
       esac
       ;;
     skills) MODE="skills" ;;
@@ -45,11 +65,21 @@ while [ $# -gt 0 ]; do
 done
 ```
 
-### 2. 시간 기준
+### 2. 시간 기준 + 소스 경로
 
 ```bash
-EVENTS=".claude/events.jsonl"
-[ -f "$EVENTS" ] || { echo "events.jsonl 없음 — 먼저 vibe-flow 사용 후 다시 실행" >&2; exit 0; }
+if [ "$SOURCE" = "session" ]; then
+  # F-D2 R3: Claude Code raw 세션 로그 (~/.claude/projects/<project>/*.jsonl)
+  # 현 프로젝트 디렉토리에 매핑된 sub-dir 자동 인식 (path → slug 변환)
+  PROJECT_SLUG=$(pwd | sed 's|/|-|g' | sed 's/^-//')
+  SESSION_DIR="$HOME/.claude/projects/-${PROJECT_SLUG}"
+  [ -d "$SESSION_DIR" ] || { echo "session-logs 없음 — $SESSION_DIR" >&2; exit 0; }
+  SESSION_FILES=$(find "$SESSION_DIR" -name "*.jsonl" -type f 2>/dev/null)
+  [ -z "$SESSION_FILES" ] || true
+else
+  EVENTS=".claude/events.jsonl"
+  [ -f "$EVENTS" ] || { echo "events.jsonl 없음 — 먼저 vibe-flow 사용 후 다시 실행" >&2; exit 0; }
+fi
 
 DAY_PERIOD_AGO=$(date -u -v-${PERIOD_DAYS}d +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
         || date -u -d "${PERIOD_DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)
@@ -455,6 +485,87 @@ jq -nc --arg ts "$NOW_ISO" --arg mode "$MODE" --argjson n "$TOTAL_PERIOD" --argj
   >> .claude/events.jsonl
 ```
 
+## Session Source 분석 (F-D2 R3 신설)
+
+`SOURCE=session` 분기로 진입 시 위 절차의 jq 명령은 **session-logs/*.jsonl** 직접 파싱으로 대체된다. 다른 의미 있는 자체 이벤트(brainstorm/plan_created)는 없는 대신 **모든 Skill tool / Agent tool 호출이 raw로 기록**되어 instrumentation gap 0.
+
+### 핵심 jq 명령어
+
+```bash
+# Skill tool 자동 호출 빈도 (input.skill 별)
+jq -c '
+  select(.message.content) |
+  .message.content[]? |
+  select(.type == "tool_use" and .name == "Skill") |
+  .input.skill
+' $SESSION_FILES 2>/dev/null | sort | uniq -c | sort -rn
+
+# Agent / Task tool 호출 빈도 (input.subagent_type 별)
+jq -c '
+  .. | objects |
+  select(.name == "Task" or .name == "Agent") |
+  .input.subagent_type // empty
+' $SESSION_FILES 2>/dev/null | sort | uniq -c | sort -rn
+
+# User prompt 형식 분포 (slash vs 자연어)
+jq -r '
+  select(.message.role == "user") |
+  .message.content |
+  if type == "string" then . else (.[0].text // "") end |
+  if startswith("/") then "slash" else "natural" end
+' $SESSION_FILES 2>/dev/null | sort | uniq -c
+
+# 기간 필터링은 .timestamp 또는 jsonl 라인의 .ts 필드 사용
+# (session-logs는 .timestamp가 ISO 8601, 라인별 다름 — 정확한 필드는 head -1로 확인)
+```
+
+### 시간 필터링
+
+```bash
+# session-logs의 timestamp 필드를 ISO 8601로 보고 DAY_PERIOD_AGO 이상만 필터
+jq -c --arg since "$DAY_PERIOD_AGO" '
+  select(.timestamp >= $since) |
+  ...  # 위 명령들과 조합
+' $SESSION_FILES 2>/dev/null
+```
+
+### 출력 형식 (mode 별 일관성)
+
+기존 events 모드의 출력 헤더 + 표 형식 그대로. 다만 헤더에 `source: session` 명시. 예:
+
+```
+[telemetry] source=session period=30d analyzed_files=12
+
+## Skill tool 자동 호출 Top 10
+  brainstorm    10
+  plan          6
+  ...
+
+## Agent dispatch Top 10
+  general-purpose 25
+  ...
+
+## User prompt 형식
+  natural   939 (76%)
+  slash      31 (2.5%)
+```
+
+### Events 발생 (session source 시)
+
+```bash
+# session source 분석도 events.jsonl에 메타 이벤트 1라인 기록
+jq -nc --arg ts "$NOW_ISO" --arg mode "$MODE" --arg src "session" \
+  --argjson n "$TOTAL_CALLS" --argjson p "$PERIOD_DAYS" \
+  '{type:"telemetry", source:$src, ts:$ts, mode:$mode, period_days:$p, analyzed_events:$n}' \
+  >> .claude/events.jsonl
+```
+
+### 한계
+
+- **자체 이벤트 부재**: brainstorm spec 작성 / plan 생성 / commit 같은 의미 단위 활동은 session-logs에 raw tool call로만 기록. events 모드가 이런 의미 단위를 더 잘 잡음.
+- **권장**: `--source events` 와 `--source session` 둘 다 실행해서 격차 비교가 가장 풍부 (R3 PR 이후 기본 패턴).
+
 ## 출처
 
-Phase 4 첫 항목. spec: `docs/superpowers/specs/2026-04-30-telemetry-skill-design.md`.
+- Phase 4 첫 항목. spec: `docs/superpowers/specs/2026-04-30-telemetry-skill-design.md`.
+- Session source: F-D2 R3 audit 결과 (events.jsonl skill_invoked 7 vs session-logs 41, 83% gap). PR #81 `tool-invocation-tracker.sh`가 자동 trigger 추적 시작했으나, 과거 데이터는 session-logs 직접 분석으로만 복원 가능.
