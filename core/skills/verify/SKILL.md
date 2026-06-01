@@ -1,7 +1,7 @@
 ---
 name: verify
 effort: medium
-description: 프로젝트 전체 검증 — lint, typecheck, unit test, E2E, 브라우저 콘솔 에러를 순차 실행한다
+description: 프로젝트 전체 검증 — lint, typecheck, unit test, E2E, 브라우저 콘솔 에러를 순차 실행한다. "검증해줘", "전체 검사", "테스트 다 돌려", "lint typecheck 한번에", "PR 전 점검" 요청 시 사용. 결과는 stdout, 실패 시 비-zero exit.
 ---
 
 프로젝트 변경사항을 전체 검증한다.

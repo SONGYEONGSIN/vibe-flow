@@ -1,6 +1,6 @@
 ---
 name: finish
-description: 작업 완료 시 머지/PR/cleanup 경로를 자동 판정하고 후속 단계를 안내한다. 테스트/커밋/plan/branch 상태를 종합 점검 후 의사결정 트리로 명확한 다음 행동 제시. 사용법 /finish [--path pr|direct|release|cleanup]
+description: 작업 완료 시 머지/PR/cleanup 경로를 자동 판정하고 후속 단계를 안내한다. 테스트/커밋/plan/branch 상태를 종합 점검 후 의사결정 트리로 명확한 다음 행동 제시. "끝났어", "마무리해줘", "이제 머지", "PR 만들까", "작업 완료" 요청 시 사용. 사용법 /finish [--path pr|direct|release|cleanup]
 effort: medium
 ---
 
