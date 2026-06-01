@@ -1,6 +1,6 @@
 ---
 name: learn
-description: 프로젝트 메모리에 패턴/규칙을 저장하거나 조회한다. 사용법: /learn [save|show] [pattern|error|profile]
+description: 프로젝트 메모리에 패턴/규칙을 저장하거나 조회한다. "기억해줘", "다음에도 기억", "패턴 저장", "이거 학습", "메모리에 추가" 요청 시 사용. 사용법 /learn [save|show] [pattern|error|profile]
 effort: low
 ---
 

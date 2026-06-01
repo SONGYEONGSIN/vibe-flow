@@ -79,14 +79,18 @@ metadata:
 
 ### F-D2 R1 완료 (PR #81 commit 87c093c) — 2026-06-01
 - `tool-invocation-tracker.sh` PostToolUse hook 신설 (Skill/Agent/Task track)
-- 20/20 smoke PASS
-- 이제부터 events.jsonl에 `skill_invoked_auto` + `agent_invoked` event 누적
+- 20/20 smoke PASS, 이제부터 events.jsonl에 자동 trigger + Agent 호출 누적
 
-### 옵션 A — F-D2 R2 (description 감사, H3 해소)
-38 미사용 skill description 한국어 자연어 트리거 강화. brainstorm/plan/auto-build 패턴 model. `sync-workflow` skill로 자동화 시도. ~1시간+.
+### F-D2 R2 완료 (PR #82 commit 0c8a459) — 2026-06-01
+- 10 skill description 한국어 자연어 트리거 강화 (Batch A git/PR + B 테스트 + C 메타)
+- gap 진단: 31 미사용 중 22건 description 약점, 6건 도메인 좁아 자연 저빈도
+- 양호 유지: 도메인 좁은 6 skill + 이미 trigger 강한 3 skill = 미수정 9건
 
-### 옵션 B — F-D2 R3 (telemetry 데이터 소스 전환)
+### 옵션 A — F-D2 R3 (telemetry 데이터 소스 전환)
 `telemetry` skill 데이터 소스를 `~/.claude/projects/<project>/*.jsonl`로 전환. 자체 hook 유지비 제거. ~45분.
+
+### 옵션 B — F-D2 R2 후속 (남은 12 미사용 skill description audit)
+배치 A/B/C 외 12건: agent-browser, b2b-landing, budget, deploy-safety-guard, dependency-manager(양호 유지 권장이라 skip), inbox, menu, onboard, orchestrate, receive-review, retro, status, sync-claude-md, sync-workflow, telemetry, webapp-testing — 일부는 P2 수준이라 ROI 낮음.
 
 ### 옵션 C — 다른 P1 — F-A3 patterns.md dead ref + F-A4 brainstorm 재분류
 소규모. ~20분.
@@ -97,12 +101,17 @@ metadata:
 ### 옵션 E — R12 cloud cycle 실패 root cause (Phase 3.1/4 잔여)
 F16 PR #79 효과가 cloud에 미적용 — cloud session log 확인 필요.
 
-**권장 순서**: A (R2 description 감사 — H3 해소) → B (R3 telemetry 전환) → C/D 소규모 → E.
+### 검증 — R1/R2 효과 측정
+PR #81 + #82 적용 후 며칠 데이터 누적되면 events.jsonl에서 자동 trigger 빈도 + 새 description 효과 정량 확인 가능 (telemetry skill 호출).
+
+**권장 순서**: A (R3 telemetry 전환) → C/D 소규모 → 검증 → E.
 
 ## 머지된 PR (audit 관련)
 
 - #80 (commit 8456c58) — P0 + P1 4건 cleanup
 - #81 (commit 87c093c) — F-D2 R1 instrumentation tracker hook
+- #82 (commit 0c8a459) — F-D2 R2 10 skill description 자연어 트리거 강화 (H3 해소)
+- #83 (commit ad05aaa) — F-D2 R3 telemetry --source session 모드 (raw 호출 빈도 측정)
 
 ## Linked memories
 

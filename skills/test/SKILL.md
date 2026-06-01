@@ -1,6 +1,6 @@
 ---
 name: test
-description: 지정 파일에 대한 Vitest 단위 테스트를 자동 생성한다. 사용법: /test [file-path]
+description: 지정 파일에 대한 Vitest 단위 테스트를 자동 생성한다. "테스트 짜줘", "단위 테스트 만들어", "vitest 추가", "이 파일 테스트" 요청 시 사용. 결과는 <file>.test.ts. 사용법 /test [file-path]
 effort: medium
 ---
 

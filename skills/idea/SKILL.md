@@ -1,6 +1,6 @@
 ---
 name: idea
-description: '"아이디어 검증", "/idea" 요청 시 사용.'
+description: 사업 아이디어를 시장성/실행가능성/차별성 3 렌즈로 검증한다. "사업 아이디어", "이거 될까", "시장성 검토", "BMC 만들어", "아이디어 검증", "스타트업 아이디어" 요청 시 사용. 결과는 대화 응답 + (선택) BMC 문서. 사용법 /idea
 user-invocable: true
 allowed-tools: Read, Write, Edit, WebSearch, WebFetch, Grep, Glob
 ---
