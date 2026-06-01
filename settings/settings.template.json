@@ -184,6 +184,16 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "matcher": "Skill|Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/tool-invocation-tracker.sh",
+            "timeout": 3000
+          }
+        ]
       }
     ],
     "PostToolUseFailure": [
