@@ -1,7 +1,7 @@
 ---
 name: security
 effort: high
-description: OWASP Top 10 기준으로 프로젝트 전체 코드를 보안 스캔한다
+description: 명시 호출 deep context 보안 스캔. auth/RLS/Server Action 같이 hook 정적 패턴으로 못 잡는 의미 분석 전담. 표면 점검은 /security-audit, 정적 패턴은 security-lint hook이 담당.
 ---
 
 프로젝트 전체를 OWASP Top 10 기준으로 보안 점검한다.
