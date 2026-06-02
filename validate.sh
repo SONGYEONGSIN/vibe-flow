@@ -102,7 +102,9 @@ echo ""
 echo "[4/10] 훅 파일 검증"
 if [ -d "$CLAUDE_DIR/hooks" ]; then
   # 필수 훅 파일 목록
-  REQUIRED_HOOKS="_common command-guard smart-guard prettier-format eslint-fix typecheck test-runner metrics-collector pattern-check design-lint debate-trigger message-bus readme-sync session-log session-review uncommitted-warn tool-failure-handler notify pre-compact tdd-enforce context-prune model-suggest"
+  # F-B8 (audit round 2): 누락 6개 hook 추가 — auto-build-safety, budget-warn,
+  # security-lint, session-memory-sync, skill-tracker, tool-invocation-tracker
+  REQUIRED_HOOKS="_common command-guard smart-guard prettier-format eslint-fix typecheck test-runner metrics-collector pattern-check design-lint debate-trigger message-bus readme-sync session-log session-review uncommitted-warn tool-failure-handler notify pre-compact tdd-enforce context-prune model-suggest auto-build-safety budget-warn security-lint session-memory-sync skill-tracker tool-invocation-tracker"
   HOOK_MISSING=0
   for hook in $REQUIRED_HOOKS; do
     if [ ! -f "$CLAUDE_DIR/hooks/${hook}.sh" ]; then
