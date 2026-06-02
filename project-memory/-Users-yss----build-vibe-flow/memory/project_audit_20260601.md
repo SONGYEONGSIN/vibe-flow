@@ -108,10 +108,38 @@ PR #81 + #82 적용 후 며칠 데이터 누적되면 events.jsonl에서 자동 
 
 ## 머지된 PR (audit 관련)
 
-- #80 (commit 8456c58) — P0 + P1 4건 cleanup
+### Round 1 (2026-06-01) — 4 PR
+- #80 (commit 8456c58) — P0 + P1 4건 cleanup (F-A1/F-A2/F-B1/F-D1)
 - #81 (commit 87c093c) — F-D2 R1 instrumentation tracker hook
 - #82 (commit 0c8a459) — F-D2 R2 10 skill description 자연어 트리거 강화 (H3 해소)
-- #83 (commit ad05aaa) — F-D2 R3 telemetry --source session 모드 (raw 호출 빈도 측정)
+- #83 (commit ad05aaa) — F-D2 R3 telemetry --source session 모드
+
+### Round 2 (2026-06-02) — 1 PR
+- #84 (commit f378c28) — F-A3 (patterns.md placeholder) + F-B8 (validate.sh 28 hooks) + F-D3 R1 (5 plan completed) 3건 P1 해소
+
+## Round 2 점수 변화 (재감사 결과)
+
+| Dimension | 1회차 | 2회차 | Δ |
+|-----------|------|------|---|
+| D1 컨텍스트 관리 | 2.8 | **4.0** | **+1.2** ⬆️ |
+| D2 아키텍처/구조 | 3.8 | 3.8 | 0 (해소 +1 vs 신규 -1) |
+| D3 dogfooding gap | 2.5 | **3.5** | **+1.0** ⬆️ |
+| **평균** | **3.0** | **3.77** | **+0.77** |
+
+### D1 +1.2 핵심
+- Karpathy 5번 적용 2→4 (tee 제거 + donts 룰 정착)
+- 메모리 운영 2→4 (MEMORY.md 71줄 + 2계층 분리)
+
+### D2 정체 (0)
+- 해소: F-B1 (security 3-layer), F-B3 (performance-checker 차별화) +1.0
+- 신규: F-B8 (validate.sh 누락, 자기 모순) -0.5, F-B6 (security agent 2 중복 유지) -0.5
+- → PR #84로 F-B8 해소했으므로 round 3 측정 시 D2 ~4.3 예상
+
+### D3 +1.0 핵심
+- TDD Iron Law 회복 (smoke test 5→8)
+- session-logs 분석으로 "22 agent 0회" 결론 정정 → 실은 13 agent 52건
+- agent_invoked event 라이브 캡처 4건 (hook 작동 확인)
+- 단 plan_completed 8:1 → PR #84로 6:8 (이전 7:1→8:1 악화에서 회복)
 
 ## Linked memories
 
