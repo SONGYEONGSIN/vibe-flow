@@ -1,1 +1,2 @@
 - [DB 마이그레이션 적용 방법](db-migration-apply.md) — Supabase CLI 없음; DATABASE_URL(풀러) + `pg --no-save` 인라인으로 적용 후 RLS 검증
+- [경위서 양식 뷰어 기능](incident-report-form-viewer.md) — feat 브랜치 미머지, 라우트/단일소스/로고/시행번호 등 재개 컨텍스트
