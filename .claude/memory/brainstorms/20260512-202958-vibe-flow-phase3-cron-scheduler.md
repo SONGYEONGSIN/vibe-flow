@@ -1,5 +1,7 @@
 # Brainstorm: vibe-flow Phase 3 — cron scheduler + 다중 task 큐 (session-less 자율)
 
+작성: 2026-05-12T20:29:58Z (filename에서 추출, retroactive F-A4 fix)
+
 draft_status: 초안 — maker review 필요
 출발점: `.claude/memory/brainstorms/20260504-103257-vibe-flow-v2-overnight-autonomous-build.md` Phase 2 섹션 + cycle 1-7 calibration 결과 + `feedback_auto_build_anytime` memory
 

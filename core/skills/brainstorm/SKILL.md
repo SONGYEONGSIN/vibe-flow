@@ -6,6 +6,12 @@ effort: medium
 
 새 기능을 만들기 전에 의도와 대안을 명시하여 잘못된 방향으로 빠르게 가는 것을 막는다. **모든 창의적 작업의 입구**가 되어야 한다. designer의 Phase 0가 디자인 한정이라면, /brainstorm은 도메인 무관 일반 의도 탐색.
 
+> **명명 정합성 (audit F-D3 R2 해소)**: vibe-flow `/brainstorm` (이 skill, events.jsonl `"type":"brainstorm"`)과 Claude Code `superpowers:brainstorming` (외부 plugin)은 **다른 객체**. 둘 다 brainstorm 도메인을 다루지만:
+> - **`/brainstorm` (vibe-flow)** — `.claude/memory/brainstorms/` spec 파일 저장 + `## 의도/제약/대안 비교/추천+근거/다음 단계` H2 표준 강제
+> - **`superpowers:brainstorming`** — 더 일반적, spec 형식 자유
+>
+> 자동 trigger 시 Claude가 둘 중 하나 선택 가능. `events.jsonl`의 `"type":"brainstorm"` event는 vibe-flow skill만 emit (superpowers는 emit X).
+
 ## 사용 시점
 
 **필수**:

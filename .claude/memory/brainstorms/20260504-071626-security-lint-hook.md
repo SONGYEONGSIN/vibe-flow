@@ -1,5 +1,7 @@
 # Brainstorm: security 강화 — OWASP 자동 hooks
 
+작성: 2026-05-04T07:16:26Z (filename에서 추출, retroactive F-A4 fix)
+
 ## 의도
 - **산출물**: PostToolUse Write/Edit 시 자동 OWASP 정적 lint hook (`core/hooks/security-lint.sh`). 변경 파일만 스캔, warn-only
 - **사용자**: vibe coder, 코드 작성 직후 즉각 피드백 (commit/CI 전)

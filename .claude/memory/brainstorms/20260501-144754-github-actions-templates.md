@@ -1,5 +1,7 @@
 # Brainstorm: GitHub Actions templates
 
+작성: 2026-05-01T14:47:54Z (filename에서 추출, retroactive F-A4 fix)
+
 ## 의도
 - **산출물**: vibe-flow `templates/.github/workflows/`에 사용자 프로젝트용 GH Actions YAML
 - **사용자**: vibe-flow 설치한 vibe coder, 자기 프로젝트 CI 셋업 시 복사 사용 (opt-in)

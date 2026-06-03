@@ -1,5 +1,7 @@
 # Brainstorm: vibe-flow Phase 3.1 PR-C — schedule 통합 + auto-recovery + depends_on
 
+작성: 2026-05-23T08:44:09Z (filename에서 추출, retroactive F-A4 fix)
+
 출발점:
 - `.claude/memory/brainstorms/20260512-202958-vibe-flow-phase3-cron-scheduler.md` — Phase 3 상위 brainstorm (4 결정 채택 memory)
 - `.claude/memory/brainstorms/20260512-213341-auto-build-run-queue-pr-b.md` — PR-B scope + schema 확정

@@ -1,5 +1,7 @@
 # Brainstorm: /auto-build queue 슬래시 스킬 (Phase 3.0 PR-A)
 
+작성: 2026-05-12T20:47:38Z (filename에서 추출, retroactive F-A4 fix)
+
 출발점: `.claude/memory/brainstorms/20260512-202958-vibe-flow-phase3-cron-scheduler.md` 추천 A2.1 (jsonl) + PR-A scope 정의 (line 117).
 
 ## 의도

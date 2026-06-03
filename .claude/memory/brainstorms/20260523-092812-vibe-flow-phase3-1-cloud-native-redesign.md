@@ -1,5 +1,7 @@
 # Brainstorm: vibe-flow Phase 3.1 — Cloud-native 재설계 (Path A)
 
+작성: 2026-05-23T09:28:12Z (filename에서 추출, retroactive F-A4 fix)
+
 draft_status: 초안 — maker review 필요. plan/구현은 fresh session 권장 (2-3일 scope)
 
 출발점:

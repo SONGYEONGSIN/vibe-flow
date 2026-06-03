@@ -1,5 +1,7 @@
 # Brainstorm: commit_pushed 이벤트 emit + telemetry 매핑
 
+작성: 2026-05-12T19:58:37Z (filename에서 추출, retroactive F-A4 fix)
+
 run_id: 20260512T105812Z-6c90
 task_source: spec_line_76 (PR #54 + #55 + #56 + #57 후속 retry)
 

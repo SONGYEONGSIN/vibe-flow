@@ -1,5 +1,7 @@
 # Brainstorm: R11 dogfooding marker (cloud cycle 세 번째 실 task)
 
+작성: 2026-05-25T08:24:01Z (filename에서 추출, retroactive F-A4 fix)
+
 ## 의도
 
 - **무엇을**: `core/skills/auto-build/SKILL.md` 말미에 `## R11 dogfooding marker` H2 섹션 1개 추가 (본문 1줄)

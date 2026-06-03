@@ -1,5 +1,7 @@
 # Brainstorm: R10 dogfooding marker 추가
 
+작성: 2026-05-25T03:01:50Z (filename에서 추출, retroactive F-A4 fix)
+
 ## 의도
 
 - **무엇을**: `core/skills/auto-build/SKILL.md` 파일 말미에 R10 dogfooding marker H2 섹션 1개 추가

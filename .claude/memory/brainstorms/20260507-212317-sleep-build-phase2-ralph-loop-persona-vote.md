@@ -1,5 +1,7 @@
 # Brainstorm: sleep-build Phase 2 — Ralph loop + persona voting
 
+작성: 2026-05-07T21:23:17Z (filename에서 추출, retroactive F-A4 fix)
+
 ## 의도
 
 - **산출물**: Phase 1 단발 사이클을 **multi-iteration Ralph loop**로 확장 + **ambiguity 발생 시 vibe-flow 24 agent 중 관련 persona 자동 dispatch + moderator 중재**로 결정 → maker 추가 입력 없이 진정한 무인 사이클. 한 task로 PR 1+개 생성하는 본격 SaaS 빌드 가능.
