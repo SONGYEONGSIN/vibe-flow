@@ -1,9 +1,10 @@
 ---
 name: test-writer
 description: |
-  테스트 코드 작성 전문 에이전트. TDD 워크플로우(Red-Green-Refactor), 단위/통합/E2E 테스트를 체계적으로 작성한다.
-  <example>Context: 사용자가 "테스트 작성해줘", "테스트 만들어줘", "TDD로 구현해줘", "단위 테스트 추가" 요청 시<commentary>test-writer에 위임하여 테스트 코드 작성</commentary></example>
-  <example>Context: 사용자가 "E2E 테스트", "Playwright 테스트", "테스트 커버리지 올려줘", "이 함수 테스트" 요청 시<commentary>test-writer에 위임</commentary></example>
+  **다중 파일 테스트 종합 작성** 전문 에이전트 (sonnet, Playwright MCP 없음). TDD 설계 + 단위/통합/E2E 테스트 코드 작성. Playwright browser 실행은 qa agent, 단일 파일 빠른 생성은 /test skill로 위임.
+  <example>Context: 사용자가 "테스트 종합 작성", "TDD로 구현", "테스트 커버리지 올려", "여러 파일 테스트 추가" 요청 시<commentary>test-writer에 위임 — 다중 파일 + 분석 기반 작성</commentary></example>
+  <example>Context: 사용자가 "Playwright 실행", "browser 자동화 E2E" 요청 시<commentary>qa agent에 위임 (test-writer는 코드 작성만, MCP 없음)</commentary></example>
+  <example>Context: 사용자가 "/test src/foo.ts" 단일 파일 요청 시<commentary>test skill에 위임 (test-writer는 over-engineering)</commentary></example>
 tools: Read, Edit, Write, Bash, Grep, Glob
 model: sonnet
 color: cyan

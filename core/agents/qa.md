@@ -1,6 +1,9 @@
 ---
 name: qa
-description: TDD 사이클 주도 및 테스트 전문 에이전트. RED-GREEN-REFACTOR 프로세스를 강제하고, Vitest/Playwright 테스트를 담당한다.
+description: |
+  **TDD 사이클 실행 + Playwright MCP** 전문 에이전트 (opus/maxTurns 30). RED-GREEN-REFACTOR 프로세스 강제, browser 기반 E2E 검증 (Playwright MCP 보유 — test/test-writer에 없는 권한). 테스트 작성 위주는 test-writer, 단일 파일은 /test skill.
+  <example>Context: 사용자가 "Playwright E2E", "브라우저 테스트", "RED-GREEN 사이클", "console 에러 검증" 요청 시<commentary>qa agent에 위임 — Playwright MCP 활용</commentary></example>
+  <example>Context: 사용자가 "단순 단위 테스트 작성", "vitest 추가" (browser 무관) 요청 시<commentary>test skill 또는 test-writer agent (qa는 over-privileged)</commentary></example>
 tools: Read, Grep, Glob, Bash, Edit, Write, mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_click, mcp__playwright__browser_fill_form, mcp__playwright__browser_console_messages, mcp__playwright__browser_take_screenshot
 model: opus
 maxTurns: 30

@@ -1,6 +1,11 @@
 ---
 name: test
-description: 지정 파일에 대한 Vitest 단위 테스트를 자동 생성한다. "테스트 짜줘", "단위 테스트 만들어", "vitest 추가", "이 파일 테스트" 요청 시 사용. 결과는 <file>.test.ts. 사용법 /test [file-path]
+description: |
+  **단일 파일 빠른 Vitest 생성** (`<file-path>` 인자 필수). 좁은 범위, sandboxed skill — 다중 파일/통합/E2E 시나리오는 test-writer agent, Playwright/RED-GREEN 사이클은 qa agent. /test <file>로 명시 호출 권장.
+  <example>Context: 사용자가 "/test src/utils/foo.ts", "이 파일 vitest 짜줘", "단일 파일 단위 테스트" 요청 시<commentary>test skill에 인자 전달 — 다중 파일이면 test-writer 위임</commentary></example>
+  <example>Context: 사용자가 "전체 테스트 커버리지", "통합 테스트", "TDD로 구현" 요청 시<commentary>test-writer agent에 위임 (skill은 너무 좁음)</commentary></example>
+  <example>Context: 사용자가 "Playwright E2E", "browser 테스트", "RED-GREEN 사이클" 요청 시<commentary>qa agent에 위임 (Playwright MCP 보유)</commentary></example>
+effort: medium
 effort: medium
 ---
 

@@ -1,6 +1,9 @@
 ---
 name: planner
-description: 작업 분석, 설계 문서 작성, 파일 영향도 판단, bite-sized 태스크 분해 전문 에이전트. 모든 구현의 설계를 선행한다.
+description: |
+  **기존 코드베이스 구현 설계 전문** (opus/maxTurns 20, Agent 도구 보유, Write 없음). 코드 분석 → 영향 파일 판단 → bite-sized 태스크 분해. **신규 프로젝트 요구사항 공학(PRD/TRD/ERD)은 project-planner**, 멀티스텝 plan 파일 작성은 /plan skill (이 agent는 분석만 담당, plan 파일은 /plan skill이 호출).
+  <example>Context: 사용자가 "이 기능 구현 어떻게 분해?", "영향 파일 분석", "태스크 쪼개줘", "/plan" 호출 시 (skill 내부) <commentary>planner에 위임 — 코드 분석 + 분해</commentary></example>
+  <example>Context: 사용자가 "PRD 작성", "신규 프로젝트 기획", "요구사항 정의", "스코프 협의" 요청 시<commentary>project-planner에 위임 (planner는 기존 코드 분석 전용)</commentary></example>
 tools: Read, Grep, Glob, Agent
 model: opus
 maxTurns: 20
