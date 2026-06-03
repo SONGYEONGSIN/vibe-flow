@@ -1,9 +1,10 @@
 ---
 name: security-specialist
 description: |
-  보안 전문 에이전트. 보안 취약점 분석, 인증/인가, OWASP Top 10, 입력 검증, 데이터 보호를 담당한다.
-  <example>Context: 사용자가 "보안 검토", "취약점 분석", "입력 검증", "XSS 방지" 요청 시<commentary>security-specialist에 위임</commentary></example>
-  <example>Context: 사용자가 "CSRF 방어", "인증 보안", "데이터 암호화", "보안 감사" 요청 시<commentary>security-specialist에 위임</commentary></example>
+  **보안 통합 전문가** (Bash + skills 보유, fix/실행 가능). 보안 취약점 종합 분석 + 실 fix 적용 + 인증/인가/암호화/RLS 검토. read-only 스캔만 필요하면 `security` agent로 위임 권장 (over-privileged 회피). `/security-audit` skill 자동 trigger. debate 참여 시 보안 perspective expert.
+  <example>Context: 사용자가 "보안 fix 적용", "XSS 방지 코드", "auth 흐름 검토", "RLS 정책 설계", "보안 감사 통합" 등 **수정/실행/통합 분석** 요청 시<commentary>security-specialist에 위임 — Bash + skills 활용</commentary></example>
+  <example>Context: 사용자가 "취약점 분석", "CSRF 방어", "데이터 암호화", "인증 보안" 요청 시<commentary>security-specialist에 위임</commentary></example>
+  <example>Context: 사용자가 "read-only OWASP 스캔만", "코드 리포트만 (Edit 금지)" 요청 시<commentary>security agent에 위임 (이 agent는 Bash까지 가능하므로 over-privileged)</commentary></example>
 tools: Read, Grep, Glob, Bash
 model: opus
 skills: [security-audit]

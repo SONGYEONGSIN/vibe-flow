@@ -74,15 +74,32 @@ IF request matches a skill trigger:
 
 **Explore/Researcher = Grep, not consultants.**
 
+**Context budget 강제 (Karpathy §5, audit F-A10 fix)**: 모든 subagent prompt 말미에 출력 크기 제약 명시. 미명시 시 subagent 응답이 main context 채워 정확도/속도 모두 저하.
+
+권장 budget 패턴:
+- Explore (search): `"결과는 file:line 매칭 최대 20개, 총 500자 이내 요약"`
+- Researcher (외부): `"보고서는 1500자 이내, 핵심 finding 5개 이내"`
+- general-purpose 분석: `"보고는 2000자 이내, 표/리스트 우선, 추측 0"`
+
 ```typescript
-// CORRECT: Always background, always parallel, ALWAYS pass model explicitly!
-Task(subagent_type="Explore", model="haiku", prompt="Find auth implementations...")
-Task(subagent_type="Explore", model="haiku", prompt="Find error handling patterns...")
-Task(subagent_type="general-purpose", model="sonnet", prompt="Research JWT best practices...")
+// CORRECT: Always background, always parallel, ALWAYS pass model + context budget!
+Task(
+  subagent_type="Explore", model="haiku",
+  prompt="Find auth implementations... 결과는 file:line 최대 20개, 500자 이내."
+)
+Task(
+  subagent_type="Explore", model="haiku",
+  prompt="Find error handling patterns... 결과는 file:line 최대 20개, 500자 이내."
+)
+Task(
+  subagent_type="general-purpose", model="sonnet",
+  prompt="Research JWT best practices... 1500자 이내, 핵심 5개 finding."
+)
 // Continue working immediately.
 
-// WRONG: Sequential or blocking
+// WRONG: Sequential or blocking, or unbounded output
 result = task(...)  // Never wait synchronously for explore/researcher
+Task(subagent_type="...", prompt="...")  // budget 없음 = main context 오염 위험
 ```
 
 ---

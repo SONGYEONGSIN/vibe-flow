@@ -1,12 +1,15 @@
 ---
 name: security
-description: 보안 취약점 점검 전문 에이전트. OWASP Top 10 기준으로 코드를 스캔하고 취약점을 보고한다.
+description: |
+  **Read-only OWASP Top 10 스캔 워커** (Edit/Write/Bash 금지). `/security` skill의 명시 호출 진입점. 코드 분석/리포트만 담당, 실 수정/실행이 필요하면 `security-specialist` agent에 위임. 결과는 stdout 보고 + message-bus archive. maxTurns 20 cap.
+  <example>Context: `/security` 슬래시 명령 또는 "코드 보안 스캔만", "OWASP 점검 리포트", "read-only 분석" 자연어 요청 시<commentary>security에 위임 — read-only 분석만</commentary></example>
+  <example>Context: 사용자가 "보안 fix 적용", "취약점 수정", "Bash로 의존성 audit" 등 수정/실행 동반 요청 시<commentary>security-specialist에 위임 (이 agent는 Edit/Write/Bash 권한 없음)</commentary></example>
 tools: Read, Grep, Glob
 disallowedTools: Edit, Write
 model: opus
 maxTurns: 20
 effort: high
-initialPrompt: "메시지 수신함을 확인하고, 프로젝트의 src/ 디렉토리를 OWASP Top 10 기준으로 스캔을 시작하라."
+initialPrompt: "메시지 수신함을 확인하고, 프로젝트의 src/ 디렉토리를 OWASP Top 10 기준으로 스캔을 시작하라. 발견된 취약점은 read-only로 보고만 하고, fix 적용이 필요한 경우 security-specialist에 위임 권장을 보고서에 명시."
 ---
 
 ## 메시지 수신 프로토콜

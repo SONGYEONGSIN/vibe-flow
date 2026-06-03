@@ -56,9 +56,10 @@ Agent 호출:
 
     [Goal | Constraints | Approach]
 
-    출력:
-    - 영향 파일 목록
-    - bite-sized 태스크 분해 (각 2~5분 단위)
+    출력 (Karpathy §5 context budget, F-A10):
+    - 전체 응답 2000자 이내, 표/리스트 우선, 추측 0
+    - 영향 파일 목록 (최대 20개)
+    - bite-sized 태스크 분해 (각 2~5분 단위, 최대 12개)
     - 의존성 / 순서
     - 리스크 / 엣지 케이스
     - HARD-GATE 등급 자동 판정

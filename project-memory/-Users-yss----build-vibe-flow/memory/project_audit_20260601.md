@@ -114,8 +114,11 @@ PR #81 + #82 적용 후 며칠 데이터 누적되면 events.jsonl에서 자동 
 - #82 (commit 0c8a459) — F-D2 R2 10 skill description 자연어 트리거 강화 (H3 해소)
 - #83 (commit ad05aaa) — F-D2 R3 telemetry --source session 모드
 
-### Round 2 (2026-06-02) — 1 PR
+### Round 2 (2026-06-02 ~ 06-03) — 4 PR (audit 완주)
 - #84 (commit f378c28) — F-A3 (patterns.md placeholder) + F-B8 (validate.sh 28 hooks) + F-D3 R1 (5 plan completed) 3건 P1 해소
+- #85 (commit b502a64) — F-B6 security agent 2개 라우팅 명시 분리 (D2 정체 해소)
+- #86 (commit 6590678) — F-A4 (15 brainstorm timestamp) + F-A10 (subagent context-budget) + F-B2 (core/hooks/README.md) + F-D3 R2 (brainstorm vs brainstorming 명명) 4건 P2 묶음
+- #87 (commit b787b6f) — F-B4 (test 3-way) + F-B5 (planner 2-way) 도메인 라우팅 description 명시 (D2 완주)
 
 ## Round 2 점수 변화 (재감사 결과)
 
