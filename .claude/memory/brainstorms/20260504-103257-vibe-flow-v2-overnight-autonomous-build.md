@@ -1,5 +1,7 @@
 # Brainstorm: vibe-flow v2 — 다음 가치 축 (overnight 자율 빌드 워크플로우 포함)
 
+작성: 2026-05-04T10:32:57Z (filename에서 추출, retroactive F-A4 fix)
+
 ## 의도
 
 - **산출물**: vibe-flow v2 사이클의 가치 축 1개 결정 + 다음 세션 즉시 plan 진입 가능한 spec. 사용자 명시 후보: overnight 자율 빌드 워크플로우 (영상 *GStack + GSD + Superpowers Workflow* 패턴).

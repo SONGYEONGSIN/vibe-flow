@@ -1,5 +1,7 @@
 # Brainstorm: /budget token 추정 모드
 
+작성: 2026-05-01T15:43:42Z (filename에서 추출, retroactive F-A4 fix)
+
 ## 의도
 - **산출물**: `/budget --tokens` 옵션 — `~/.claude/projects/<slug>/*.jsonl` 파싱 → 모델별 token 합산 → 가격 곱셈 → 정확 USD
 - **사용자**: vibe-flow 사용자, 정확 비용 필요 시점 (월말 정산, 비용 모니터링)

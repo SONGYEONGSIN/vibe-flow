@@ -1,5 +1,7 @@
 # Brainstorm: /auto-build run-queue wrapper (Phase 3.0 PR-B)
 
+작성: 2026-05-12T21:33:41Z (filename에서 추출, retroactive F-A4 fix)
+
 출발점: `.claude/memory/brainstorms/20260512-202958-vibe-flow-phase3-cron-scheduler.md` PR-B scope + PR-A merged 후 schema 확정 (`{id, task, created_ts, status, depends_on?}`).
 
 ## 의도
