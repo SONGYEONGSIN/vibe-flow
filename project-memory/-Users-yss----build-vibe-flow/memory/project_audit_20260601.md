@@ -133,6 +133,37 @@ audit round 3 P2/P3 3건 모두 해소. 다음 round 후보 finding 2건 신규 
 - **F-A11** (P1) — `.claude/settings.json` + `.claude/settings.local.json` 양쪽에 같은 hook 중복 등록되어 모든 hook 2회 fire. `events.jsonl` 의 tool_failure 가 모두 중복으로 들어가는 원인. settings.local.json 은 gitignored 라 본 머신 한정. fix: 두 파일 중 하나만 hooks 보유하도록 정리 (또는 sync 자동화).
 - **F-D5** (P2) — R12 routine (`trig_01RcUNYjHFh4t2k5UrKo75MB`) 미발화 의심 — queue entry `20260526T002254Z-65fe` 10일째 queued 상태로 stuck. cycles-report.sh 가 자동 surface. /schedule list 로 routine 상태 점검 필요.
 
+### Round 4 (2026-06-05) — 재감사 + 신규 finding 해소 (2 PR)
+
+3 dimension fresh-context agent 병렬 위임으로 Round 3 baseline 대비 점수 변화 측정.
+
+| Dimension | R3 | R4 | Δ | 핵심 |
+|-----------|----|----|---|------|
+| D1 컨텍스트 | 4.5 | 4.0 | **-0.5** | F-C1 검증이 rules/ + scripts/ 미커버 발견 → 메타 결함 노출 (Karpathy §5 룰이 .claude/ 에 stale 한 상태) |
+| D2 아키텍처 | 4.0 | 4.2 | **+0.2** | 도메인 라우팅 견고 유지, F-A11 hook 중복 발견 |
+| D3 dogfooding | 4.0 | 4.0 | **±0** | TDD smoke 247 케이스 역대 최고, F-D6 false alarm 으로 상쇄 |
+| **평균** | **4.17** | **4.07** | **-0.10** |
+
+**머지 PR**:
+- #92 (commit c5fc586) — F-D1-R4-1 + F-D1-R4-2 sync drift 검증 범위 확장 (rules + scripts + hooks). 5종 drift 일괄 sync. validate.sh 31 pass → 36 pass.
+- #93 (commit e0c2658) — F-A11 settings hook 중복 fire 차단. settings.local.json hooks 블록 제거 + validate.sh 재발 감지 check 추가.
+
+**F-D6 결과 (false positive)**: D3 agent 가 "tool-invocation-tracker Skill matcher 0건 누적" 으로 P1 finding 보고. 라이브 검증 결과 `/status` 스킬 호출 시 `skill_invoked_auto` event 정상 emit (`ts:2026-06-04T17:21:13Z`). 0건의 진짜 원인은 사용자 행동 패턴 — audit-driven 14일 sessions 가 Bash/Read/Edit/Agent 위주라 Skill tool 직접 호출이 거의 없었음. 슬래시 명령은 `skill_invoked` 채널 (UserPromptSubmit) 로 별도 추적됨. **코드 수정 불필요**.
+
+### 최종 finding 잔여 (다음 round 또는 별 cycle)
+
+- **F-A12** (P2) — `setup.sh` + `settings/settings.template.json` 디자인 정정 필요. 현재 신규 사용자도 settings.json + settings.local.json 양쪽 생성될 가능성 (F-A11 재발 잠재). "hooks 를 어느 파일이 own 할 것인가" 디자인 결정 + template + setup.sh 양쪽 update.
+- **F-D5** (P3) — R12 routine 미발화. `/schedule list` 로 routine 상태 확인 필요 (system skill).
+- **test/SKILL.md** frontmatter `effort: medium` 중복 키 (Low) — D2 agent 발견.
+
+### Round 4 예상 회복 (PR #92/#93 적용 후 재측정 시)
+
+본 PR 들 적용 후 D1 finding 2건 해소 + F-A11 해소되었으므로:
+- D1 ~4.5 회복 (drift 검증 완전)
+- D2 ~4.3 (F-A11 해소)
+- D3 ~4.0 유지 (F-D6 false alarm 명확화)
+- 평균 **~4.27 (+0.20 vs Round 3 4.17)** 예상
+
 ## 최종 점수 (Round 3)
 
 | Dimension | Round 1 | Round 2 | Round 3 |
