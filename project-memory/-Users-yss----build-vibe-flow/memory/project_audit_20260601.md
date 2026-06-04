@@ -120,10 +120,18 @@ PR #81 + #82 적용 후 며칠 데이터 누적되면 events.jsonl에서 자동 
 - #86 (commit 6590678) — F-A4 (15 brainstorm timestamp) + F-A10 (subagent context-budget) + F-B2 (core/hooks/README.md) + F-D3 R2 (brainstorm vs brainstorming 명명) 4건 P2 묶음
 - #87 (commit b787b6f) — F-B4 (test 3-way) + F-B5 (planner 2-way) 도메인 라우팅 description 명시 (D2 완주)
 
-### Round 3 (2026-06-04) — 재감사 + sync 추가 1 PR
+### Round 3 (2026-06-04 ~ 06-05) — 재감사 + sync + 잔여 P2/P3 3건 (4 PR)
 - 3 dimension 점수: D1 4.0→4.5 / D2 3.8→4.0 / D3 3.5→4.0 / 평균 **3.77→4.17 (+0.40)**
 - 핵심 신규 finding F-C1 (3 dim 공통): `core/` ↔ `.claude/` sync drift — 22 파일 미동기화
 - #88 (commit 26f5655) — F-C1 sync 자동 탐지 추가 + local 일괄 sync
+- #89 (commit dc65ae6) — F-D3 R3-1 dangling plan 3건 닫기 (#58/#61/#62 retroactive)
+- #90 (commit c676004) — F-D3 R3-3 tool_failure 오분류 (path/filename substring 차단)
+- #91 (commit f648b33) — F-D3 R3-4 cloud cycles observability (cycles-report.sh)
+
+### Round 3 종료 (2026-06-05) — 잔여 0
+audit round 3 P2/P3 3건 모두 해소. 다음 round 후보 finding 2건 신규 surface:
+- **F-A11** (P1) — `.claude/settings.json` + `.claude/settings.local.json` 양쪽에 같은 hook 중복 등록되어 모든 hook 2회 fire. `events.jsonl` 의 tool_failure 가 모두 중복으로 들어가는 원인. settings.local.json 은 gitignored 라 본 머신 한정. fix: 두 파일 중 하나만 hooks 보유하도록 정리 (또는 sync 자동화).
+- **F-D5** (P2) — R12 routine (`trig_01RcUNYjHFh4t2k5UrKo75MB`) 미발화 의심 — queue entry `20260526T002254Z-65fe` 10일째 queued 상태로 stuck. cycles-report.sh 가 자동 surface. /schedule list 로 routine 상태 점검 필요.
 
 ## 최종 점수 (Round 3)
 
