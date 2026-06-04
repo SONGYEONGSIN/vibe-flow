@@ -26,11 +26,21 @@ classify_error() {
   local error_lower
   error_lower=$(echo "$error" | tr '[:upper:]' '[:lower:]')
 
+  # 파일 경로/파일명 substring 매칭으로 인한 오분류 회피 (F-D3 R3-3).
+  # 예: "/users/.../build/.../test.md: no such file" 가 build_error로 잡히는 문제.
+  # 경로(/x/y/z) + 흔한 확장자 파일명을 분류 전에 제거하여 에러 키워드만 매칭한다.
+  # macOS/BSD sed는 \b 워드 바운더리 미지원 → ([^a-z0-9_]|$) 패턴으로 대체.
+  local error_signal
+  error_signal=$(echo "$error_lower" | sed -E '
+    s#/[^[:space:]]+# #g
+    s#[a-z0-9_.-]+\.(md|ts|tsx|js|jsx|json|sh|html|css|scss|py|yml|yaml|txt|log)([^a-z0-9_]|$)# \2#g
+  ')
+
   local error_class="unknown"
   local retryable="false"
   local recovery="에러 내용을 확인하고 수동으로 대응하세요."
 
-  case "$error_lower" in
+  case "$error_signal" in
     *"401"*|*"403"*|*"unauthorized"*|*"eauth"*|*"invalid api key"*|*"authentication"*)
       error_class="auth"; retryable="false"
       recovery="인증 토큰 확인. 환경변수 또는 .env 파일 점검." ;;
