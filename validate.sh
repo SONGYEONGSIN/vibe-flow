@@ -240,6 +240,21 @@ fi
 echo ""
 echo "[6/10] settings.local.json 훅 경로 + JSON 유효성"
 SETTINGS="$CLAUDE_DIR/settings.local.json"
+SETTINGS_MAIN="$CLAUDE_DIR/settings.json"
+
+# F-A11 (audit round 4): settings.json + settings.local.json hook 중복 등록 탐지
+# Claude Code는 두 파일의 hooks를 merge 하므로 동일 hook이 양 파일에 있으면 2회 fire
+if [ -f "$SETTINGS_MAIN" ] && [ -f "$SETTINGS" ] && command -v jq &>/dev/null; then
+  MAIN_HAS_HOOKS=$(jq 'has("hooks") and (.hooks != null) and (.hooks != {})' "$SETTINGS_MAIN" 2>/dev/null)
+  LOCAL_HAS_HOOKS=$(jq 'has("hooks") and (.hooks != null) and (.hooks != {})' "$SETTINGS" 2>/dev/null)
+  if [ "$MAIN_HAS_HOOKS" = "true" ] && [ "$LOCAL_HAS_HOOKS" = "true" ]; then
+    warn "F-A11: settings.json + settings.local.json 양쪽에 hooks 등록 — 동일 hook 2회 fire"
+    warn "  → settings.local.json의 hooks 블록 제거 권장 (settings.json이 canonical)"
+  else
+    ok "settings.json/settings.local.json hook 중복 없음 (F-A11)"
+  fi
+fi
+
 if [ -f "$SETTINGS" ]; then
   if grep -q "\"command\".*\.claude/hooks/" "$SETTINGS" 2>/dev/null; then
     if grep -q "\"command\".*${TARGET_DIR}/.claude/hooks/" "$SETTINGS" 2>/dev/null; then
@@ -248,7 +263,7 @@ if [ -f "$SETTINGS" ]; then
       warn "훅 경로가 상대 경로 — Claude Code가 인식 못할 수 있음"
     fi
   else
-    warn "settings.local.json에 훅 설정 없음"
+    ok "settings.local.json에 훅 설정 없음 (F-A11 fix: settings.json이 canonical)"
   fi
 
   # JSON 유효성 + hook 경로 실행 가능성 (이전 stage 8 → 통합)
