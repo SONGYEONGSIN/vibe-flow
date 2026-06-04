@@ -114,11 +114,25 @@ PR #81 + #82 적용 후 며칠 데이터 누적되면 events.jsonl에서 자동 
 - #82 (commit 0c8a459) — F-D2 R2 10 skill description 자연어 트리거 강화 (H3 해소)
 - #83 (commit ad05aaa) — F-D2 R3 telemetry --source session 모드
 
-### Round 2 (2026-06-02 ~ 06-03) — 4 PR (audit 완주)
+### Round 2 (2026-06-02 ~ 06-03) — 4 PR
 - #84 (commit f378c28) — F-A3 (patterns.md placeholder) + F-B8 (validate.sh 28 hooks) + F-D3 R1 (5 plan completed) 3건 P1 해소
 - #85 (commit b502a64) — F-B6 security agent 2개 라우팅 명시 분리 (D2 정체 해소)
 - #86 (commit 6590678) — F-A4 (15 brainstorm timestamp) + F-A10 (subagent context-budget) + F-B2 (core/hooks/README.md) + F-D3 R2 (brainstorm vs brainstorming 명명) 4건 P2 묶음
 - #87 (commit b787b6f) — F-B4 (test 3-way) + F-B5 (planner 2-way) 도메인 라우팅 description 명시 (D2 완주)
+
+### Round 3 (2026-06-04) — 재감사 + sync 추가 1 PR
+- 3 dimension 점수: D1 4.0→4.5 / D2 3.8→4.0 / D3 3.5→4.0 / 평균 **3.77→4.17 (+0.40)**
+- 핵심 신규 finding F-C1 (3 dim 공통): `core/` ↔ `.claude/` sync drift — 22 파일 미동기화
+- #88 (commit 26f5655) — F-C1 sync 자동 탐지 추가 + local 일괄 sync
+
+## 최종 점수 (Round 3)
+
+| Dimension | Round 1 | Round 2 | Round 3 |
+|-----------|---------|---------|---------|
+| D1 컨텍스트 | 2.8 | 4.0 | **4.5** (+1.7 누적) |
+| D2 아키텍처 | 3.8 | 3.8 | **4.0** (+0.2 누적) |
+| D3 dogfooding | 2.5 | 3.5 | **4.0** (+1.5 누적) |
+| **평균** | 3.0 | 3.77 | **4.17 (+1.17 누적)** |
 
 ## Round 2 점수 변화 (재감사 결과)
 
