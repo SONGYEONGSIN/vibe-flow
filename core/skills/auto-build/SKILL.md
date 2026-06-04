@@ -360,6 +360,25 @@ bash scripts/tests/queue-tests.sh     # 10 케이스 (CRUD + stale lock + next +
 bash scripts/tests/schedule-smoke.sh  # 4 케이스 (cron validation + firings cap + CRON_FIRING 분기, PR-C1) ALL PASS
 ```
 
+## Cloud cycles 관찰 (F-D3 R3-4)
+
+cloud routine firing 자체는 Anthropic platform 측 이벤트라 local 파일에 자동 기록되지 않는다 (firings.jsonl 은 `run-queue.sh` local manual 한정). cycle 결과는 다음 세 경로로 가시화한다:
+
+| 채널 | 데이터 | 호출 |
+|------|--------|------|
+| **git log** | cycle 완주 시 자동 생성된 `R<N> dogfooding marker` PR commit | `git log --grep 'R[0-9]+ dogfooding marker'` |
+| **queue.jsonl** | task 상태 (queued / running / done / aborted) — stuck queued 항목은 routine 미발화 신호 | `bash core/skills/auto-build/scripts/cycles-report.sh` |
+| **routine firings (authoritative)** | 실 firing timestamp + 결과 + cost | Anthropic dashboard `https://claude.ai/code/routines` 또는 `/schedule list` |
+
+`cycles-report.sh` 가 위 세 가지 중 git log + queue 통합 view 를 제공한다 (fire timestamp 는 schedule API 만 정확).
+
+```bash
+bash core/skills/auto-build/scripts/cycles-report.sh
+# stdout: marker commit 카운트 + 로컬 firings + queue 상태 (latest state per id) + stuck queued
+```
+
+queue 에 `queued` 항목이 오래 stuck 되어 있으면 routine 미발화 / cloud session 진입 실패 / safety hook 차단 후 status_update 누락 가능성을 시사한다.
+
 ## 관련 파일
 
 - `core/skills/auto-build/orchestrator.md` — Ralph wrapper + P0~P-end + P3 ambiguity 분기
@@ -372,6 +391,7 @@ bash scripts/tests/schedule-smoke.sh  # 4 케이스 (cron validation + firings c
 - `core/skills/auto-build/scripts/run-cloud.sh` — cloud remote agent 진입점 (Phase 3.1 PR-C2)
 - `core/skills/auto-build/scripts/queue-commit.sh` — queue.jsonl 자동 git commit/push helper (Phase 3.1 PR-C3)
 - `core/skills/auto-build/scripts/notify-pr.sh` — cycle 완주 통보 helper + R10 cost warning (Phase 3.1 PR-C4)
+- `core/skills/auto-build/scripts/cycles-report.sh` — cloud cycle observability (git log + queue + firings 통합 view, F-D3 R3-4)
 - `scripts/tests/notify-pr-smoke.sh` — notify-pr.sh smoke 3 케이스 (Phase 3.1 PR-C4)
 - `core/skills/auto-build/data/cloud-prompt-template.md` — cloud remote agent prompt 템플릿 (PR-C1.1)
 - `.claude/memory/auto-build-queue.jsonl` — task 큐 (PR-C3 git-committed, append-only)
