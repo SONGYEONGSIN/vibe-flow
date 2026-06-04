@@ -126,6 +126,42 @@ if [ -d "$CLAUDE_DIR/hooks" ]; then
   [ "$NON_EXEC" = 0 ] && ok "모든 훅 실행 가능"
 fi
 
+# F-C1 (audit round 3): core/ ↔ .claude/ sync drift 검증
+# PR이 core/ 만 수정하고 .claude/ 미 update할 때 runtime에 적용 안 됨
+echo ""
+echo "[4.5/10] core/ ↔ .claude/ sync drift 검증 (F-C1)"
+VIBE_FLOW_ROOT="${VIBE_FLOW_ROOT:-$(dirname "$0")}"
+if [ -d "$VIBE_FLOW_ROOT/core/agents" ] && [ -d "$CLAUDE_DIR/agents" ]; then
+  DRIFT_COUNT=0
+  for src in "$VIBE_FLOW_ROOT/core/agents/"*.md; do
+    [ -f "$src" ] || continue
+    name=$(basename "$src")
+    dst="$CLAUDE_DIR/agents/$name"
+    if [ -f "$dst" ] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+      warn "agent drift: $name (core 와 .claude 불일치)"
+      DRIFT_COUNT=$((DRIFT_COUNT + 1))
+    fi
+  done
+  [ "$DRIFT_COUNT" = 0 ] && ok "core/agents ↔ .claude/agents 동기화"
+fi
+
+if [ -d "$VIBE_FLOW_ROOT/core/skills" ] && [ -d "$CLAUDE_DIR/skills" ]; then
+  SKILL_DRIFT=0
+  for src in "$VIBE_FLOW_ROOT/core/skills"/*/SKILL.md; do
+    [ -f "$src" ] || continue
+    skill=$(basename "$(dirname "$src")")
+    dst="$CLAUDE_DIR/skills/$skill/SKILL.md"
+    if [ -f "$dst" ] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+      warn "skill drift: $skill/SKILL.md (core 와 .claude 불일치)"
+      SKILL_DRIFT=$((SKILL_DRIFT + 1))
+    fi
+  done
+  [ "$SKILL_DRIFT" = 0 ] && ok "core/skills ↔ .claude/skills SKILL.md 동기화"
+fi
+
+[ "${DRIFT_COUNT:-0}" -gt 0 ] || [ "${SKILL_DRIFT:-0}" -gt 0 ] && \
+  warn "drift 발견 — bash setup.sh --upgrade 또는 cp 일괄 sync 권장" || true
+
 # 4. agents.json 일관성
 echo ""
 echo "[5/10] agents.json 일관성"
