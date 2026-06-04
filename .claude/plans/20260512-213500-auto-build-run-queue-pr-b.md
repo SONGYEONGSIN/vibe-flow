@@ -1,8 +1,12 @@
-# Plan: /auto-build run-queue wrapper (Phase 3.0 PR-B)
+---
+plan_id: 20260512-213500-auto-build-run-queue-pr-b
+status: completed
+created: 2026-05-12T12:35:00Z
+hard_gate: brief
+source: brainstorm:.claude/memory/brainstorms/20260512-213341-auto-build-run-queue-pr-b.md
+---
 
-plan_id: `20260512-213500-auto-build-run-queue-pr-b`
-brainstorm: `.claude/memory/brainstorms/20260512-213341-auto-build-run-queue-pr-b.md`
-hard_gate: brief (~5-6 파일)
+# Plan: /auto-build run-queue wrapper (Phase 3.0 PR-B)
 
 ## 단계
 

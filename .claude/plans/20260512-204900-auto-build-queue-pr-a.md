@@ -1,8 +1,12 @@
-# Plan: /auto-build queue 슬래시 스킬 (Phase 3.0 PR-A)
+---
+plan_id: 20260512-204900-auto-build-queue-pr-a
+status: completed
+created: 2026-05-12T11:49:00Z
+hard_gate: brief
+source: brainstorm:.claude/memory/brainstorms/20260512-204738-vibe-flow-auto-build-queue-add.md
+---
 
-plan_id: `20260512-204900-auto-build-queue-pr-a`
-brainstorm: `.claude/memory/brainstorms/20260512-204738-vibe-flow-auto-build-queue-add.md`
-hard_gate: brief (5~6 파일)
+# Plan: /auto-build queue 슬래시 스킬 (Phase 3.0 PR-A)
 
 ## 단계
 
