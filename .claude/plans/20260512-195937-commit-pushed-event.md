@@ -1,9 +1,14 @@
+---
+plan_id: 20260512-195937-commit-pushed-event
+status: completed
+created: 2026-05-12T10:59:37Z
+hard_gate: brief
+source: brainstorm:.claude/memory/brainstorms/20260512-195837-vibe-flow-claude-events-jsonl-.md
+---
+
 # Plan: commit_pushed 이벤트 emit + telemetry 매핑
 
-plan_id: 20260512-195937-commit-pushed-event
 run_id: 20260512T105812Z-6c90
-brainstorm: .claude/memory/brainstorms/20260512-195837-vibe-flow-claude-events-jsonl-.md
-hard_gate: brief
 
 ## 결정 요약 (brainstorm 추천 B)
 
