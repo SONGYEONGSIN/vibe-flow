@@ -159,7 +159,58 @@ if [ -d "$VIBE_FLOW_ROOT/core/skills" ] && [ -d "$CLAUDE_DIR/skills" ]; then
   [ "$SKILL_DRIFT" = 0 ] && ok "core/skills ↔ .claude/skills SKILL.md 동기화"
 fi
 
-[ "${DRIFT_COUNT:-0}" -gt 0 ] || [ "${SKILL_DRIFT:-0}" -gt 0 ] && \
+# F-D1-R4-1 (audit round 4): rules/ 디렉토리도 동일 sync 검증
+# runtime이 .claude/rules/ 를 읽으므로 core/rules/ 만 수정하면 룰 자체가 적용 안 됨
+if [ -d "$VIBE_FLOW_ROOT/core/rules" ] && [ -d "$CLAUDE_DIR/rules" ]; then
+  RULES_DRIFT=0
+  for src in "$VIBE_FLOW_ROOT/core/rules/"*.md; do
+    [ -f "$src" ] || continue
+    name=$(basename "$src")
+    dst="$CLAUDE_DIR/rules/$name"
+    if [ -f "$dst" ] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+      warn "rule drift: $name (core 와 .claude 불일치)"
+      RULES_DRIFT=$((RULES_DRIFT + 1))
+    fi
+  done
+  [ "$RULES_DRIFT" = 0 ] && ok "core/rules ↔ .claude/rules 동기화"
+fi
+
+# F-D1-R4-2 (audit round 4): skills 내부 scripts + hooks 도 sync 검증
+# SKILL.md 만으로는 부족 — runtime이 실제 호출하는 .sh 가 drift 시 silent 버그
+if [ -d "$VIBE_FLOW_ROOT/core/skills" ] && [ -d "$CLAUDE_DIR/skills" ]; then
+  SCRIPT_DRIFT=0
+  while IFS= read -r src; do
+    [ -f "$src" ] || continue
+    rel="${src#$VIBE_FLOW_ROOT/core/}"
+    dst="$CLAUDE_DIR/$rel"
+    if [ ! -f "$dst" ]; then
+      warn "skill-script missing in .claude/: $rel"
+      SCRIPT_DRIFT=$((SCRIPT_DRIFT + 1))
+    elif ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+      warn "skill-script drift: $rel (core 와 .claude 불일치)"
+      SCRIPT_DRIFT=$((SCRIPT_DRIFT + 1))
+    fi
+  done < <(find "$VIBE_FLOW_ROOT/core/skills" -name '*.sh' -type f 2>/dev/null)
+  [ "$SCRIPT_DRIFT" = 0 ] && ok "core/skills/*/scripts ↔ .claude/skills/*/scripts 동기화"
+fi
+
+if [ -d "$VIBE_FLOW_ROOT/core/hooks" ] && [ -d "$CLAUDE_DIR/hooks" ]; then
+  HOOK_DRIFT=0
+  for src in "$VIBE_FLOW_ROOT/core/hooks/"*.sh; do
+    [ -f "$src" ] || continue
+    name=$(basename "$src")
+    dst="$CLAUDE_DIR/hooks/$name"
+    if [ -f "$dst" ] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+      warn "hook drift: $name (core 와 .claude 불일치)"
+      HOOK_DRIFT=$((HOOK_DRIFT + 1))
+    fi
+  done
+  [ "$HOOK_DRIFT" = 0 ] && ok "core/hooks ↔ .claude/hooks 동기화"
+fi
+
+[ "${DRIFT_COUNT:-0}" -gt 0 ] || [ "${SKILL_DRIFT:-0}" -gt 0 ] || \
+[ "${RULES_DRIFT:-0}" -gt 0 ] || [ "${SCRIPT_DRIFT:-0}" -gt 0 ] || \
+[ "${HOOK_DRIFT:-0}" -gt 0 ] && \
   warn "drift 발견 — bash setup.sh --upgrade 또는 cp 일괄 sync 권장" || true
 
 # 4. agents.json 일관성
