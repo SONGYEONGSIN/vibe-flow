@@ -419,3 +419,7 @@ queue 에 `queued` 항목이 오래 stuck 되어 있으면 routine 미발화 / c
 ## R11 dogfooding marker (cloud cycle 세 번째 실 task — 2026-05-25)
 
 본 marker는 R11 dogfooding 사이클로 F14/F15 (PR #77) 신규 로그 형식 — safety hook PASS stderr + orchestrator P3a/P3b 진입 stderr — 이 cloud session에서 정상 출력되는지 검증 완료를 표시한다.
+
+## R12 dogfooding marker (cloud cycle 네 번째 실 task — 2026-05-26)
+
+본 marker는 R12 dogfooding 사이클로 F16 (PR #79) cloud-init.sh가 cloud session에서 PreToolUse hook을 정상 wire하여 [cloud-init] hook installed + [auto-build-safety] PASS stderr가 양쪽 모두 출력되는지 검증 완료를 표시한다.
