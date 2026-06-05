@@ -106,6 +106,40 @@ else
 fi
 teardown
 
+# ── Test C4 (F-D7): gh 존재 + DRYRUN=0 → agent hand-off ────
+# PR-C2 stub 제거 검증: entry 가 running 상태로 유지되고 exit 0 + hand-off 메시지.
+# 실 cycle 은 cloud agent 가 본 script 종료 후 자율 수행 (orchestrator P0~P5).
+echo "Test C4: gh 존재 + DRYRUN=0 — agent hand-off (F-D7)"
+setup_fixture
+bash "$QUEUE" add "agent handoff test" >/dev/null
+# mock gh in tmp PATH
+GH_STUB_DIR="$TMP/stub-bin"
+mkdir -p "$GH_STUB_DIR"
+cat > "$GH_STUB_DIR/gh" <<'STUB'
+#!/bin/bash
+exit 0
+STUB
+chmod +x "$GH_STUB_DIR/gh"
+
+OUT=$(PATH="$GH_STUB_DIR:/bin:/usr/bin" AUTO_BUILD_QUEUE_DRYRUN=0 \
+  QUEUE_STORE="$QUEUE_STORE" QUEUE_LOCK_DIR="$QUEUE_LOCK_DIR" \
+  bash "$RUN_CLOUD" 2>&1)
+EC=$?
+assert_exit "C4.1 hand-off exit 0 (PR-C2 stub 제거 검증)" 0 "$EC"
+assert_contains "C4.2 stderr 'handed off to cloud agent'" "handed off to cloud agent" "$OUT"
+assert_contains "C4.3 stderr 'orchestrator.md P0~P5' 지시" "orchestrator.md P0~P5" "$OUT"
+# entry 가 running 상태 유지 (queued 복구 X — 구 stub 동작 회귀 차단)
+ALL=$(bash "$QUEUE" list --all)
+if echo "$ALL" | grep -q "running.*agent handoff test"; then
+  echo "  ✓ C4.4 entry running 유지 (queued 복구 X — F-D7 회귀 차단)"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ C4.4 entry running 상태 아님 — stub 회귀 가능성"
+  echo "    list --all: $ALL"
+  FAIL=$((FAIL + 1))
+fi
+teardown
+
 # ── 결과 ───────────────────────────────────────────────────
 echo ""
 echo "─────────────────────────────────────────"

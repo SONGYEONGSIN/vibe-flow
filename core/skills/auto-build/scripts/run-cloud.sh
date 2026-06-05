@@ -54,8 +54,6 @@ if [ "$DRYRUN" = "1" ]; then
 fi
 
 # ── 실 cycle (DRYRUN=0) ────────────────────────────────────
-# PR-C2에서는 gh CLI 존재 확인 + abort fallback만 구현
-# 실 /auto-build dispatch + PR 생성은 PR-C3 R8 dogfooding 후 활성
 
 if ! command -v gh >/dev/null 2>&1; then
   bash "$QUEUE_SH" status-update "$ID" "aborted" >/dev/null
@@ -63,12 +61,17 @@ if ! command -v gh >/dev/null 2>&1; then
   exit 2
 fi
 
-# 실 /auto-build run-cloud cycle은 PR-C3 R8 dogfooding 후 활성
-# 현 PR-C2는 entry running 상태 보존 + exit 1 (task 소실 방지)
-bash "$QUEUE_SH" status-update "$ID" "queued" >/dev/null
+# F-D7 (audit round 4, 2026-06-06): PR-C2 stub 제거.
+# PR-C3 R8 dogfooding (2026-05-23 PR #71) + R9~R11 functional PASS 로 실 cycle 활성.
+# run-cloud.sh 책임은 entry 선택 + running 마킹(queue.sh next에서 완료) 까지.
+# 실 cycle (orchestrator P0~P5 + PR 생성 + status-update) 은 cloud agent 가
+# 본 script 종료 후 자율 수행한다.
 cat >&2 <<EOM
-run-cloud: 실 cycle은 PR-C3 R8 dogfooding 후 활성.
-  entry $ID 는 'queued' 상태로 복구됨 (소실 방지).
-  검증: AUTO_BUILD_QUEUE_DRYRUN=1 로 재호출.
+run-cloud: entry $ID handed off to cloud agent (status=running).
+  Agent must now execute:
+    1. core/skills/auto-build/orchestrator.md P0~P5 (brainstorm → plan → TDD → verify → commit)
+    2. gh pr create — PR 자동 생성
+    3. bash $QUEUE_SH status-update $ID done    (성공 시)
+       bash $QUEUE_SH status-update $ID aborted (실패 시)
 EOM
-exit 1
+exit 0
