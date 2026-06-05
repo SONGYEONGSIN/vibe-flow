@@ -150,11 +150,56 @@ audit round 3 P2/P3 3건 모두 해소. 다음 round 후보 finding 2건 신규 
 
 **F-D6 결과 (false positive)**: D3 agent 가 "tool-invocation-tracker Skill matcher 0건 누적" 으로 P1 finding 보고. 라이브 검증 결과 `/status` 스킬 호출 시 `skill_invoked_auto` event 정상 emit (`ts:2026-06-04T17:21:13Z`). 0건의 진짜 원인은 사용자 행동 패턴 — audit-driven 14일 sessions 가 Bash/Read/Edit/Agent 위주라 Skill tool 직접 호출이 거의 없었음. 슬래시 명령은 `skill_invoked` 채널 (UserPromptSubmit) 로 별도 추적됨. **코드 수정 불필요**.
 
-### 최종 finding 잔여 (다음 round 또는 별 cycle)
+### F-A12 해소 (2026-06-05) — PR #94 (commit 0fa216a)
 
-- **F-A12** (P2) — `setup.sh` + `settings/settings.template.json` 디자인 정정 필요. 현재 신규 사용자도 settings.json + settings.local.json 양쪽 생성될 가능성 (F-A11 재발 잠재). "hooks 를 어느 파일이 own 할 것인가" 디자인 결정 + template + setup.sh 양쪽 update.
-- **F-D5** (P3) — R12 routine 미발화. `/schedule list` 로 routine 상태 확인 필요 (system skill).
-- **test/SKILL.md** frontmatter `effort: medium` 중복 키 (Low) — D2 agent 발견.
+근본 원인 차단: `cloud-init.sh` 가 `settings.local.json` 에 hooks 존재 시 settings.json install skip. cloud session (fresh clone) 은 settings.local.json 부재라 정상 진행. FORCE=1 override 유지. 테스트 25/25 PASS (C6 4 + C7 3 신규).
+
+### F-D5 진단 (2026-06-05) — 완전 해소 + 신규 finding 2개 surface
+
+`/schedule list` (RemoteTrigger API) 결과 R12 routine (`trig_01RcUNYjHFh4t2k5UrKo75MB`) 실제로는 fire 했음 (`ended_reason: run_once_fired`, `last_fired_at: 2026-05-26T02:00:08Z`). "routine 미발화"가 아니라 "routine fire → cloud cycle silent fail" 이 진짜 finding.
+
+**R13 재무장 후 진정한 원인 확정**: R13 routine (`trig_01DZKFt39UPhZX9zRK4yaku1`) 2026-06-05T14:39:15Z fire → cloud cycle 완전 작동 (cloud-init.sh + orchestrator P0~P5 + PR #95 자동 생성). PR #95 brainstorm 에서 cloud agent 본인이 R12 silent fail 원인 직접 진단:
+
+> "run-cloud.sh가 gh CLI 부재 시 실 cycle 미활성 분기로 entry queued 복구"
+
+**F-D5 = gh CLI 부재 + run-cloud.sh 정책 불일치 (entry queued 복구 vs aborted 마킹)** — 즉 routine 자체나 cloud-init 문제가 아니라 cloud env의 gh CLI 가용성 + run-cloud 분기 처리 버그.
+
+### F-A13 (PR #96, commit 1c48c33) — 신규 + 즉시 해소
+
+PR #95 (R12 cycle) 머지 직후 surface. `cloud-init.sh` 가 cloud session 에서 `.claude/settings.json` 생성. 같은 디렉토리의 settings.local.json/template.json 은 이미 gitignored 인데 settings.json 만 누락. 결과: 매 cycle PR 마다 settings.json 276줄 noise + user-machine state 유출 위험. fix: `.gitignore` 추가 + `git rm --cached`.
+
+### F-D7 해소 (PR #97, commit add0614, 2026-06-06)
+
+조사 결과 F-D7 실 원인은 gh-absent 정책 불일치가 아니라 **PR-C2 stub 미정리**. run-cloud.sh:66-74 가 R8 dogfooding (2026-05-23 PR #71) 후 정리 예정이었으나 14일째 잔존 — entry 를 `running` → `queued` 복구하고 exit 1. R12 silent fail 의 근본 원인.
+
+해결: stub 제거 + agent hand-off 명시 (run-cloud.sh 책임 = entry pop + running 마킹; cloud agent 책임 = orchestrator P0~P5 + PR 생성 + status-update). stderr 단계별 지시. SKILL.md:245 정책 갱신. smoke test C4 4 케이스 신규 (총 12/12 PASS).
+
+R8/R9/R10/R11/R13 은 cloud agent 가 stub exit 무시하고 manual orchestration 으로 성공했음 — agent 해석 robustness 에 의존. 본 fix 로 향후 cycle 결정적 작동.
+
+### F-D5 완전 종료
+
+R13 cycle PR #95 + F-D7 fix PR #97 로 F-D5 root cause 완전 차단. 향후 routine fire → cycle 완주 → marker PR 결정적.
+
+### audit round 4 마감 (2026-06-06) — PR #98 (commit 14f546e)
+
+`core/skills/test/SKILL.md:9` 중복 effort 키 1줄 삭제. audit round 4 잔여 0건.
+
+### 통합 종료 — audit round 1 ~ 4 (2026-06-01 ~ 06-06)
+
+본 audit cycle 동안 **19 PR 머지 (#80-#98)**. 발견 finding 총 14건, 모두 처리 (해소 12 / false positive 1 / closed by chain 1). 
+
+**점수 진화**:
+- Round 1 (06-01): 3.0/5 — 시작점
+- Round 2 (06-02~03): 3.77 (+0.77) — 4 PR
+- Round 3 (06-04~05): 4.17 (+0.40) — 4 PR + 잔여 3건 모두 해소
+- Round 4 (06-05~06): 4.07 측정 (-0.10 메타 결함 노출) → fix 후 ~4.27 예상 — 7 PR
+- **누적 예상 +1.27**
+
+**핵심 진화** (각 round 1 줄):
+- R1: P0 + P1 4건 cleanup (MEMORY 운영, tee 제거, security 라우팅, TDD smoke)
+- R2: 잔여 P1 3건 + P2 묶음 (validate 28 hooks, plan close, test/planner 도메인 명시)
+- R3: 마지막 P2 3건 (dangling plan close, tool_failure 오분류, cycles-report)
+- R4: 메타 결함 fix (F-C1 검증 범위 확장, hook 중복 fire 완전 봉쇄 (증상 → 근본), F-D5 silent fail 진짜 원인 (run-cloud stub) 해소)
 
 ### Round 4 예상 회복 (PR #92/#93 적용 후 재측정 시)
 

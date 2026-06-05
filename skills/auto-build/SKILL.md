@@ -242,7 +242,7 @@ bash core/skills/auto-build/scripts/run-cloud.sh
 - **1 firing = 1 task = 1 cycle = 1 PR**: `AUTO_BUILD_QUEUE_MAX_CYCLES` 무시 (cron freq 자체 cap, A4.1)
 - **gh CLI 부재 시 abort**: cloud env는 gh 필수. entry `aborted` 마킹 + exit 2
 - **cloud session 가정**: `AUTO_BUILD_QUEUE_CRON_FIRING=1` 자동 set (prompt 템플릿 명시)
-- **PR-C3 dogfooding 대기**: 실 `/auto-build` dispatch는 R8 결과 후 활성. 현 PR-C2는 entry `queued` 복구 + exit 1 (소실 회피)
+- **agent hand-off 책임 분리 (F-D7, 2026-06-06)**: `run-cloud.sh` 는 entry pop + `running` 마킹까지 책임. 실 cycle (orchestrator P0~P5 + PR 생성 + status-update done/aborted) 은 cloud agent 자율 수행. exit 0 후 agent 가 stderr 의 hand-off 지시 따라 진행. (구 PR-C2 stub 은 entry queued 복구 + exit 1 — R8 dogfooding 후 미정리되어 R12 silent fail 원인이 됨, F-D7 fix 로 제거.)
 
 ### env
 
@@ -419,3 +419,7 @@ queue 에 `queued` 항목이 오래 stuck 되어 있으면 routine 미발화 / c
 ## R11 dogfooding marker (cloud cycle 세 번째 실 task — 2026-05-25)
 
 본 marker는 R11 dogfooding 사이클로 F14/F15 (PR #77) 신규 로그 형식 — safety hook PASS stderr + orchestrator P3a/P3b 진입 stderr — 이 cloud session에서 정상 출력되는지 검증 완료를 표시한다.
+
+## R12 dogfooding marker (cloud cycle 네 번째 실 task — 2026-05-26)
+
+본 marker는 R12 dogfooding 사이클로 F16 (PR #79) cloud-init.sh가 cloud session에서 PreToolUse hook을 정상 wire하여 [cloud-init] hook installed + [auto-build-safety] PASS stderr가 양쪽 모두 출력되는지 검증 완료를 표시한다.

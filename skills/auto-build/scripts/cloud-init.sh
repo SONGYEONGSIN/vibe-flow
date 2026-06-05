@@ -60,7 +60,20 @@ else
   echo "[cloud-init] PreToolUse hook installed: .claude/hooks/auto-build-safety.sh" >&2
 fi
 
-if [ -f "$SETTINGS_DST" ] && [ "$FORCE" != "1" ]; then
+# F-A12 (audit round 4): local dev 환경(setup.sh로 settings.local.json install된 머신)
+# 에서 본 script 직접 실행 시 settings.json + settings.local.json hook 중복 등록
+# → 모든 hook 2회 fire (F-A11). settings.local.json 에 hooks 가 이미 있으면
+# settings.json 설치를 건너뛰어 중복을 회피한다. cloud session은 fresh clone
+# 이라 settings.local.json 부재 → 정상 진행.
+LOCAL_SETTINGS="$PROJECT_ROOT/.claude/settings.local.json"
+LOCAL_HAS_HOOKS="false"
+if [ -f "$LOCAL_SETTINGS" ] && command -v jq &>/dev/null; then
+  LOCAL_HAS_HOOKS=$(jq 'has("hooks") and (.hooks != null) and (.hooks != {})' "$LOCAL_SETTINGS" 2>/dev/null || echo "false")
+fi
+
+if [ "$LOCAL_HAS_HOOKS" = "true" ] && [ "$FORCE" != "1" ]; then
+  echo "[cloud-init] skip — local context detected (settings.local.json has hooks). settings.json bypass to avoid F-A11 duplicate fire. CLOUD_INIT_FORCE=1 to override." >&2
+elif [ -f "$SETTINGS_DST" ] && [ "$FORCE" != "1" ]; then
   echo "[cloud-init] skip — settings already exists: .claude/settings.json (CLOUD_INIT_FORCE=1 to overwrite)" >&2
 else
   cp "$SETTINGS_SRC" "$SETTINGS_DST"
