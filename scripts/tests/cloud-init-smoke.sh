@@ -130,6 +130,43 @@ bash "$SCRIPT" >/dev/null 2>&1; EC=$?
 assert_exit "C5.3 settings source 부재 exit 1" 1 "$EC"
 teardown_fixture
 
+echo "Test C6: F-A12 local-context — settings.local.json has hooks → skip settings.json"
+setup_fixture
+# 로컬 setup.sh 후 상태를 흉내 — settings.local.json 에 hooks 보유
+mkdir -p .claude
+echo '{"hooks":{"PostToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"x"}]}]},"env":{"X":"1"}}' > .claude/settings.local.json
+OUT=$(bash "$SCRIPT" 2>&1)
+EC=$?
+assert_exit "C6.1 local context 감지 exit 0" 0 "$EC"
+assert_contains "C6.2 stderr 'local context detected'" "local context detected" "$OUT"
+if [ ! -f .claude/settings.json ]; then
+  echo "  ✓ C6.3 settings.json 생성 안 됨 (F-A11 회피)"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ C6.3 settings.json 생성됨 — F-A11 회피 실패"
+  FAIL=$((FAIL + 1))
+fi
+# C6.4 FORCE=1 시 local context 무시하고 install
+OUT=$(CLOUD_INIT_FORCE=1 bash "$SCRIPT" 2>&1)
+assert_contains "C6.4 FORCE=1 시 local context override" "settings.json staged" "$OUT"
+teardown_fixture
+
+echo "Test C7: F-A12 cloud-context simulation — settings.local.json 부재 → 정상 install"
+setup_fixture
+# settings.local.json 없는 cloud 환경
+OUT=$(bash "$SCRIPT" 2>&1)
+EC=$?
+assert_exit "C7.1 cloud context exit 0" 0 "$EC"
+assert_contains "C7.2 stderr 'settings.json staged'" "settings.json staged" "$OUT"
+if [ -f .claude/settings.json ]; then
+  echo "  ✓ C7.3 settings.json 생성됨 (정상 cloud 동작 유지)"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ C7.3 settings.json 생성 안 됨"
+  FAIL=$((FAIL + 1))
+fi
+teardown_fixture
+
 echo ""
 echo "─────────────────────────────────────────"
 echo "PASS: $PASS   FAIL: $FAIL"
