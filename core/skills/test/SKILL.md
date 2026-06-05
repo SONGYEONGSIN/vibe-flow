@@ -6,7 +6,6 @@ description: |
   <example>Context: 사용자가 "전체 테스트 커버리지", "통합 테스트", "TDD로 구현" 요청 시<commentary>test-writer agent에 위임 (skill은 너무 좁음)</commentary></example>
   <example>Context: 사용자가 "Playwright E2E", "browser 테스트", "RED-GREEN 사이클" 요청 시<commentary>qa agent에 위임 (Playwright MCP 보유)</commentary></example>
 effort: medium
-effort: medium
 ---
 
 `$ARGUMENTS` 파일에 대한 Vitest 단위 테스트를 생성한다.
