@@ -9,3 +9,4 @@
 {"op":"status_update","id":"20260525T082401Z-bc00","new_status":"done","ts":"2026-05-25T10:05:05Z"}
 {"id":"20260526T002254Z-65fe","task":"core/skills/auto-build/SKILL.md 파일에 새 H2 섹션 '## R12 dogfooding marker (cloud cycle 네 번째 실 task — 2026-05-26)'와 본문 1줄 '본 marker는 R12 dogfooding 사이클로 F16 (PR #79) cloud-init.sh가 cloud session에서 PreToolUse hook을 정상 wire하여 [cloud-init] hook installed + [auto-build-safety] PASS stderr가 양쪽 모두 출력되는지 검증 완료를 표시한다.'을 추가한다. 섹션의 정확한 삽입 위치(말미 / 기존 ## R11 dogfooding marker 바로 아래 / 다른 위치 중 가장 자연스러운 곳)는 자율 결정한다. 빈 줄 1줄로 앞뒤 분리. 다른 파일 절대 수정 X. PR 제목은 'docs(auto-build): R12 dogfooding marker'.","created_ts":"2026-05-26T00:22:54Z","status":"queued"}
 {"op":"status_update","id":"20260526T002254Z-65fe","new_status":"running","ts":"2026-06-05T14:40:14Z"}
+{"op":"status_update","id":"20260526T002254Z-65fe","new_status":"done","ts":"2026-06-05T14:42:07Z"}
