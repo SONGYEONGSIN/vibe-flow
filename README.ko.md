@@ -42,6 +42,50 @@ claude
 > /finish                                # PR/머지 결정 트리
 ```
 
+## 🎬 실제 동작 모습
+
+```text
+$ /brainstorm "비밀번호 재설정 기능 추가"
+  → 4문항: 무엇/누가/왜 지금/성공 기준
+  → 대안 2개 비교 (예: 매직 링크 vs OTP)
+  → spec 저장: .claude/memory/brainstorms/20260606-...-password-reset.md
+
+$ /plan from-brainstorm .claude/memory/brainstorms/...md
+  → 6 단계 분해 (T1~T6) + HARD-GATE 등급
+  → plan_created 이벤트 → .claude/events.jsonl
+
+$ /verify
+  ✓ lint (eslint, prettier)
+  ✓ typecheck (tsc --noEmit)
+  ✓ test (vitest)
+  ✓ console.log / any / @ts-ignore 없음 (rules/donts.md)
+  ✓ 브라우저 콘솔 클린 (Playwright)
+
+$ /commit
+  → Conventional Commit 자동 생성:
+    "feat(auth): 이메일 OTP 비밀번호 재설정 — TTL 10분"
+
+$ /finish
+  → 결정 트리: PR | 직접 머지 | 릴리즈 | cleanup
+  → 브랜치 상태, 테스트 상태, plan 완료도 모두 점검 후 안내
+
+[세션 종료] →
+  💡 학습 저장 권장 (활동 신호 감지):
+    - /learn save pattern "<비밀번호 재설정 패턴>"
+```
+
+훅이 매 `Write/Edit` 후 자동 검증 — `/verify` 안 돌려도 prettier/eslint/typecheck/test/design-lint/security-lint 모두 실시간. TDD strict 모드 — 테스트 없이 코드 수정 차단.
+
+**본인의 데모 GIF 만들기:**
+
+```bash
+# asciinema (권장) 또는 terminalizer 설치
+brew install asciinema
+asciinema rec demo.cast --command "claude"
+# ...실제 사이클 실행...
+# asciinema.org 에 업로드 후 PR/docs 에 링크
+```
+
 ## 📦 Core 20 — 기본 설치
 
 | 카테고리 | 스킬 |
