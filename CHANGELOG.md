@@ -2,7 +2,59 @@
 
 ## [Unreleased]
 
-### 추가
+(none)
+
+## [2.0.0] - 2026-06-06 — marketplace publish + audit closure + adoption infra
+
+vibe-flow 가 **plugin marketplace 1줄 install 가능** 한 상태로 도달. 누적 audit cycle R1~R5 4.53/5 + Karpathy 4 원칙 + Context Engineering 5번째 원칙까지 완성. 외부 채택 friction 완전 0.
+
+### 추가 — 채택 인프라
+
+- **`.claude-plugin/` manifest** (PR #105) — Claude Code marketplace publish. `/plugin marketplace add https://github.com/SONGYEONGSIN/vibe-flow` + `/plugin install vibe-flow` 1줄 install 가능. plugin v1.0.0 (44 skills + 22 agents 등록).
+- **`LICENSE` MIT** (PR #100) — README 가 약속하던 라이선스 파일 실 추가 (지금까지 부재). 기업/OSS 채택의 전제조건.
+- **`README.md` 영문** + **`README.ko.md` 한국어 보존** (PR #101) — 글로벌 채택 시작점. 양 파일 최상단 언어 스위처. stale 카운트 (skills 20→44, hooks 25→29, agents 12→22, extensions 11→7) 모두 현 상태로 정합.
+
+### 추가 — 비용 최적화
+
+- **4 agent opus → sonnet right-sizing** (PR #102) — `comparator` / `feedback` / `retrospective` / `validator` 의 model frontmatter 정정. 분포 Opus 13→9 / Sonnet 8→12 / Haiku 1. audit-heavy 세션 전체 30%+ 비용 절감 가능 (Sonnet ≈ Opus/5).
+
+### 추가 — 가시성/UX
+
+- **`session-review.sh` 학습 저장 proactive** (PR #103) — 기존 patterns.md age-based passive reminder → 세션 활동 패턴 자동 감지. 3 신호 (fix/refactor ≥ 2건 / distinct error_class ≥ 2종 / patterns.md ≥ 7일) 기반 targeted `/learn save` 제안. OMC `learner` 벤치마크 (0 dependency 단순 구현).
+- **`core/scripts/sync-drift.sh`** (PR #104) — `setup.sh --upgrade` 대비 lightweight drift 정합. `--check` (dry-run, exit 1 if drift) / `--verbose` / apply 3 모드. agents + rules + skills 재귀 + hooks → `.claude/` 일괄 cp. `git-post-commit.sh` skip list 처리. smoke test 13/13 PASS.
+- **`cycles-report.sh`** (PR #91) — auto-build cloud cycle observability. git log + queue + firings.jsonl 통합 view + stuck queued 탐지 (routine 미발화 신호). smoke test 8/8 PASS.
+
+### 수정 — 내부 정합성 (audit cycle R1~R5 closure)
+
+audit 5 round × 3 dimension (D1 컨텍스트 / D2 아키텍처 / D3 dogfooding) 완주. 점수 진화:
+
+| Round | D1 | D2 | D3 | 평균 |
+|-------|----|----|----|------|
+| R1 (06-01) | 2.8 | 3.8 | 2.5 | 3.0 |
+| R5 (06-06) | **4.5** | **4.4** | **4.5** | **4.47** |
+
+20 PR 머지 (#80~#99) + R5 추가 (#102/#103/#104). 누적 +1.47.
+
+핵심 finding 해소:
+
+- **F-C1 sync drift** (PR #88) — `core/` ↔ `.claude/` runtime drift 자동 탐지. `validate.sh` F-C1 섹션 신설. R4 (PR #92) 와 R5 (PR #99) 에서 검증 범위 확장 (rules + skills/scripts + hooks + non-SKILL.md). 총 6 카테고리 모두 drift 0 보장.
+- **F-A11 + F-A12 + F-A13 settings hook 중복 봉쇄** (PR #93/#94/#96) — `.claude/settings.json` + `.claude/settings.local.json` 양쪽 hook 등록 → 모든 hook 2회 fire 이슈. 증상 정화 + cloud-init.sh local-context 감지 + `.gitignore` 추가 = 3중 봉쇄.
+- **F-D5 → F-D7 silent fail 근본 차단** (PR #97) — R12 cloud cycle silent fail 원인 = `run-cloud.sh` 의 PR-C2 stub (R8 dogfooding 후 미정리). stub 제거 + agent hand-off 명시. 향후 cycle 결정적 작동.
+- **F-D3 R3-1/-3/-4** (PR #89/#90/#91) — dangling plan close + tool_failure substring 오분류 차단 + cloud cycles observability.
+- **F-D1-R4 + F-E1/E2/D8** (PR #92/#99) — validate.sh F-C1 검증 범위 단계적 확장 (R4 rules + scripts + hooks → R5 skill 내 non-SKILL.md + hook drift loop 비대칭 fix).
+- **F-D6 false positive 정정** — Skill instrumentation 가설 라이브 테스트로 기각 (`/status` 호출 시 `skill_invoked_auto` event 정상 emit 확인). 0건 누적은 사용자 행동 패턴 (audit-heavy 세션은 Skill tool 직접 호출 드묾).
+
+### 추가 — R12/R13 cloud dogfooding cycle
+
+- **R13 self-evolving closed-loop** (PR #95) — R13 cloud routine (`trig_01DZKFt39UPhZX9zRK4yaku1`) 2026-06-05T14:39:15Z fire → cloud cycle 완전 작동 → R12 dogfooding marker PR 자동 생성 → cloud agent 본인이 brainstorm 에서 R12 silent fail 원인 진단 → F-A13/F-D7 즉시 발굴 + 4시간 내 closed-loop 머지. self-evolving dogfooding 정합성 입증된 첫 사례.
+
+### 변경 (Breaking)
+
+이전 `[Unreleased]` 의 sleep-build → auto-build 전면 rename 등 v1.7~v1.9 미릴리즈 항목 일괄 v2.0.0 으로 통합. 아래 "이전 unreleased (v1.6.0 → v2.0.0 누적)" 섹션 참조.
+
+### 이전 unreleased (v1.6.0 → v2.0.0 누적)
+
+#### 추가
 - **`setup.sh --clean` / `--clean-dry-run` 플래그** — target 프로젝트 `.claude/`에서 **source에 없는 obsolete hook/skill 자동 삭제**. rename 후 기존 sleep-build 같은 이전 이름 자산이 target에 남는 문제 해결.
   - 감지: `.claude/hooks/*.sh` 중 `core/hooks/`에 없는 것 + `.claude/skills/*/` 중 `core/skills/`에 없는 것
   - `--clean-dry-run` — 감지만, 삭제 X (사전 검토용)
