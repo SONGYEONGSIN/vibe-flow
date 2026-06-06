@@ -3,7 +3,7 @@ name: validator
 description: Builder의 완료 작업을 fresh-context로 검증하는 pair mode 전용 품질 게이트. Binary 판정(approved/needs-revision) 출력.
 tools: Read, Grep, Glob, Bash
 disallowedTools: Edit, Write
-model: opus
+model: sonnet
 maxTurns: 12
 effort: high
 memory: project
