@@ -1,0 +1,153 @@
+[English](README.md) | 한국어
+
+# vibe-flow
+
+> vibe coder의 작업 흐름 — 초보부터 상급자까지, mechanical enforcement로
+
+[![CI](https://github.com/SONGYEONGSIN/vibe-flow/actions/workflows/eval-regression.yml/badge.svg)](https://github.com/SONGYEONGSIN/vibe-flow/actions)
+[![Skills](https://img.shields.io/badge/Skills-44-blue)](docs/REFERENCE.md)
+[![Extensions](https://img.shields.io/badge/Extensions-7-purple)](extensions/)
+[![Hooks](https://img.shields.io/badge/Hooks-29-orange)](docs/REFERENCE.md)
+[![Agents](https://img.shields.io/badge/Agents-22-green)](docs/REFERENCE.md)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+
+## ⚡ 30초 시작
+
+```bash
+git clone https://github.com/SONGYEONGSIN/vibe-flow.git
+cd /your/project
+bash /path/to/vibe-flow/setup.sh
+```
+
+→ Core 20 스킬 + 25 훅 + 10 에이전트 + 6 규칙 즉시 활성화
+
+## 🎯 첫 사이클 (5분)
+
+```bash
+claude
+> /brainstorm "사용자 인증 기능 추가"   # 의도 탐색 (4문항 + 대안 2개)
+> /plan from-brainstorm <file>           # 단계 분해
+# ...코드 작성...
+> /verify                                # lint + tsc + test
+> /commit                                # Conventional commit
+> /finish                                # PR/머지 결정 트리
+```
+
+## 📦 Core 20 — 기본 설치
+
+| 카테고리 | 스킬 |
+|---------|------|
+| 사이클 | `/brainstorm` `/plan` `/finish` `/release` |
+| 작업 | `/scaffold` `/test` `/worktree` |
+| 검증 | `/verify` `/security` `/perf-audit` |
+| Git | `/commit` `/review-pr` `/receive-review` |
+| 메타 | `/status` `/learn` `/onboard` `/menu` `/inbox` `/budget` `/telemetry` |
+
+자세한 명령 → [docs/REFERENCE.md](docs/REFERENCE.md)
+
+## 🔌 Extensions 7 — opt-in
+
+```bash
+bash setup.sh --list-extensions       # 사용 가능한 것 보기
+bash setup.sh --extensions <name>     # 추가
+bash setup.sh --all                   # 전체 설치
+```
+
+| Extension | 용도 |
+|-----------|------|
+| `meta-quality` | 스킬 자체 품질 측정 + 자가 진화 (`/eval`, `/evolve`) |
+| `design-system` | 참고 디자인 → 코드 정량 매칭 (`/design-sync`, `/design-audit`) |
+| `deep-collaboration` | Builder/Validator 페어, 토론 (`/pair`, `/discuss`) |
+| `learning-loop` | 장기 메트릭, 회고 (`/metrics`, `/retrospective`) |
+| `code-feedback` | git diff 기반 품질 분석 (`/feedback`) |
+| `i18n` | 번역 키 누락/미사용 자동 검출 (`/i18n-audit`) |
+| `k8s` | k8s manifest 5 anti-pattern audit (`/k8s-audit`) |
+
+각 extension 상세 → [extensions/](extensions/)
+
+## 🔧 CI 템플릿 (opt-in)
+
+`templates/.github/workflows/`에 사용자 프로젝트용 GH Actions 4종 제공:
+
+| 파일 | 역할 |
+|------|------|
+| `verify.yml` | lint + typecheck + test (npm/yarn/pnpm 자동 감지, stack-agnostic) |
+| `eval-regression.yml` | 자기 만든 SKILL.md / agents.md / evals.json 구조 회귀 검증 |
+| `security.yml` | npm audit + secret 패턴 grep + OWASP-style 정적 grep (warn-only 기본) |
+| `perf.yml` | Lighthouse 성능 측정 (`workflow_dispatch` 또는 weekly schedule, threshold 미달 시 warning) |
+
+```bash
+# 사용자 프로젝트로 복사 (수동, opt-in)
+mkdir -p .github/workflows
+cp /path/to/vibe-flow/templates/.github/workflows/*.yml .github/workflows/
+```
+
+→ [templates/.github/workflows/](templates/.github/workflows/)
+
+## 🚀 학습 경로
+
+```
+첫날     → Core 6 (brainstorm, commit, verify, finish, status, learn)
+3일차    → + plan, test, security
+1주차    → + scaffold, worktree, review-pr, receive-review, release
+1개월    → Extensions 활성화 (meta-quality / learning-loop 등)
+```
+
+자세한 단계별 가이드 → [docs/ONBOARDING.md](docs/ONBOARDING.md)
+
+## 📐 아키텍처
+
+```
+brainstorm → plan → 구현 → verify → commit → finish → release
+   │                            │                   │
+   ↓                            ↓                   ↓
+ memory ─────────────────  events.jsonl ─────  retrospective
+                                  ↓
+                        /eval → /evolve (extensions/meta-quality)
+```
+
+자세한 데이터 흐름 → [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+## 🤝 에이전트 위임 (12개)
+
+`@developer`, `@qa`, `@security`, `@validator`, `@planner`, `@feedback`,
+`@moderator`, `@comparator`, `@designer`, `@retrospective`
++ extensions: `@skill-reviewer`, `@grader`
+
+## 🛠 자동 강제 (Hooks 22개)
+
+`/verify` 안 돌려도 자동:
+- 매 `Write/Edit` → prettier, eslint, typecheck, test, design-lint
+- TDD strict — 테스트 없이 코드 수정 차단
+- 위험 명령 27 패턴 차단 (`git push --force`, `rm -rf /`, ...)
+- 메트릭 자동 수집 (events.jsonl + SQLite + JSON)
+
+## 🆙 업그레이드
+
+```bash
+cd /path/to/vibe-flow && git pull
+cd /your/project && bash /path/to/vibe-flow/setup.sh
+# → 사용자 수정본 자동 .bak 백업, extensions state 보존
+```
+
+## 📚 더 읽기
+
+- [docs/REFERENCE.md](docs/REFERENCE.md) — 전체 명령/규칙 레퍼런스
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — self-improving 루프 상세
+- [docs/MIGRATION.md](docs/MIGRATION.md) — 평면 .claude/ → vibe-flow 마이그레이션
+- [docs/ONBOARDING.md](docs/ONBOARDING.md) — vibe coder 단계별 가이드
+- [extensions/](extensions/) — 각 extension 사용법
+
+## 출처
+
+이 빌드의 핵심 원칙은 다음 패턴을 mechanical enforcement로 통합한 것:
+
+- Surgical change / Goal-driven: [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills)
+- TDD Iron Law: [obra/superpowers](https://github.com/obra/superpowers)
+- Self-evolution: [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent)
+- Pair mode: [disler/claude-code-hooks-mastery](https://github.com/disler/claude-code-hooks-mastery)
+- 자세한 매핑은 [CHANGELOG.md](CHANGELOG.md) 1.0.0
+
+## 라이선스
+
+MIT
