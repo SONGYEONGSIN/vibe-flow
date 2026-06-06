@@ -243,7 +243,7 @@ fi
 [ "${DRIFT_COUNT:-0}" -gt 0 ] || [ "${SKILL_DRIFT:-0}" -gt 0 ] || \
 [ "${RULES_DRIFT:-0}" -gt 0 ] || [ "${SCRIPT_DRIFT:-0}" -gt 0 ] || \
 [ "${HOOK_DRIFT:-0}" -gt 0 ] && \
-  warn "drift 발견 — bash setup.sh --upgrade 또는 cp 일괄 sync 권장" || true
+  warn "drift 발견 — bash core/scripts/sync-drift.sh (--check 사전 확인) 또는 setup.sh --upgrade" || true
 
 # 4. agents.json 일관성
 echo ""
