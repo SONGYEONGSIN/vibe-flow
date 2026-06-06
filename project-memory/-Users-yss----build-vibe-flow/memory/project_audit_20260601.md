@@ -184,7 +184,27 @@ R13 cycle PR #95 + F-D7 fix PR #97 로 F-D5 root cause 완전 차단. 향후 rou
 
 `core/skills/test/SKILL.md:9` 중복 effort 키 1줄 삭제. audit round 4 잔여 0건.
 
-### 통합 종료 — audit round 1 ~ 4 (2026-06-01 ~ 06-06)
+### Round 5 (2026-06-06) — 측정 + fix 1 PR
+
+R4 measurement 후 6 PR (#92-#98) 적용 효과 정량 측정. fresh-context 3 agent 위임.
+
+| Dim | R4 | R5 측정 | R5 #99 후 예상 |
+|-----|----|----|------|
+| D1 | 4.0 | **4.5** (+0.5) | 4.5 유지 |
+| D2 | 4.2 | **4.4** (+0.2) | ~4.6 (F-E1/E2 해소) |
+| D3 | 4.0 | **4.5** (+0.5) | 4.5 유지 |
+| **평균** | **4.07** | **4.47** | **~4.53** |
+
+핵심 진전: D3 self-evolving closed-loop (R13 cloud cycle 본인이 silent fail brainstorm 진단 → PR #95/#96/#97 자동 closed-loop) 입증. D2 +0.2 미달은 신규 F-E1 메타 drift 발견 때문.
+
+PR #99 (commit fb1940a) — F-E1/E2/D8 3건 묶음 fix:
+- F-E1 (P2) orchestrator.md 37줄 drift sync
+- F-E2 (P3) validate.sh F-C1 에 skill-doc loop 추가 (비-SKILL.md 검증 범위 확장)
+- F-D8 (P3) hook drift loop missing 케이스 대칭 fix + git-post-commit.sh 명시 skip
+
+R5 잔여: F-D9 (P3) cycles-report --all over-count.
+
+### 통합 종료 — audit round 1 ~ 5 (2026-06-01 ~ 06-06)
 
 본 audit cycle 동안 **19 PR 머지 (#80-#98)**. 발견 finding 총 14건, 모두 처리 (해소 12 / false positive 1 / closed by chain 1). 
 
