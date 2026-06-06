@@ -13,13 +13,22 @@
 
 ## ⚡ 30초 시작
 
+**옵션 A — Claude Code plugin marketplace (권장):**
+
+```bash
+/plugin marketplace add https://github.com/SONGYEONGSIN/vibe-flow
+/plugin install vibe-flow
+```
+
+**옵션 B — 수동 설정:**
+
 ```bash
 git clone https://github.com/SONGYEONGSIN/vibe-flow.git
 cd /your/project
 bash /path/to/vibe-flow/setup.sh
 ```
 
-→ Core 20 스킬 + 25 훅 + 10 에이전트 + 6 규칙 즉시 활성화
+→ 44 스킬 + 22 에이전트 + 29 훅 + 7 규칙 즉시 활성화
 
 ## 🎯 첫 사이클 (5분)
 

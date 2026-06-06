@@ -13,13 +13,22 @@ English | [한국어](README.ko.md)
 
 ## ⚡ 30-second start
 
+**Option A — Claude Code plugin marketplace (recommended):**
+
+```bash
+/plugin marketplace add https://github.com/SONGYEONGSIN/vibe-flow
+/plugin install vibe-flow
+```
+
+**Option B — Manual setup:**
+
 ```bash
 git clone https://github.com/SONGYEONGSIN/vibe-flow.git
 cd /your/project
 bash /path/to/vibe-flow/setup.sh
 ```
 
-→ Core skills, hooks, agents, and rules are activated immediately.
+→ 44 skills + 22 agents + 29 hooks + 7 rules are activated immediately.
 
 ## 🎯 First cycle (5 minutes)
 
