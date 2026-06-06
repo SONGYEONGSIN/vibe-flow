@@ -194,13 +194,45 @@ if [ -d "$VIBE_FLOW_ROOT/core/skills" ] && [ -d "$CLAUDE_DIR/skills" ]; then
   [ "$SCRIPT_DRIFT" = 0 ] && ok "core/skills/*/scripts ↔ .claude/skills/*/scripts 동기화"
 fi
 
+# F-E2 (audit round 5): skill 디렉토리 내 비-SKILL.md 문서 sync 검증.
+# orchestrator.md / references/*.md / data/*.md / assets/*.md / jurisdictions/*.md 등
+# runtime 이 참조하는 모든 markdown. SKILL.md 만 보면 F-E1 같은 drift 미탐지.
+if [ -d "$VIBE_FLOW_ROOT/core/skills" ] && [ -d "$CLAUDE_DIR/skills" ]; then
+  DOC_DRIFT=0
+  while IFS= read -r src; do
+    [ -f "$src" ] || continue
+    rel="${src#$VIBE_FLOW_ROOT/core/}"
+    dst="$CLAUDE_DIR/$rel"
+    if [ ! -f "$dst" ]; then
+      warn "skill-doc missing in .claude/: $rel"
+      DOC_DRIFT=$((DOC_DRIFT + 1))
+    elif ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+      warn "skill-doc drift: $rel (core 와 .claude 불일치)"
+      DOC_DRIFT=$((DOC_DRIFT + 1))
+    fi
+  done < <(find "$VIBE_FLOW_ROOT/core/skills" -name '*.md' ! -name 'SKILL.md' -type f 2>/dev/null)
+  [ "$DOC_DRIFT" = 0 ] && ok "core/skills/*/*.md (non-SKILL) ↔ .claude/ 동기화"
+fi
+
+# F-D8 (audit round 5): hook drift loop missing 케이스 비대칭 fix.
+# 기존 loop 는 `[ -f "$dst" ]` 조건이라 dst 부재 시 silent skip — script loop 와 비대칭.
+# git-post-commit.sh 처럼 .git/hooks 로 install 되는 hook 은 명시 skip 리스트로 처리.
 if [ -d "$VIBE_FLOW_ROOT/core/hooks" ] && [ -d "$CLAUDE_DIR/hooks" ]; then
   HOOK_DRIFT=0
+  # .claude/hooks/ 에 install 되지 않는 hook (다른 target 으로 install)
+  HOOK_SKIP_LIST=" git-post-commit.sh "
   for src in "$VIBE_FLOW_ROOT/core/hooks/"*.sh; do
     [ -f "$src" ] || continue
     name=$(basename "$src")
+    # .git/hooks 등 다른 target 으로 install 되는 hook 은 skip
+    case "$HOOK_SKIP_LIST" in
+      *" $name "*) continue ;;
+    esac
     dst="$CLAUDE_DIR/hooks/$name"
-    if [ -f "$dst" ] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+    if [ ! -f "$dst" ]; then
+      warn "hook missing in .claude/: $name"
+      HOOK_DRIFT=$((HOOK_DRIFT + 1))
+    elif ! diff -q "$src" "$dst" >/dev/null 2>&1; then
       warn "hook drift: $name (core 와 .claude 불일치)"
       HOOK_DRIFT=$((HOOK_DRIFT + 1))
     fi
