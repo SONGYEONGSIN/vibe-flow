@@ -1,6 +1,6 @@
 {
   "name": "vibe-flow",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Self-evolving workflow kit for Claude Code. 44 skills + 22 agents + 29 hooks. Karpathy principles, audit cycle, TDD strict, drift detection.",
   "author": {
     "name": "SONGYEONGSIN",
