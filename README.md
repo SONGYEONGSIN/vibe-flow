@@ -42,6 +42,50 @@ claude
 > /finish                                 # PR/merge decision tree
 ```
 
+## 🎬 What it actually does
+
+```text
+$ /brainstorm "add password reset flow"
+  → 4 questions: 무엇/누가/왜 지금/성공 기준
+  → 2 alternatives compared (e.g. magic link vs OTP)
+  → spec saved to .claude/memory/brainstorms/20260606-...-password-reset.md
+
+$ /plan from-brainstorm .claude/memory/brainstorms/...md
+  → 6 steps decomposed (T1~T6) with HARD-GATE level
+  → plan_created event → .claude/events.jsonl
+
+$ /verify
+  ✓ lint (eslint, prettier)
+  ✓ typecheck (tsc --noEmit)
+  ✓ test (vitest)
+  ✓ no console.log / any / @ts-ignore (rules/donts.md)
+  ✓ browser console clean (Playwright)
+
+$ /commit
+  → Conventional Commit auto-generated:
+    "feat(auth): password reset via email OTP — TTL 10min"
+
+$ /finish
+  → decision tree: PR | direct merge | release | cleanup
+  → branch state, test status, plan completion 모두 점검 후 안내
+
+[session ends] →
+  💡 학습 저장 권장 (활동 신호 감지):
+    - /learn save pattern "<password reset pattern>"
+```
+
+Hooks 가 매 `Write/Edit` 후 자동 검증 — `/verify` 안 돌려도 prettier/eslint/typecheck/test/design-lint/security-lint 모두 실시간. TDD strict 모드 — 테스트 없이 코드 수정 차단.
+
+**Generate your own demo GIF:**
+
+```bash
+# install asciinema (recommended) or terminalizer
+brew install asciinema
+asciinema rec demo.cast --command "claude"
+# ...run a real cycle...
+# upload to asciinema.org and link in your PR / docs
+```
+
 ## 📦 Core skills — default install
 
 | Category | Skills |
