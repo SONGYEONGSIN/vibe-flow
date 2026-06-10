@@ -35,8 +35,8 @@ AGENTS_CONFIG="${PROJECT_ROOT}/.claude/agents.json"
 if [ -f "$AGENTS_CONFIG" ]; then
   AGENTS=$(jq -r '.agents[]' "$AGENTS_CONFIG" | tr '\n' ' ')
 else
-  # agents.json 없으면 폴백 (하위 호환)
-  AGENTS="comparator designer developer feedback grader moderator planner qa retrospective security skill-reviewer"
+  # agents.json 없으면 폴백 (하위 호환) — agents.json 의 10 참여자와 일치 (F-F4)
+  AGENTS="comparator designer developer feedback moderator planner qa retrospective security validator"
 fi
 
 ACTION="$1"
