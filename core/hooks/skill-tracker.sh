@@ -11,8 +11,10 @@ INPUT=$(cat)
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty' 2>/dev/null)
 [ -z "$PROMPT" ] && exit 0
 
-# 첫 단어 추출 (slash로 시작하는 토큰)
-FIRST_WORD=$(echo "$PROMPT" | awk '{print $1}')
+# 첫 줄의 첫 단어만 추출 — 멀티라인 paste(예: /goal\n\n1.\n2...)가 awk 로
+# 줄마다 $1 을 뽑아 garbage skill 명으로 기록되던 telemetry 오염 차단 (F-F2)
+FIRST_LINE=$(printf '%s\n' "$PROMPT" | head -n1)
+FIRST_WORD=$(printf '%s' "$FIRST_LINE" | awk '{print $1}')
 case "$FIRST_WORD" in
   /*) ;;       # /로 시작 → 처리 진행
   *) exit 0 ;; # 일반 prompt → skip
@@ -25,7 +27,11 @@ case "$SKILL_NAME" in
   *:*) SKILL_NAME="${SKILL_NAME#*:}" ;;
 esac
 
-[ -z "$SKILL_NAME" ] && exit 0
+# skill name 형식 검증 — kebab-case(영숫자/-/_)만 허용.
+# 경로형(/Users/..) 이나 newline 포함 garbage 토큰을 차단 (F-F2)
+case "$SKILL_NAME" in
+  ''|*[!a-zA-Z0-9_-]*) exit 0 ;;
+esac
 
 EVENTS_FILE="${PROJECT_ROOT}/.claude/events.jsonl"
 mkdir -p "$(dirname "$EVENTS_FILE")"
