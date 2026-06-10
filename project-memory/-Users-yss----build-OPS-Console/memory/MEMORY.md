@@ -1,2 +1,4 @@
 - [DB 마이그레이션 적용 방법](db-migration-apply.md) — Supabase CLI 없음; DATABASE_URL(풀러) + `pg --no-save` 인라인으로 적용 후 RLS 검증
 - [경위서 양식 뷰어 기능](incident-report-form-viewer.md) — feat 브랜치 미머지, 라우트/단일소스/로고/시행번호 등 재개 컨텍스트
+- [SmileEDI 자동화](smileedi-automation.md) — 스크래핑+조건부메일 이식(Phase1/2 머지 완료), 운영 잔여(Vercel env·GH Secrets·cron-job.org·비번 로테이션·Q2 업로드인증)
+- [서비스 마감(closing) 자동화](closing-automation.md) — Moa 스크래핑→마감서비스 표시. Phase1(페이지·API·DB) 머지 완료, Phase2(스크래퍼+워크플로) 미착수

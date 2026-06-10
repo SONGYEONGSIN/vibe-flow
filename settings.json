@@ -31,7 +31,16 @@
     "frontend-design@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
-    "vercel@claude-plugins-official": true
+    "vercel@claude-plugins-official": true,
+    "vibe-flow@vibe-flow": true
+  },
+  "extraKnownMarketplaces": {
+    "vibe-flow": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/SONGYEONGSIN/vibe-flow.git"
+      }
+    }
   },
   "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true,
