@@ -262,6 +262,32 @@ R5 잔여: F-D9 (P3) cycles-report --all over-count.
 - agent_invoked event 라이브 캡처 4건 (hook 작동 확인)
 - 단 plan_completed 8:1 → PR #84로 6:8 (이전 7:1→8:1 악화에서 회복)
 
+## Round 6 (2026-06-10) — 재감사 + PR-1 머지 진행
+
+R5 종료(06-06, v2.0.0 #106) 후 ~4일 누적. 3 dimension fresh-context 병렬 위임 (general-purpose D1 / architecture-reviewer D2 / general-purpose D3 — retrospective agent 가 보고 없이 종료해 재위임).
+
+| Dim | R5 | R6 | Δ | 핵심 |
+|-----|----|----|---|------|
+| D1 컨텍스트 | 4.5 | 4.5 | ±0 | 인프라 무결, project `.claude/memory/MEMORY.md` 만 06-01 동결 stale |
+| D2 아키텍처 | 4.4 | 4.5 | +0.1 | 라우팅/hook 견고, **validate.sh drift 무력화 노출** |
+| D3 dogfooding | 4.5 | 4.3 | -0.2 | cloud cycle 정상, telemetry poisoning 2건 신규 |
+| **평균** | **~4.47** | **~4.43** | **-0.04** | R4 처럼 **메타-검증 결함** 노출 라운드 |
+
+**Round 6 finding (de-conflict + 통합 넘버링)**:
+- 🟠 P2 — **F-F1** (validate.sh:133 `dirname "$0"` → 문서 경로 `bash .claude/validate.sh` 시 drift 블록 silent skip, R3~R5 sync 검증 무력화) / **F-F2** (skill-tracker.sh:15 awk garbage skill 명 telemetry 오염) / **F-D9** (cycles-report.sh:19 squash+원본 중복 카운트, R5 잔여) / **F-F3** (project MEMORY.md 06-01 동결 — "Phase 3.1/4 active" 인데 실제 #80~#99+v2.0.0 완료)
+- 🟡 P3 — **F-F4** (agents.json 10/22 등록, validate [5/10] 12 orphan 미검증) / **F-F5** (MEMORY.md dead ref 2건: audits/ 미존재, brainstorm 파일 부재) / **F-F6** (tool_failure 노이즈 sandbox git not found)
+- **기각**: F-F7 (scripts/tests 0 커버) = false positive, 14 test 파일 실재
+
+**PR-1 머지 진행 (PR #108, 브랜치 fix/audit-r6-instrumentation-accuracy)** — F-F1+F-F2+F-D9 계측/검증 정확도 trio. TDD RED→GREEN, smoke test 신규 2 (skill-tracker/validate-drift) + cycles-report Case 4. 5 suite 51 assertion 0 fail. 소스(core/+root validate.sh)만 커밋 (.claude/ 는 gitignore 런타임 미러).
+
+**PR-2 머지 진행 (PR #109, 브랜치 fix/audit-r6-cleanup, main 독립 분기)** — P3 정리 묶음 F-F3+F-F4+F-F5:
+- F-F3: project `.claude/memory/MEMORY.md` 06-01 동결 → Phase 3.1/4 종료 + v2.0.0 + R1~R6 인덱스로 현행화 (71→61줄).
+- F-F4 **(D2 agent 프레이밍 교정)**: agents.json 은 message-bus/inbox 참여자 레지스트리(curated 10개, inbox 디렉토리도 10개)라 "22개 등록"은 message-bus 동작 바꾸는 비-surgical 변경 → **기각**. 대신 진짜 불일치만 fix: inbox/SKILL.md "12"→"10" (3곳) + message-bus.sh 폴백의 유령 agent(grader/skill-reviewer) 제거 + validator 추가 → agents.json 과 정확히 일치.
+- F-F5: MEMORY.md dead ref 2건 (audits/ 미존재 + brainstorm 파일명 auto-build→sleep-build 오타).
+- **F-F6 (P3 tool_failure 노이즈) 보류** — sandbox `git not found`로 코드 버그 아님, fix 대상 아님.
+
+**Round 6 마감 상태**: P2 trio(PR #108) + P3 cleanup(PR #109) 2 PR 로 finding 전부 처리 (해소 6 / 기각 2: F-F7 false positive + agents.json 22등록 / 보류 1: F-F6). 두 PR 머지 시 R6 종결. **다음 진입점 = #108/#109 머지 후, 며칠 데이터 누적 후 Round 7 (telemetry 효과 재측정) 또는 character-system 신규 트랙.**
+
 ## Linked memories
 
 - [[phase3-1-r10-functional-pass-f14-f15]] — Phase 3.1 cloud cycle 결과

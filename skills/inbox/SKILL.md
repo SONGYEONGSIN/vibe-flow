@@ -1,12 +1,12 @@
 ---
 name: inbox
-description: 12 에이전트 inbox + broadcast + debates 통합 뷰 + 메시지 발송. /inbox, /inbox <agent>, /inbox --unread-only, /inbox --broadcast, /inbox send <to> <subject> <body>.
+description: 10 에이전트 inbox + broadcast + debates 통합 뷰 + 메시지 발송. /inbox, /inbox <agent>, /inbox --unread-only, /inbox --broadcast, /inbox send <to> <subject> <body>.
 model: claude-sonnet-4-6
 ---
 
 # /inbox
 
-vibe-flow의 12 에이전트 메시지 큐를 한 화면에 보여준다. message-bus.sh CLI 호환 (read/archive/send는 그대로 위임).
+vibe-flow의 10 에이전트 메시지 큐를 한 화면에 보여준다. message-bus.sh CLI 호환 (read/archive/send는 그대로 위임).
 
 ## 트리거
 
@@ -130,7 +130,7 @@ preview_unread() {
 
 ```bash
 print_full_inbox() {
-  echo "📬 vibe-flow Inbox (12 에이전트)"
+  echo "📬 vibe-flow Inbox (10 에이전트)"
   echo ""
 
   ACTIVE=()
