@@ -83,6 +83,27 @@ out=$(bash "$SCRIPT" 2>&1)
 assert_contains "firings total: 2" "total: 2 entries" "$out"
 teardown
 
+# Case 4: marker dedup — squash 머지본 + 브랜치 원본이 같은 cycle 을 중복 카운트하면 안 됨 (F-D9)
+echo "=== Case 4: duplicate marker commits dedup to unique cycle count ==="
+setup
+# 같은 R9 marker 가 브랜치 원본 + PR squash(#NN) 형태로 2번 존재하는 상황 재현
+git commit -q --allow-empty -m "feat: R9 dogfooding marker"
+git commit -q --allow-empty -m "feat: R9 dogfooding marker (#71)"
+# 추가로 서로 다른 cycle R10 도 1건
+git commit -q --allow-empty -m "feat: R10 dogfooding marker (#74)"
+out=$(bash "$SCRIPT" 2>&1)
+# 원시 카운트는 3 이지만 고유 cycle 은 R9, R10 → 2
+assert_contains "unique cycle markers = 2 (not raw 3)" "unique cycle markers: 2" "$out"
+# 회귀 가드: 중복 포함 raw 3 이 카운트로 새어나오면 안 됨
+if echo "$out" | grep -q "marker commits: 3"; then
+  echo "  ✗ raw duplicate count (3) leaked into report"
+  FAIL=$((FAIL + 1))
+else
+  echo "  ✓ raw duplicate count (3) not reported"
+  PASS=$((PASS + 1))
+fi
+teardown
+
 echo
 echo "=== 결과 ==="
 echo "  통과: $PASS / 실패: $FAIL"

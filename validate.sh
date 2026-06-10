@@ -130,7 +130,10 @@ fi
 # PR이 core/ 만 수정하고 .claude/ 미 update할 때 runtime에 적용 안 됨
 echo ""
 echo "[4.5/10] core/ ↔ .claude/ sync drift 검증 (F-C1)"
-VIBE_FLOW_ROOT="${VIBE_FLOW_ROOT:-$(dirname "$0")}"
+# F-F1 (audit round 6): dirname "$0" 는 `bash .claude/validate.sh` 실행 시 ".claude" 를
+# 반환해 core/ 경로가 ".claude/core/" 로 잘못 잡혀 drift 블록 전체가 silent skip 됨.
+# git repo root 로 해석 (cycles-report.sh / sync-drift.sh 와 동일 idiom).
+VIBE_FLOW_ROOT="${VIBE_FLOW_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 if [ -d "$VIBE_FLOW_ROOT/core/agents" ] && [ -d "$CLAUDE_DIR/agents" ]; then
   DRIFT_COUNT=0
   for src in "$VIBE_FLOW_ROOT/core/agents/"*.md; do
