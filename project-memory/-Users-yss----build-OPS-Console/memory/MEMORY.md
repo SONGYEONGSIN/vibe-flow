@@ -2,3 +2,4 @@
 - [경위서 양식 뷰어 기능](incident-report-form-viewer.md) — feat 브랜치 미머지, 라우트/단일소스/로고/시행번호 등 재개 컨텍스트
 - [SmileEDI 자동화](smileedi-automation.md) — 스크래핑+조건부메일 이식(Phase1/2 머지 완료), 운영 잔여(Vercel env·GH Secrets·cron-job.org·비번 로테이션·Q2 업로드인증)
 - [서비스 마감(closing) 자동화](closing-automation.md) — Moa 스크래핑→마감서비스 표시. Phase1(페이지·API·DB) 머지 완료, Phase2(스크래퍼+워크플로) 미착수
+- [버튼 호버 검정 규칙](button-hover-black-rule.md) — 기본 디자인 규칙: 버튼 호버 시 `hover:bg-ink hover:text-cream`
