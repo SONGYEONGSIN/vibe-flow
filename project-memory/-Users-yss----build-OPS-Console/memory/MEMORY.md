@@ -3,3 +3,6 @@
 - [SmileEDI 자동화](smileedi-automation.md) — 스크래핑+조건부메일 이식(Phase1/2 머지 완료), 운영 잔여(Vercel env·GH Secrets·cron-job.org·비번 로테이션·Q2 업로드인증)
 - [서비스 마감(closing) 자동화](closing-automation.md) — Moa 스크래핑→마감서비스 표시. Phase1(페이지·API·DB) 머지 완료, Phase2(스크래퍼+워크플로) 미착수
 - [버튼 호버 검정 규칙](button-hover-black-rule.md) — 기본 디자인 규칙: 버튼 호버 시 `hover:bg-ink hover:text-cream`
+- [표준 모달 셸](modal-shell-standard.md) — 모든 모달은 `components/common/ModalShell` 사용(검정 헤더+boxed ×+푸터 슬롯), 인라인 모달 마크업 금지
+- [기본 목록+인스펙터 표준 디자인](standard-list-inspector-design.md) — 신규/전환 메뉴는 ListPattern+controlsRow(px-7 pt-3)+ScopeChips+표준 Section View. 커스텀 UI 금지
+- [entertest 테스트 실행 파이프라인](entertest-test-run.md) — 폴러 가동 중(6/18 5/5 통과), v2 실제 원서작성 "결제 직전까지" 진행 + 계정 순환 미결
