@@ -59,6 +59,34 @@ L resolve F-H02 "0.0 no movement" refuted >/dev/null
 rst=$(jq -r 'select(.id=="F-H02") | .status' "$LEDGER")
 [ "$rst" = "refuted" ] && ok "refuted 상태 전이 (메타-학습 신호)" || ng "status=$rst"
 
+echo "=== improve 자동화: enqueue (open finding → auto-build 큐, idempotent) ==="
+# stub queue.sh — task 를 QSTORE 에 적재 + queued id 회신 (real queue.sh lock/의존 회피)
+export QSTORE="$TMP/queue.jsonl"; : > "$QSTORE"
+cat > "$TMP/queue.sh" <<'STUB'
+#!/bin/bash
+[ "$1" = "add" ] || exit 1
+echo "$2" >> "$QSTORE"
+echo "queued: Q-$(wc -l < "$QSTORE" | tr -d ' ')"
+STUB
+chmod +x "$TMP/queue.sh"
+# 현재 open: F-H03, F-G01 (앞 단계서 H01 verified / H02 refuted)
+QUEUE_SH="$TMP/queue.sh" L enqueue >/dev/null 2>&1
+qn=$(wc -l < "$QSTORE" | tr -d ' ')
+[ "$qn" = "2" ] && ok "open 2건 enqueue → 큐 2 task" || ng "큐 task=$qn (want 2)"
+et=$(jq -r 'select(.id=="F-H03") | .enqueued_task' "$LEDGER")
+if [ "$et" = "Q-1" ] || [ "$et" = "Q-2" ]; then ok "finding 에 enqueued_task 기록 ($et)"; else ng "enqueued_task=$et"; fi
+grep -q 'audit F-H03' "$QSTORE" && ok "task 에 finding id+fix 컨텍스트 포함" || ng "task 컨텍스트 누락"
+QUEUE_SH="$TMP/queue.sh" L enqueue >/dev/null 2>&1
+qn2=$(wc -l < "$QSTORE" | tr -d ' ')
+[ "$qn2" = "2" ] && ok "재실행 idempotent (중복 큐잉 0)" || ng "재실행 후 큐=$qn2 (want 2)"
+
+echo "=== decision-observability: mark-fixed → pending-verify → resolve ==="
+L mark-fixed F-H03 >/dev/null
+[ "$(L pending-verify | grep -c 'F-H03')" = "1" ] && ok "mark-fixed 후 pending-verify 등장 (actual_delta null)" || ng "pending-verify 누락"
+L pending-verify | grep -q 'F-G01' && ng "open finding 이 pending-verify 에 샘" || ok "open finding 은 pending-verify 제외"
+L resolve F-H03 "+0.2 confirmed" verified >/dev/null
+[ "$(L pending-verify | grep -c 'F-H03')" = "0" ] && ok "resolve(verified) 후 pending-verify 제거" || ng "여전히 pending"
+
 echo
 echo "=== 결과 ==="
 echo "  통과: $PASS / 실패: $FAIL"

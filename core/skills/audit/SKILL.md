@@ -17,11 +17,12 @@ allowed-tools: Bash, Read, Write, Edit, Grep, Glob, Agent
 
 ```bash
 LEDGER_SH="core/skills/audit/scripts/ledger.sh"   # (.claude/ 런타임은 .claude/skills/audit/scripts/ledger.sh)
-# 직전 라운드 open finding 목록 — fix 가 머지됐으면 actual_delta 채워 verified/refuted 전이
-bash "$LEDGER_SH" open
+# fix 가 머지된 finding 은 mark-fixed 로 open→fixed 전이 (PR 머지 시점)
+# reconcile 워크리스트 = status=fixed 이고 actual_delta 미기록인 것:
+bash "$LEDGER_SH" pending-verify
 ```
 
-**먼저** 직전 라운드 finding 중 fix가 머지된 것을 점검한다. 각 finding의 `predicted_delta`가 실제로 움직였는지 telemetry/점수로 확인 → `ledger.sh resolve <id> "<actual>" verified|refuted`. 움직이지 않았으면 `refuted`(오진 또는 무효 fix → 메타-학습). 이 단계가 AHE의 "decision observability" — 예측이 자동 반증된다.
+**먼저** `pending-verify` 목록(직전 라운드 fix 머지됐으나 미검증)을 측정한다. 각 finding의 `predicted_delta`가 실제로 움직였는지 telemetry/점수로 확인 → `ledger.sh resolve <id> "<actual>" verified|refuted`. 움직이지 않았으면 `refuted`(오진 또는 무효 fix → 메타-학습). 이 단계가 AHE의 "decision observability" — 예측이 자동 반증된다. (`open`은 아직 미해결 finding, `pending-verify`는 해결됐으나 미검증 finding.)
 
 라운드 라벨은 직전 라운드의 다음 글자(R1=A … R7=G → 다음 H).
 
@@ -65,6 +66,12 @@ echo '{"round":"H","component":"skills","dimension":"D2",
 ## Phase 4. improve — fix PR (HARD-GATE 등급)
 
 finding을 fix PR로 전환한다. `rules/git.md` HARD-GATE 등급(1~5 인라인 / 6~19 /plan / 20+ planner) + `rules/tdd.md`(RED→GREEN) + `rules/donts.md`(surgical) 준수. 테마별 PR 묶음(R6 #108 trio / R7 #110~#113 패턴). P3는 묶거나 defer(ledger status=`deferred`).
+
+**자동화(cloud cycle)**: open finding을 `auto-build` 큐에 적재해 자율 fix를 위임할 수 있다 —
+```bash
+bash "$LEDGER_SH" enqueue [<round>]   # open finding → auto-build-queue.jsonl (idempotent)
+```
+`run-cloud.sh`/`/auto-build`가 큐를 pop해 brainstorm→plan→TDD→PR 완주(`skills/auto-build`). fix PR 머지 후 `ledger.sh mark-fixed <id>` → 다음 라운드 Phase 0가 반증. 사람 주도(surgical 직접 PR)와 자율(enqueue) 병행 가능.
 
 ## Phase 5. 보고
 
