@@ -1,0 +1,49 @@
+name: validation-tests
+
+# F-G02 (audit round 7): 검증·계측 툴링을 머지 게이트로 승격.
+# 동기: R6 F-F1 에서 validate.sh drift 블록이 3개 라운드 동안 silent 하게
+# 무력화돼 있었음에도 CI 가 없어 발견이 늦었다. 이 워크플로우는
+# validate.sh / sync-drift.sh / 계측 hook 의 회귀를 PR 단계에서 차단한다.
+#
+# 주의: core/ ↔ .claude/ 의 "라이브" drift 는 .claude/ 가 gitignored 라
+# CI fresh clone 에서 검사 불가. 대신 fixture 기반 smoke 로 *검증 로직 자체*를
+# 게이트한다 (F-G01 같은 비대칭 결함이 재발하면 즉시 fail).
+
+on:
+  pull_request:
+    paths:
+      - 'validate.sh'
+      - 'core/scripts/**'
+      - 'core/hooks/**'
+      - 'scripts/tests/**'
+      - '.github/workflows/validation-tests.yml'
+  push:
+    branches: [main]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Run fixture-based validation & instrumentation smoke tests
+        run: |
+          set -u
+          failed=0
+          for t in scripts/tests/*.sh; do
+            # fixture 기반(mktemp) 테스트만 — .claude 런타임 미러를 요구하는 것은 CI 에서 skip
+            if grep -q mktemp "$t"; then
+              echo "::group::$t"
+              if bash "$t"; then
+                echo "PASS  $(basename "$t")"
+              else
+                echo "FAIL  $(basename "$t")"
+                failed=1
+              fi
+              echo "::endgroup::"
+            else
+              echo "SKIP (needs .claude runtime)  $(basename "$t")"
+            fi
+          done
+          exit $failed

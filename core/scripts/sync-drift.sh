@@ -127,6 +127,18 @@ if [ -f "validate.sh" ] && [ -f ".claude/validate.sh" ]; then
   fi
 fi
 
+# F-G03 (audit R7): agents.json (message-bus 레지스트리) — sync_dir_flat 글롭(core/agents/*) 밖 파일
+if [ -f "core/agents.json" ]; then
+  if [ ! -f ".claude/agents.json" ] || ! diff -q "core/agents.json" ".claude/agents.json" >/dev/null 2>&1; then
+    DRIFT_COUNT=$((DRIFT_COUNT + 1))
+    if [ "$MODE" = "apply" ]; then
+      cp "core/agents.json" ".claude/agents.json"
+      SYNC_COUNT=$((SYNC_COUNT + 1))
+      log_verbose "synced: agents.json"
+    fi
+  fi
+fi
+
 # ── 결과 ──────────────────────────────────────────────────
 if [ "$MODE" = "check" ]; then
   if [ "$DRIFT_COUNT" -eq 0 ]; then

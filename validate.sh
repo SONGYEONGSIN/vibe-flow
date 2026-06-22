@@ -140,11 +140,24 @@ if [ -d "$VIBE_FLOW_ROOT/core/agents" ] && [ -d "$CLAUDE_DIR/agents" ]; then
     [ -f "$src" ] || continue
     name=$(basename "$src")
     dst="$CLAUDE_DIR/agents/$name"
-    if [ -f "$dst" ] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+    if [ ! -f "$dst" ]; then
+      warn "agent missing in .claude/: $name"
+      DRIFT_COUNT=$((DRIFT_COUNT + 1))
+    elif ! diff -q "$src" "$dst" >/dev/null 2>&1; then
       warn "agent drift: $name (core 와 .claude 불일치)"
       DRIFT_COUNT=$((DRIFT_COUNT + 1))
     fi
   done
+  # F-G03 (audit R7): agents.json (message-bus 레지스트리) 도 drift 검증 — *.md 루프 밖 파일
+  if [ -f "$VIBE_FLOW_ROOT/core/agents.json" ]; then
+    if [ ! -f "$CLAUDE_DIR/agents.json" ]; then
+      warn "agents.json missing in .claude/"
+      DRIFT_COUNT=$((DRIFT_COUNT + 1))
+    elif ! diff -q "$VIBE_FLOW_ROOT/core/agents.json" "$CLAUDE_DIR/agents.json" >/dev/null 2>&1; then
+      warn "agents.json drift (core 와 .claude 불일치)"
+      DRIFT_COUNT=$((DRIFT_COUNT + 1))
+    fi
+  fi
   [ "$DRIFT_COUNT" = 0 ] && ok "core/agents ↔ .claude/agents 동기화"
 fi
 
@@ -154,7 +167,10 @@ if [ -d "$VIBE_FLOW_ROOT/core/skills" ] && [ -d "$CLAUDE_DIR/skills" ]; then
     [ -f "$src" ] || continue
     skill=$(basename "$(dirname "$src")")
     dst="$CLAUDE_DIR/skills/$skill/SKILL.md"
-    if [ -f "$dst" ] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+    if [ ! -f "$dst" ]; then
+      warn "skill missing in .claude/: $skill/SKILL.md"
+      SKILL_DRIFT=$((SKILL_DRIFT + 1))
+    elif ! diff -q "$src" "$dst" >/dev/null 2>&1; then
       warn "skill drift: $skill/SKILL.md (core 와 .claude 불일치)"
       SKILL_DRIFT=$((SKILL_DRIFT + 1))
     fi
@@ -170,7 +186,10 @@ if [ -d "$VIBE_FLOW_ROOT/core/rules" ] && [ -d "$CLAUDE_DIR/rules" ]; then
     [ -f "$src" ] || continue
     name=$(basename "$src")
     dst="$CLAUDE_DIR/rules/$name"
-    if [ -f "$dst" ] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+    if [ ! -f "$dst" ]; then
+      warn "rule missing in .claude/: $name"
+      RULES_DRIFT=$((RULES_DRIFT + 1))
+    elif ! diff -q "$src" "$dst" >/dev/null 2>&1; then
       warn "rule drift: $name (core 와 .claude 불일치)"
       RULES_DRIFT=$((RULES_DRIFT + 1))
     fi

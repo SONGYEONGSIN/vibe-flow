@@ -143,6 +143,24 @@ else
 fi
 teardown
 
+# ── T7: agents.json drift (F-G03 audit R7) — sync_dir_flat 글롭(core/agents/*) 밖 파일 ──
+echo "Test T7: agents.json drift detected (F-G03)"
+setup_fixture
+printf '{"participants":["a"]}\n' > core/agents.json
+printf '{"participants":["b"]}\n' > .claude/agents.json
+OUT=$(bash "$SCRIPT" --check 2>&1)
+EC=$?
+assert_exit "T7.1 --check exit 1 on agents.json drift" 1 "$EC"
+bash "$SCRIPT" >/dev/null 2>&1  # apply
+if diff -q core/agents.json .claude/agents.json >/dev/null; then
+  echo "  ✓ T7.2 agents.json synced (dest matches source)"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ T7.2 agents.json still differs after sync"
+  FAIL=$((FAIL + 1))
+fi
+teardown
+
 echo
 echo "─────────────────────────────────────────"
 echo "PASS: $PASS   FAIL: $FAIL"
