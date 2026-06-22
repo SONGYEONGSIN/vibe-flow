@@ -2,6 +2,8 @@
 
 작업 특성에 따른 에이전트/모델 선택 가이드. 비용 효율과 품질의 균형.
 
+> **(plugin) 표기**: 별도 플러그인/확장 설치 시에만 존재하는 에이전트·스킬. vibe-flow 단독 설치 환경에는 없으므로, 라우팅 시 해당 항목이 없으면 core 대체(예: `code-reviewer` → `general-purpose`/`codebase-analyzer`)로 폴백한다. (F-G07, audit R7)
+
 ---
 
 ## 라우팅 의사결정 트리
@@ -21,7 +23,7 @@
   │
   ├─ 테스트 작성? ──── YES → test-writer (sonnet)
   │
-  ├─ 코드 리뷰? ────── YES → code-reviewer (opus)
+  ├─ 코드 리뷰? ────── YES → code-reviewer (opus, plugin)
   │
   ├─ 아키텍처? ──────── YES → general-purpose (opus)
   │
@@ -39,22 +41,23 @@
 | 요청 키워드 | 스킬 | 우선순위 |
 |------------|------|:--------:|
 | "커밋", "commit" | commit | 1 |
-| "배포", "deploy" | vercel-deploy-claimable | 1 |
+| "배포", "deploy" | vercel-deploy-claimable (plugin) | 1 |
 | "SEO 점검", "메타태그" | seo-master | 1 |
-| "TDD", "테스트 주도" | test-driven-development | 1 |
+| "TDD", "테스트 주도" | test-driven-development (plugin) | 1 |
 | "코드 리뷰", "품질 검사" | codebase-analyzer | 1 |
 | "성능 점검", "빌드 체크" | site-auditor | 1 |
+| "URL 성능 측정", "Lighthouse" | perf-audit | 1 |
 | "전체 점검", "사이트 검증" | site-auditor | 1 |
 | "UI 검증", "접근성 검사" | web-design-guidelines | 1 |
 | "프로젝트 시작", "기획 문서" | start-docs | 1 |
 | "크롤링", "스크래핑" | agent-browser | 1 |
-| "끝까지", "완료까지" | ralph | 1 |
+| "끝까지", "완료까지" | ralph (plugin) | 1 |
 | "토론", "debate" | debate | 1 |
-| "MCP 서버 만들기" | mcp-builder | 1 |
-| "Edge Function" | supabase-edge-functions | 1 |
+| "MCP 서버 만들기" | mcp-builder (plugin) | 1 |
+| "Edge Function" | supabase-edge-functions (plugin) | 1 |
 | "배포 안전 점검" | site-auditor | 1 |
-| "스킬 찾기" | find-skills | 1 |
-| "새 기능 구현" | feature-dev | 2 |
+| "스킬 찾기" | find-skills (plugin) | 1 |
+| "새 기능 구현" | feature-dev (plugin) | 2 |
 
 ---
 
@@ -99,7 +102,7 @@ Task(subagent_type="general-purpose", model="opus", prompt="...")
 | frontend-design-specialist | UI/UX 구현 | sonnet |
 | supabase-db-specialist | DB 스키마, RLS, 쿼리 | sonnet |
 | test-writer | 테스트 코드 작성 | sonnet |
-| code-reviewer | 코드 품질 검증 | opus |
+| code-reviewer (plugin) | 코드 품질 검증 | opus |
 | project-planner | 프로젝트 기획 | sonnet |
 | performance-optimizer | 성능 최적화 | sonnet |
 | api-architect | API 설계 | sonnet |
@@ -126,7 +129,7 @@ Phase 3: 구현 (병렬)
   test-writer (sonnet) → 테스트 코드
 
 Phase 4: 검증
-  code-reviewer (opus) → 코드 리뷰
+  code-reviewer (opus, plugin) → 코드 리뷰
   site-auditor (스킬) → 종합 점검/배포
 ```
 
@@ -143,7 +146,7 @@ Phase 3: 구현 (사용자 선택 후)
   적절한 전문 에이전트 (sonnet)
 
 Phase 4: 검증
-  code-reviewer (opus) → 최종 검증
+  code-reviewer (opus, plugin) → 최종 검증
 ```
 
 ### 버그 수정 워크플로우

@@ -22,6 +22,9 @@ metadata:
 - cron-job.org 등록 완료: `POST /api/automations/run?jobId=news-collect` + `Authorization: Bearer CRON_SECRET`(기존 자동화 공유), **평일 06~18시 매시 `0 6-18 * * 1-5` Asia/Seoul**.
 - 토글 저장소 = `automation_settings`(job_id+enabled) 테이블, `getJobEnabled` 기본 false. cron route는 enabled=false면 silent skip.
 
+**목록 UX 보강 (PR #682 머지, 2026-06-23)**: 서버 페이지네이션(`listNews({page,pageSize,search,source})`→`{rows,total}`, `range`+`count`, 30/page, `ListPagination` footer) + 제목 검색(`NewsControls` ?q= 디바운스 → `title ilike`) + **출처 셀렉트 필터**(`?source`= → `.eq("source")`, 옵션은 `listNewsSources()` distinct). `NewsControls`는 thin client라 TDD 훅 예외(`CLAUDE_TDD_ENFORCE=off` 우회 작성).
+**중복 방지 (PR #682)**: 같은 기사가 키워드마다 다른 구글 뉴스 redirect link로 들어와 `link unique`로 안 잡힘(같은 title) → **dedup 키 link→title 전환**. 잡 `dedupeByTitle` + upsert `onConflict:"title"`. 마이그 `20260623c`로 DB unique 제약 `news_link_key`→`news_title_unique` 전환 + 기존 중복 정리(직접 적용 완료, 475행). **GOTCHA**: 중복행이 같은 수집 실행이면 `collected_at` 동률 → dedup DELETE에 `(collected_at, id)` 복합 비교(id tiebreaker) 필수, `collected_at` 단독 `<`는 동률 미삭제→unique 인덱스 생성 실패.
+
 **후속(미반영)**: 키워드 칩 필터(ListPattern Filter union에 키워드 등록 필요 — 1차는 빈 필터/전체표시), 교육부·전문지 직접 RSS 피드 추가(NEWS_SOURCES placeholder), fetch timeout(AbortController), news_blocklist.
 
 관련: [[standard-list-inspector-design]], [[db-migration-apply]].

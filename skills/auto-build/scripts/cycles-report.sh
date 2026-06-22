@@ -19,10 +19,10 @@ echo "## Cloud cycle marker commits (git log)"
 MARKERS=$(git log --all --oneline --grep 'R[0-9]\+ dogfooding marker' 2>/dev/null)
 if [ -n "$MARKERS" ]; then
   echo "$MARKERS" | head -20
-  # F-D9 (audit round 6): --all 은 브랜치 원본 + PR squash 머지본을 모두 집계해
-  # 같은 cycle 을 중복 카운트함. hash prefix 와 ' (#NN)' suffix 를 제거 후
-  # dedup 하여 고유 cycle 수만 보고.
-  COUNT=$(echo "$MARKERS" | sed -E 's/^[0-9a-f]+ //; s/ \(#[0-9]+\)$//' | sort -u | wc -l | tr -d ' ')
+  # F-D9 (R6) + F-G10 (R7): --all 은 브랜치 원본 + PR squash 머지본을 중복 카운트하고,
+  # 마커 문구 변형("R7 dogfooding marker — cloud" 등)도 별개로 샌다. 핵심
+  # 'R<N> dogfooding marker' 만 추출·정규화 후 dedup 하여 고유 cycle 수만 보고.
+  COUNT=$(echo "$MARKERS" | grep -oE 'R[0-9]+ dogfooding marker' | sort -u | wc -l | tr -d ' ')
   echo "→ unique cycle markers: $COUNT"
 else
   echo "(no marker commits found)"

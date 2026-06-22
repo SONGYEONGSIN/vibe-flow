@@ -288,7 +288,9 @@ R5 종료(06-06, v2.0.0 #106) 후 ~4일 누적. 3 dimension fresh-context 병렬
 
 **Round 6 마감 상태**: P2 trio(PR #108) + P3 cleanup(PR #109) 2 PR 로 finding 전부 처리 (해소 6 / 기각 2: F-F7 false positive + agents.json 22등록 / 보류 1: F-F6). 두 PR 머지 시 R6 종결.
 
-## Round 7 (2026-06-23) — D4 메타-검증 dimension 신설 + 4 PR (#110~#113, 머지 대기)
+## Round 7 (2026-06-23) — D4 메타-검증 dimension 신설 + 4 PR (#110~#113, 머지 완료)
+
+> 4 PR 전부 머지(2026-06-23). #110 신규 CI(validation-tests.yml)가 첫 실행에서 비-CI-safe 기존 테스트 2종 surface(skill-tracker가 .claude 미러 참조 / run-cloud C3 gh-absent 비포팅) → core/ 경로 교정 + CI-SKIP 마커로 해소 후 green 머지. F-G11(metrics-collector)만 별도 트랙 잔여.
 
 R6 종결(#108/#109 머지) 후 ~13일. 기존 3 dimension + **D4(메타-검증 인프라 "감사 도구를 감사") 신설** 4 agent 병렬 위임. 각 agent에 file:line 증거 + 자가 반증 강제(F-D6/F-F7 false positive 교훈).
 

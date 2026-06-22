@@ -32,7 +32,7 @@ paths:
     ```
   - 주석 없는 arbitrary value는 코드 리뷰에서 토큰화 요구
   - 같은 색상이 **3회 이상 반복**되면 일회성이 아니므로 `design-tokens.ts`에 등록 강제
-  - `/design-audit`가 주석 없는 arbitrary value 사용을 추적
+  - `/design-audit`(design-system 확장)가 주석 없는 arbitrary value 사용을 추적 — base 설치는 `/web-design-guidelines`(core)
 - 예외: `tailwind.config.ts`, `design-tokens.ts`, `globals.css`의 CSS 변수 정의부
 
 ## 공통 컴포넌트
