@@ -103,6 +103,8 @@ SKILL_TYPES=(
   pair_session discuss
   metrics retrospective
   feedback
+  # F-G04 (audit R7): PR #81 계측 이벤트 — 자동 trigger 추적 (Active/Stale 가시화)
+  skill_invoked skill_invoked_auto agent_invoked
 )
 
 type_to_label() {
@@ -116,6 +118,9 @@ type_to_label() {
     review_received) echo "/receive-review" ;;
     design_sync) echo "/design-sync" ;;
     design_audit) echo "/design-audit" ;;
+    skill_invoked) echo "스킬(슬래시)" ;;
+    skill_invoked_auto) echo "스킬(자동)" ;;
+    agent_invoked) echo "에이전트" ;;
     *) echo "/$1" ;;
   esac
 }
@@ -142,23 +147,30 @@ extension_name() {
 ### 4. jq 1패스 group_by
 
 ```bash
+# F-G04 (audit R7) ① 집계 idiom 교정: 기존 `map({type,count}) | from_entries` 는
+#   from_entries 가 key/value 키만 인식해 "null object key" 에러 → `|| echo {}` 폴백으로
+#   events-source COUNTS 가 항상 빈 객체였음(Top5/Total 무력화). `map({(.[0].type): length}) | add` 로 수정.
+# F-G04 (audit R7) ② hook-internal noise 타입 — 자동 hook 부산물이라 Top5/Total 을 오염시킴.
+#   집계(Top5/Total/sparkline)에서만 제외. Active/Stale/개선후보는 SKILL_TYPES 기반이라 무관.
+NOISE_TYPES='["memory_sync_triggered","tool_failure","tool_result"]'
+
 # 분석 기간 카운트 (group)
-COUNTS_PERIOD=$(jq -s --arg d "$DAY_PERIOD_AGO" \
-  'map(select(.ts > $d)) | group_by(.type) | map({type: .[0].type, count: length}) | from_entries' \
+COUNTS_PERIOD=$(jq -s --arg d "$DAY_PERIOD_AGO" --argjson noise "$NOISE_TYPES" \
+  'map(select(.ts > $d and (.type as $t | ($noise | index($t)) == null))) | group_by(.type) | map({(.[0].type): length}) | add // {}' \
   "$EVENTS" 2>/dev/null || echo '{}')
 
 # 7일 카운트 (서브 윈도우 — Active/추세용)
-COUNTS_7D=$(jq -s --arg d "$DAY_7_AGO" \
-  'map(select(.ts > $d)) | group_by(.type) | map({type: .[0].type, count: length}) | from_entries' \
+COUNTS_7D=$(jq -s --arg d "$DAY_7_AGO" --argjson noise "$NOISE_TYPES" \
+  'map(select(.ts > $d and (.type as $t | ($noise | index($t)) == null))) | group_by(.type) | map({(.[0].type): length}) | add // {}' \
   "$EVENTS" 2>/dev/null || echo '{}')
 
 # last_used per type
-LAST_USED=$(jq -s 'group_by(.type) | map({type: .[0].type, last: (max_by(.ts) | .ts)}) | from_entries' \
+LAST_USED=$(jq -s 'group_by(.type) | map({(.[0].type): (max_by(.ts) | .ts)}) | add // {}' \
   "$EVENTS" 2>/dev/null || echo '{}')
 
 # 분석 기간 일별 totals (sparkline용)
-DAILY_TOTALS=$(jq -s --arg d "$DAY_PERIOD_AGO" \
-  'map(select(.ts > $d)) | group_by(.ts | .[0:10]) | map({date: .[0].ts[0:10], count: length})' \
+DAILY_TOTALS=$(jq -s --arg d "$DAY_PERIOD_AGO" --argjson noise "$NOISE_TYPES" \
+  'map(select(.ts > $d and (.type as $t | ($noise | index($t)) == null))) | group_by(.ts | .[0:10]) | map({date: .[0].ts[0:10], count: length})' \
   "$EVENTS" 2>/dev/null || echo '[]')
 
 # 활성 extension
