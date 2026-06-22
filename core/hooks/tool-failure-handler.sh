@@ -41,6 +41,11 @@ classify_error() {
   local recovery="에러 내용을 확인하고 수동으로 대응하세요."
 
   case "$error_signal" in
+    # F-G09 (audit R7): 탐색/진단성 비정상 종료(grep no-match, subshell sourcing 등)는
+    # 실 도구 실패가 아니므로 'diagnostic' 으로 분리 — failure 스트림 신호 희석 방지.
+    *"no matches found"*|*"read-only variable"*)
+      error_class="diagnostic"; retryable="false"
+      recovery="진단/탐색성 비정상 종료 (실 실패 아님). 분석 제외 가능." ;;
     *"401"*|*"403"*|*"unauthorized"*|*"eauth"*|*"invalid api key"*|*"authentication"*)
       error_class="auth"; retryable="false"
       recovery="인증 토큰 확인. 환경변수 또는 .env 파일 점검." ;;
