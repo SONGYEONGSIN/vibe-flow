@@ -48,7 +48,7 @@ case "$cmd" in
     echo "$IN" | jq -c --arg id "$id" --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
       '{ts:$ts, round:.round, id:$id, component:.component, dimension:.dimension,
         evidence:.evidence, root_cause:.root_cause, fix:.fix,
-        predicted_delta:.predicted_delta, actual_delta:null, status:"open"}' >> "$LEDGER"
+        predicted_delta:.predicted_delta, actual_delta:null, status:"open", enqueued_task:null}' >> "$LEDGER"
     echo "$id"
     ;;
   resolve)
@@ -72,8 +72,48 @@ case "$cmd" in
     r="${1:-}"; [ -z "$r" ] && { echo "usage: next-num <round>" >&2; exit 1; }
     next_num "$r"
     ;;
+  enqueue)
+    # improve 자동화: open finding(선택 round 필터)을 auto-build 큐에 적재 → cloud cycle 이 fix.
+    # idempotent — .enqueued_task 있으면 skip(중복 큐잉 방지). harness-evolution.md §1 improve.
+    r="${1:-}"
+    QUEUE_SH="${QUEUE_SH:-$PROJECT_ROOT/core/skills/auto-build/scripts/queue.sh}"
+    [ -f "$QUEUE_SH" ] || { echo "error: queue.sh not found: $QUEUE_SH" >&2; exit 1; }
+    count=0
+    ids=$(jq -r --arg r "$r" \
+      'select(.status=="open") | select($r=="" or .round==$r) | select((.enqueued_task // null)==null) | .id' \
+      "$LEDGER" 2>/dev/null)
+    for id in $ids; do
+      task=$(jq -r --arg i "$id" \
+        'select(.id==$i) | "[audit \(.id)/\(.dimension)/\(.component)] \(.fix). 근거: \(.evidence). 원인: \(.root_cause). 예상효과: \(.predicted_delta)."' \
+        "$LEDGER")
+      qid=$(bash "$QUEUE_SH" add "$task" 2>/dev/null | sed -n 's/^queued: //p')
+      [ -z "$qid" ] && { echo "warn: enqueue failed for $id" >&2; continue; }
+      tmp=$(mktemp)
+      jq -c --arg i "$id" --arg q "$qid" 'if .id==$i then .enqueued_task=$q else . end' "$LEDGER" > "$tmp" && mv "$tmp" "$LEDGER"
+      echo "$id → queued $qid"
+      count=$((count+1))
+    done
+    echo "enqueued $count finding(s)" >&2
+    ;;
+  mark-fixed)
+    # fix PR 머지 시점 전이: open → fixed (actual_delta 는 null 유지 — 아직 미검증).
+    # 다음 라운드가 pending-verify 로 집어 측정 후 resolve(verify/refute).
+    id="${1:-}"; [ -z "$id" ] && { echo "usage: mark-fixed <id>" >&2; exit 1; }
+    jq -e --arg i "$id" 'select(.id==$i)' "$LEDGER" >/dev/null 2>&1 || { echo "error: id $id not found" >&2; exit 1; }
+    tmp=$(mktemp)
+    jq -c --arg i "$id" 'if .id==$i then .status="fixed" else . end' "$LEDGER" > "$tmp" && mv "$tmp" "$LEDGER"
+    echo "$id → fixed"
+    ;;
+  pending-verify)
+    # decision-observability reconcile 워크리스트: fix 가 머지(status=fixed)됐으나
+    # actual_delta 미기록인 finding. /audit Phase 0 가 측정 후 resolve 로 verify/refute.
+    r="${1:-}"
+    jq -r --arg r "$r" \
+      'select(.status=="fixed") | select(.actual_delta==null) | select($r=="" or .round==$r) | "\(.id)\t\(.dimension)\t\(.predicted_delta // "-")\t\(.fix)"' \
+      "$LEDGER" 2>/dev/null
+    ;;
   *)
-    echo "usage: ledger.sh {append|resolve|open|round|next-num}" >&2
+    echo "usage: ledger.sh {append|resolve|open|round|next-num|enqueue|mark-fixed|pending-verify}" >&2
     exit 2
     ;;
 esac
