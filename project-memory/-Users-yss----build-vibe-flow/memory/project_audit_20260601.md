@@ -286,7 +286,37 @@ R5 종료(06-06, v2.0.0 #106) 후 ~4일 누적. 3 dimension fresh-context 병렬
 - F-F5: MEMORY.md dead ref 2건 (audits/ 미존재 + brainstorm 파일명 auto-build→sleep-build 오타).
 - **F-F6 (P3 tool_failure 노이즈) 보류** — sandbox `git not found`로 코드 버그 아님, fix 대상 아님.
 
-**Round 6 마감 상태**: P2 trio(PR #108) + P3 cleanup(PR #109) 2 PR 로 finding 전부 처리 (해소 6 / 기각 2: F-F7 false positive + agents.json 22등록 / 보류 1: F-F6). 두 PR 머지 시 R6 종결. **다음 진입점 = #108/#109 머지 후, 며칠 데이터 누적 후 Round 7 (telemetry 효과 재측정) 또는 character-system 신규 트랙.**
+**Round 6 마감 상태**: P2 trio(PR #108) + P3 cleanup(PR #109) 2 PR 로 finding 전부 처리 (해소 6 / 기각 2: F-F7 false positive + agents.json 22등록 / 보류 1: F-F6). 두 PR 머지 시 R6 종결.
+
+## Round 7 (2026-06-23) — D4 메타-검증 dimension 신설 + 4 PR (#110~#113, 머지 대기)
+
+R6 종결(#108/#109 머지) 후 ~13일. 기존 3 dimension + **D4(메타-검증 인프라 "감사 도구를 감사") 신설** 4 agent 병렬 위임. 각 agent에 file:line 증거 + 자가 반증 강제(F-D6/F-F7 false positive 교훈).
+
+| Dim | R6 | R7 | Δ | 핵심 |
+|-----|----|----|---|------|
+| D1 컨텍스트 | 4.5 | 4.3 | -0.2 | template dead command refs, MEMORY.md stale 회귀 |
+| D2 아키텍처 | 4.5 | 4.3 | -0.2 | validate 비대칭, agent-routing ghost refs |
+| D3 dogfooding | 4.3 | 4.3 | ±0 | 계측 견고, plan_completed 미계측 부채 |
+| **3-dim 평균** | **4.43** | **4.30** | **-0.13** | R4/R6 이어 3연속 메타-결함 노출 라운드 |
+| D4 메타-검증 (신규) | — | 3.6 | — | 검증 도구 false-PASS 경로 잔존 |
+
+**R7 테마**: drift 탐지·계측 도구가 구조적 맹점/거짓 신호를 가짐. D4 신설 적중 — 최고 가치 finding 다수가 메타-검증 결함. 교차검증: D2·D4가 독립적으로 F-G01 동일 발견 + /tmp 재현.
+
+**12 Finding (F-G 시리즈)**:
+- 🔴 P1: F-G01 validate.sh agents/skills/rules drift 루프 missing-dst 비대칭(core-only 신규 파일 silent-PASS, F-D8 fix 절반만 적용)
+- 🟠 P2: F-G02 validate.sh CI 미실행 / F-G03 agents.json drift 미탐지 / F-G04 telemetry events-source(**from_entries idiom 깨짐 — COUNTS 항상 빈 객체로 Top5/Total 무력화** + noise 오염 + 계측 타입 누락) / F-G05 template dead command refs(/metrics·/retrospective·/design-audit = 확장 전용) / F-G06 project MEMORY.md stale(F-F3 회귀) / F-G07 agent-routing ghost refs 8종 / F-G08 plan_completed 미계측 부채
+- 🟡 P3: F-G09 tool_failure diagnostic noise / F-G10 cycles-report 변형 마커 over-count / F-G11 metrics-collector 10s window 교차오염 / F-G12 perf-audit 라우팅 누락
+- false-positive 회피: D3가 R7 저활동을 tracker 고장으로 오진 안 함(13일 중 organic 2일 = 행동 패턴, F-D6 교훈)
+
+**4 PR (머지 대기, TDD RED→GREEN)**:
+- **#110** drift 게이트 강화 trio (F-G01 2-branch 통일 + F-G03 agents.json 양쪽 + F-G02 validation-tests.yml CI). validate-drift-missing-smoke RED 4/4→GREEN.
+- **#111** telemetry/plan 계측 정확도 (F-G04 from_entries 교정+noise+가시화 / F-G08 plan_completed emit). telemetry-counts-smoke 7.
+- **#112** 문서/상태 drift cleanup (F-G05 확장 표기 / F-G06 MEMORY 현행화 / F-G07 (plugin) 주석 / F-G12 perf-audit 행).
+- **#113** P3 신호 품질 (F-G09 diagnostic gate / F-G10 마커 정규화). **F-G11 defer**(best-effort, 로그 file_path 재설계 필요).
+
+**핵심 진전**: D4 신설로 events-source telemetry 가 from_entries 폴백으로 **줄곧 빈 집계**였던 잠복 결함(R6 F-F1 류) 발굴 → F-G04 교정으로 events-source 첫 정상 측정 가능. 검증 도구를 CI(#110)에 올려 silent 무력화 재발 차단.
+
+**다음 진입점 = #110~#113 머지 후 → telemetry 효과 정량 재측정 + Round 8, 또는 character-system 신규 트랙. F-G11 별도 트랙 잔여.**
 
 ## Linked memories
 
