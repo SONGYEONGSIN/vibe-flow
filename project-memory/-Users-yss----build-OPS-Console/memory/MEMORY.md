@@ -6,4 +6,5 @@
 - [표준 모달 셸](modal-shell-standard.md) — 모든 모달은 `components/common/ModalShell` 사용(검정 헤더+boxed ×+푸터 슬롯), 인라인 모달 마크업 금지
 - [기본 목록+인스펙터 표준 디자인](standard-list-inspector-design.md) — 신규/전환 메뉴는 ListPattern+controlsRow(px-7 pt-3)+ScopeChips+표준 Section View. 커스텀 UI 금지
 - [회의록 HTML 양식 전환](meetings-html-form-migration.md) — BlockNote→HTML양식 6단계 대공사. PR1(#646) 데이터모델 완료, 2~6 남음
+- [고객응대 메일함 기능](mailbox-feature.md) — ★실운영 가동(#673+#674 머지, DB·Ollama·Mail.Read·launchd cron 전부 완료). 외부고객만 필터+HTML발송+운영자별 클릭링크 서명. Phase2 위임 미착수
 - [entertest 테스트 실행 파이프라인](entertest-test-run.md) — 폴러 가동 중(6/18 5/5 통과), v2 실제 원서작성 "결제 직전까지" 진행 + 계정 순환 미결
