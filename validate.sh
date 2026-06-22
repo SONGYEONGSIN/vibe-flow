@@ -395,7 +395,7 @@ if [ -f "$STATE" ]; then
   ok "state 명시 파일 존재 (stage 3 결과)"
 
   # orphan 검출 — extension 시그니처 디렉토리가 .claude/skills/에 있는데 state에는 없음
-  CORE_SKILLS="brainstorm plan finish release scaffold test worktree verify security commit review-pr receive-review status learn"
+  CORE_SKILLS="brainstorm plan finish release scaffold test worktree verify security commit review-pr receive-review status learn audit"
   EXT_SIGNATURES="eval-skill evolve design-sync design-audit pair discuss metrics retrospective feedback"
 
   ORPHAN_COUNT=0
