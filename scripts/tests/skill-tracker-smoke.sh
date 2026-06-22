@@ -8,7 +8,9 @@
 set -u
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-SCRIPT="$REPO_ROOT/.claude/hooks/skill-tracker.sh"
+# F-G02 (audit R7): core/ 소스를 직접 검증 — .claude/ 런타임 미러는 gitignored 라
+# CI fresh clone 에 부재(빈 skill 로 오탐). 로직은 sync 로 동일.
+SCRIPT="$REPO_ROOT/core/hooks/skill-tracker.sh"
 
 PASS=0
 FAIL=0

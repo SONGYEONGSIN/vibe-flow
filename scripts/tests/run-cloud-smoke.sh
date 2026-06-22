@@ -1,6 +1,10 @@
 #!/bin/bash
 # core/skills/auto-build/scripts/run-cloud.sh smoke (Phase 3.1 PR-C2)
 # 실행: bash scripts/tests/run-cloud-smoke.sh
+#
+# CI-SKIP: C3 (gh-absent fallback) 는 PATH=/bin:/usr/bin 로 gh 를 가리는데,
+# CI(ubuntu)는 gh 가 /usr/bin 에 있어 포팅 불가 (로컬 gh in brew/.local 에서만 유효).
+# → validation-tests.yml 에서 skip, 로컬 검증 전용. (F-G02, audit R7)
 
 set -u
 
