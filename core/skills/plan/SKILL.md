@@ -157,7 +157,10 @@ source: <brainstorm-file-path | user-direct | revision-of:plan_id>
 # events.jsonl에 plan_step_complete 기록
 echo "{\"ts\":\"...\",\"type\":\"plan_step_complete\",\"plan_id\":\"...\",\"step\":\"T1\"}" >> .claude/events.jsonl
 
-# 모든 단계 완료 시 frontmatter status: completed로 변경
+# 모든 단계 완료 시 frontmatter status: completed로 변경 +
+# F-G08 (audit R7): plan_completed 이벤트 emit — plan_created(위 96행)와 페어링되어
+# telemetry plan 완료율 추적의 단일 진실원. (과거엔 미계측 → 매 감사 라운드 수동 백필 부채)
+echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"plan_completed\",\"plan_id\":\"$PLAN_ID\",\"steps_done\":${N}}" >> .claude/events.jsonl
 ```
 
 ### 7. 이탈 처리 — `/plan revise <plan-id>`
