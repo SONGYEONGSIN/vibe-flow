@@ -62,6 +62,7 @@ npx tsc --noEmit     # 타입 체크
 - `tdd.md` — TDD Iron Law (RED-GREEN-REFACTOR 강제) *(Karpathy 4 매핑)*
 - `debugging.md` — 4단계 체계적 디버깅 프로세스
 - `design.md` — 디자인 토큰, 색상 규칙, 공통 컴포넌트
+- `harness-evolution.md` — AHE 관찰성 기반 자기 진화(evaluate→analyze→improve, 4-필드 finding, decision-observability) *(메타 — 이 프로젝트가 harness/config 시스템일 때, `/audit` 스킬과 연계)*
 
 ## Learning System
 
