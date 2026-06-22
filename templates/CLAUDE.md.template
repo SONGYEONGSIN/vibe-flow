@@ -38,7 +38,7 @@
 - **Design Tokens**: `src/lib/design-tokens.ts` — 색상, 간격, 타이포 중앙 정의
 - **Common Components**: `src/components/common/` — 재사용 UI 패턴 (3회+ 반복 추출)
 - **색상 규칙**: 컴포넌트에서 하드코딩 hex/rgb/hsl 금지, Tailwind 클래스 또는 토큰 사용
-- **검증**: `hooks/design-lint.sh`가 Write/Edit 시 자동 감지, `/design-audit`로 전체 스캔
+- **검증**: `hooks/design-lint.sh`가 Write/Edit 시 자동 감지, `/design-audit`(design-system 확장)로 전체 스캔 — base 설치는 `/web-design-guidelines`(core)
 
 ## Commands
 
@@ -70,5 +70,5 @@ npx tsc --noEmit     # 타입 체크
 - 새 세션 시작 시 `.claude/memory/patterns.md`를 읽어 이전 학습 활용
 - `/learn save pattern` — 발견한 코드 패턴 저장
 - `/learn save error` — 해결한 에러 패턴 저장
-- `/metrics` — 빌드 성공률, 에러 빈도 대시보드
-- `/retrospective` — 종합 회고 분석 실행
+- `/metrics` *(learning-loop 확장)* — 빌드 성공률, 에러 빈도 대시보드 (core 사용량 분석은 `/telemetry`)
+- `/retrospective` *(learning-loop 확장)* — 종합 회고 분석 (core 회고는 `/retro`)
