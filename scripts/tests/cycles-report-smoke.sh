@@ -104,6 +104,15 @@ else
 fi
 teardown
 
+# Case 5: marker 문구 변형도 같은 cycle 로 dedup (F-G10 audit R7)
+echo "=== Case 5: variant marker suffix dedup (F-G10) ==="
+setup
+git commit -q --allow-empty -m "feat: R12 dogfooding marker (#80)"
+git commit -q --allow-empty -m "chore: R12 dogfooding marker — cloud cycle"
+out=$(bash "$SCRIPT" 2>&1)
+assert_contains "variant suffix dedup → unique 1 (not 2)" "unique cycle markers: 1" "$out"
+teardown
+
 echo
 echo "=== 결과 ==="
 echo "  통과: $PASS / 실패: $FAIL"

@@ -78,6 +78,18 @@ assert_class "auth (401) → auth" "auth" "$c"
 c=$(run_classify "Bash" "Error: ETIMEDOUT request timed out after 30000ms")
 assert_class "ETIMEDOUT → timeout" "timeout" "$c"
 
+# 7. F-G09 — zsh glob no-match (탐색성 비정상 종료) → diagnostic
+c=$(run_classify "Bash" "(eval):1: no matches found: *.xyz")
+assert_class "no matches found → diagnostic (F-G09)" "diagnostic" "$c"
+
+# 8. F-G09 — subshell sourcing read-only → diagnostic
+c=$(run_classify "Bash" "(eval):2: read-only variable: status")
+assert_class "read-only variable → diagnostic (F-G09)" "diagnostic" "$c"
+
+# 9. F-G09 negative — 진짜 not_found 는 diagnostic gate 가 삼키지 않음
+c=$(run_classify "Bash" "open /etc/missing: ENOENT: no such file or directory")
+assert_class "real not_found stays not_found (gate 오작동 없음)" "not_found" "$c"
+
 teardown
 
 echo
