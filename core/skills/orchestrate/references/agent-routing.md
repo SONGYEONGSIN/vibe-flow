@@ -46,6 +46,7 @@
 | "TDD", "테스트 주도" | test-driven-development (plugin) | 1 |
 | "코드 리뷰", "품질 검사" | codebase-analyzer | 1 |
 | "성능 점검", "빌드 체크" | site-auditor | 1 |
+| "URL 성능 측정", "Lighthouse" | perf-audit | 1 |
 | "전체 점검", "사이트 검증" | site-auditor | 1 |
 | "UI 검증", "접근성 검사" | web-design-guidelines | 1 |
 | "프로젝트 시작", "기획 문서" | start-docs | 1 |
