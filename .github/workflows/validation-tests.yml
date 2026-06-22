@@ -32,6 +32,11 @@ jobs:
           set -u
           failed=0
           for t in scripts/tests/*.sh; do
+            # 환경 의존(gh 위치 등) 테스트는 CI-SKIP 마커로 제외
+            if grep -q 'CI-SKIP' "$t"; then
+              echo "SKIP (CI-SKIP marker)  $(basename "$t")"
+              continue
+            fi
             # fixture 기반(mktemp) 테스트만 — .claude 런타임 미러를 요구하는 것은 CI 에서 skip
             if grep -q mktemp "$t"; then
               echo "::group::$t"
