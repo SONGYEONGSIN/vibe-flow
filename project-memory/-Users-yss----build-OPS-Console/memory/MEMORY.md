@@ -9,3 +9,4 @@
 - [운영부 뉴스 기능](ops-news-feature.md) — ★실운영 가동(#680 머지+DB·토글ON·cron 평일06~18시·477건 적재). 대학뉴스 RSS 자동수집, insights-collect 복제. 키워드칩/교육부피드/제목접미사 후속
 - [고객응대 메일함 기능](mailbox-feature.md) — ★실운영 가동(#673+#674 머지, DB·Ollama·Mail.Read·launchd cron 전부 완료). 외부고객만 필터+HTML발송+운영자별 클릭링크 서명. Phase2 위임 미착수
 - [entertest 테스트 실행 파이프라인](entertest-test-run.md) — 폴러 가동 중(6/18 5/5 통과), v2 실제 원서작성 "결제 직전까지" 진행 + 계정 순환 미결
+- [견적서 기능](quotes-feature.md) — 자료보관>견적서. Phase1 목록 + Phase2 문서양식(4유형 dev/fee/platform/labor + KOSA적산 + PDF) 전부 머지

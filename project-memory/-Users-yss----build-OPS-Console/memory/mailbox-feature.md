@@ -27,6 +27,12 @@ metadata:
 - **GOTCHA**: 마이그 직후 supabase-js(PostgREST)로 신규 컬럼 UPDATE 시 스키마 캐시 미리로드로 조용히 무시됨 → pg 직접 UPDATE로 우회. Graph 메일박스 동시성 ~4 → 폴더 fetch 순차+429 백오프 필수. Outlook 서명은 Graph로 못 읽음·API발송 자동첨부 안 됨 → operators 기반 동적 생성.
 - **cron**: launchd `~/Library/LaunchAgents/com.opsconsole.mailbox-ingest.plist`(node `/usr/local/bin/node` `scripts/mailbox-ingest.mjs`, WorkingDirectory=프로젝트, StartInterval 600s, 로그 `~/Library/Logs/mailbox-ingest.log`). Ollama=`brew services` 상시. 현재 대상 메일함=ys1114@jinhakapply.com(자동초안 ON). MAIL_DRY_RUN은 미설정(=실발송) 상태 — 웹 발송 안전장치 필요 시 Vercel env에 설정.
 
-**Phase 2 (미착수)**: `mailbox_delegations` 테이블 + `canAccessMailbox(viewer,owner)` + 위임 설정 UI + `[내 메일함 ▼]` 전환. 발송 가드를 `owner_email !== me.email` 단일 지점에 격리해 둠(확장점). 발신은 주인 명의 유지.
+**전체 운영자 확장 (PR #684 머지, 2026-06-23)**: 메일함 페이지 접근 시 `ensureMailboxSettings(myEmail)` 호출 → `mailbox_settings` insert-if-absent(`upsert` + `onConflict:owner_email` + `ignoreDuplicates:true`, 기존 토글 보존). 신규 등록 **자동초안 OFF 기본**(opt-in, 토글로 ON). ingest는 기존대로 `mailbox_settings` row 존재 운영자만 순회(스펙 §13)이므로, 메일함 연 운영자가 다음 cron부터 본인 외부고객 메일 자동 수집 대상이 됨. **단 cron ingest는 여전히 이 1대 Mac의 launchd에서만 돎** — 운영자가 늘면 Graph 호출량↑(순차+429백오프로 흡수). `ensureMailboxSettings`는 본인 메일함만(권한 게이트), `actions.test.ts` 2건 커버.
+
+**★ Phase 2 위임 — 구현·머지 완료 (PR #693, 2026-06-24)**: SDD 6태스크 TDD + opus 최종리뷰. 스펙 `docs/superpowers/specs/2026-06-23-mailbox-delegation-design.md`, 계획 `docs/.../plans/2026-06-23-mailbox-delegation.md`.
+- 테이블 `mailbox_delegations`(owner_email, grantee_email, granted_at, revoked_at, unique(owner,grantee)) + RLS(SELECT 전원/I·U·D service_role). 마이그 `20260623d`+`20260623e` **프로덕션 적용 완료**.
+- `src/features/mailbox/delegation.ts`: `canAccessMailbox(viewer,owner)`(viewer===owner OR 활성위임 — 단일 권한게이트, 열람가드+발송가드 공용) + `isOwnerOrActiveDelegate`(순수) + `listMyDelegations`/`listMailboxesDelegatedTo`.
+- `actions.ts`: `grantMailboxDelegation`/`revokeMailboxDelegation`(owner=me 고정, grant 시 operators 존재검증+B≠me, 재위임 upsert로 revoked_at 복구). `sendMailReply` 가드 `owner!==me` → `!canAccessMailbox(me,owner)`로 확장(발신 명의=주인 유지, sent_by_email=B).
+- UI: `MailboxOwnerSwitcher`(`?owner=` 전환, 권한없으면 본인 폴백), `MailboxDelegationPanel`(ModalShell, **조직 운영자 셀렉트**로 위임 대상 선택 — listOperators active 중 본인·기위임자 제외 / 해제). 위임 버튼=검정 채움 "메일 위임". owner===myEmail일 때만 관리 노출. `ensureMailboxSettings`는 본인에만.
 
 관련: [[standard-list-inspector-design]], [[db-migration-apply]].
