@@ -87,6 +87,30 @@ L pending-verify | grep -q 'F-G01' && ng "open finding 이 pending-verify 에 �
 L resolve F-H03 "+0.2 confirmed" verified >/dev/null
 [ "$(L pending-verify | grep -c 'F-H03')" = "0" ] && ok "resolve(verified) 후 pending-verify 제거" || ng "여전히 pending"
 
+mkf() { jq -nc '{round:"Z",component:"x",dimension:"D1",evidence:"e",root_cause:"r",fix:"f",predicted_delta:"p"}'; }
+
+echo "=== R8 hardening: resolve 빈 actual_delta 거부 (F-H03) ==="
+zid=$(mkf | L append)          # F-Z01
+L mark-fixed "$zid" >/dev/null
+mkf >/dev/null; L resolve "$zid" "" verified >/dev/null 2>&1 && ng "빈 actual_delta 통과됨" || ok "빈 actual_delta 거부 (F-H03)"
+[ "$(L pending-verify | grep -c "$zid")" = "1" ] && ok "빈값 거부 → 미측정 finding 이 pending-verify 유지" || ng "pending-verify 에서 샘"
+
+echo "=== R8 hardening: mark-fixed 단방향 가드 (F-H08) ==="
+L resolve "$zid" "+0.1 measured" verified >/dev/null
+L mark-fixed "$zid" >/dev/null 2>&1 && ng "verified→fixed 역전 허용됨" || ok "verified→fixed 역전 차단 (F-H08)"
+
+echo "=== R8 hardening: next_num octal 경계 08→09 (F-H12) ==="
+LED2="$TMP/led2.jsonl"; : > "$LED2"; lastid=""
+for i in $(seq 1 9); do lastid=$(mkf | LEDGER="$LED2" bash "$SCRIPT" append); done
+[ "$lastid" = "F-Z09" ] && ok "9번째 finding → F-Z09 (octal 08+1 오해석 없음)" || ng "9번째 id=$lastid (want F-Z09)"
+
+echo "=== R8 hardening: append 동시성 유니크 id (F-H02 mkdir 락) ==="
+LED3="$TMP/led3.jsonl"; : > "$LED3"
+for i in 1 2 3 4 5; do ( mkf | LEDGER="$LED3" bash "$SCRIPT" append >/dev/null 2>&1 ) & done
+wait
+u=$(jq -r '.id' "$LED3" 2>/dev/null | sort -u | wc -l | tr -d ' '); t=$(wc -l < "$LED3" | tr -d ' ')
+{ [ "$u" = "5" ] && [ "$t" = "5" ]; } && ok "병렬 5 append → 유니크 id 5/5 (race 없음)" || ng "uniq=$u total=$t (want 5/5)"
+
 echo
 echo "=== 결과 ==="
 echo "  통과: $PASS / 실패: $FAIL"
