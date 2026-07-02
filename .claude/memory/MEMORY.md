@@ -12,13 +12,15 @@
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — Round 7 진행 중)
+## 내부 감사 (Active — Round 8 진행 중, `/audit` 스킬로 운영)
 
-3 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding) fresh-context agent 병렬 위임으로 주기적 자체 점검. 상세 round 별 finding/점수는 user-level memory `project_audit_20260601.md` 참조.
+4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. 상세 round 별 finding/점수는 user-level memory `project_audit_20260601.md` 참조.
 
 - **R1~R5 종결 (2026-06-01~06)** — 20 PR (#80~#99) 머지. 평균 점수 3.0 → ~4.47. 핵심: F-C1 sync drift 6범위 검증, R13 self-evolving closed-loop, settings hook 중복 fire 봉쇄.
 - **R6 종결 (2026-06-10, #108/#109 머지)** — 평균 ~4.43 (R4 처럼 메타-검증 결함 노출 라운드). #108(F-F1 validate.sh drift no-op + F-F2 telemetry 오염 + F-D9 cycle over-count), #109(F-F3 본 MEMORY 갱신 + F-F4 inbox 10/12 정합 + F-F5 dead ref).
-- **R7 진행 중 (2026-06-23)** — D1~D3 + **D4 메타-검증 dimension 신설** fresh-context 위임, F-G01~F-G12 발굴 (3-dim 평균 4.30, D4 절대 3.6). fix PR 진행: drift 게이트 강화(F-G01 validate missing-dst 비대칭 / F-G03 agents.json / F-G02 CI), 계측 정확도(F-G04 telemetry from_entries 폴백+noise / F-G08 plan_completed emit), 문서 drift(F-G05/06/07).
+- **R7 종결 (2026-06-23, #110~#113 머지)** — D1~D3 + **D4 메타-검증 dimension 신설**, F-G01~F-G12 (3-dim 평균 4.30, D4 절대 3.6). drift 게이트 강화(F-G01 missing-dst / F-G03 agents.json / F-G02 CI), 계측 정확도(F-G04 telemetry from_entries 폴백), 문서 drift(F-G05/06/07).
+- **AHE 정식화 (2026-06-23, #114/#115 머지)** — 감사를 실행 가능 계약으로: `core/rules/harness-evolution.md` + `/audit` 스킬 + `.claude/memory/audit-ledger.jsonl`(decision-observability: append→enqueue→mark-fixed→pending-verify→resolve).
+- **R8 진행 (2026-07, `/audit` 첫 라이브 dogfooding)** — F-H01~F-H12 발굴 (D2 4.0/D4 3.8, ledger.sh 자기결함 + octal 라이브 적발). PR-A(#116 ledger 견고성)/PR-B(#117 배포·검증 wire) 머지, PR-C(doc/telemetry) 진행. R7 11건 verified 반증 완료.
 
 ## Brainstorm 인덱스 (최근)
 
@@ -51,8 +53,8 @@ Phase 2 / Phase 3.0:
 
 ## 다음 진입점
 
-1. **감사 R7 finding fix PR 머지** (F-G01~F-G12 — drift 게이트 / 계측 정확도 / 문서 drift)
-2. **R7 머지 후 데이터 누적 → Round 8** — telemetry 효과 정량 재측정 (F-G04 idiom 교정으로 events-source 첫 정상 측정 가능)
+1. **감사 R8 finding fix PR 완주** (F-H01~F-H12 — PR-A/B 머지, PR-C doc/telemetry 진행, F-H11 defer)
+2. **R8 머지 후 데이터 누적 → Round 9** — `/audit`로 실행, R8 fix 효과를 `pending-verify`→`resolve`로 반증
 3. 신규 기능 트랙 후보: `docs/character-system-spec-plan` 브랜치 (Phase 4 동적 캐릭터 시스템, spec/plan만 존재 미구현)
 
 ## 참고

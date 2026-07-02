@@ -19,6 +19,8 @@ setup() {
   TMP=$(mktemp -d)
   cd "$TMP"
   git init -q -b main 2>/dev/null
+  # F-H10 (audit R8): 실재 skill 만 기록되므로 fixture 에 검증 대상 skill 디렉토리 생성
+  mkdir -p "$TMP/.claude/skills/commit" "$TMP/.claude/skills/brainstorm"
   EVENTS="$TMP/.claude/events.jsonl"
 }
 
@@ -78,10 +80,10 @@ run_hook "/vibe-flow:brainstorm foo"
 assert_skill "plugin prefix stripped" "brainstorm"
 teardown
 
-# Case 3: multiline paste starting with /goal — MUST NOT poison telemetry
-echo "=== Case 3: multiline /goal paste → no garbage skill name ==="
+# Case 3: multiline paste on a REAL skill /brainstorm — head-n1 로 멀티라인 제거, clean 기록 (F-F2)
+echo "=== Case 3: multiline /brainstorm paste → clean token only ==="
 setup
-run_hook "$(printf '/goal\n\n1.\n2.\n3.\n4.\n5.\n6.')"
+run_hook "$(printf '/brainstorm\n\n1.\n2.\n3.\n4.\n5.\n6.')"
 assert_clean_skill_name "multiline paste yields clean token only (no newline garbage)"
 teardown
 
@@ -97,6 +99,20 @@ echo "=== Case 5: 'hello world' → no event ==="
 setup
 run_hook "hello world"
 assert_no_event "non-slash prompt skipped"
+teardown
+
+# Case 6: F-H10 — 형식은 valid 하나 존재하지 않는 슬래시명(/goal 빌트인) → phantom, 기록 X
+echo "=== Case 6: /goal (실재 안 하는 skill) → no event (F-H10) ==="
+setup
+run_hook "/goal 어떤 목표"
+assert_no_event "phantom skill (/goal) 미기록"
+teardown
+
+# Case 7: F-H10 회귀가드 — 실재 skill 은 정상 기록됨
+echo "=== Case 7: /brainstorm (실재) → 정상 기록 (F-H10 오차단 없음) ==="
+setup
+run_hook "/brainstorm 주제"
+assert_skill "실재 skill 정상 기록" "brainstorm"
 teardown
 
 echo
