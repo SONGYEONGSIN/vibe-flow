@@ -2,7 +2,7 @@
 name: audit
 description: vibe-flow harness 자기 진화 감사 (AHE evaluate→analyze→improve). dimension agent 병렬로 4-필드 finding(evidence/root-cause/fix/predicted-impact) 발굴 + 전역 단일 번호 + decision-observability ledger 기록. "내부 감사", "audit", "/audit", "harness 진화", "dimension 점검", "감사 라운드", "self-improvement" 요청 시 사용. retro(프로젝트 회고)·telemetry(사용량)와 구분 — 이건 harness(rules/skills/agents/hooks) 자체를 감사.
 user-invocable: true
-allowed-tools: Bash, Read, Write, Edit, Grep, Glob, Agent
+allowed-tools: Bash, Read, Grep, Glob, Agent
 ---
 
 # /audit — AHE harness 자기 진화 루프
