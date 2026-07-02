@@ -320,6 +320,33 @@ R6 종결(#108/#109 머지) 후 ~13일. 기존 3 dimension + **D4(메타-검증 
 
 **다음 진입점 = #110~#113 머지 후 → telemetry 효과 정량 재측정 + Round 8, 또는 character-system 신규 트랙. F-G11 별도 트랙 잔여.**
 
+## AHE 정식화 (2026-06-23, #114/#115 머지)
+
+R7 직후 "harness 자기진화" 1순위 goal 실행. 감사를 **실행 가능한 계약**으로 고정:
+- `core/rules/harness-evolution.md` — AHE doctrine (evaluate→analyze→improve, 7-component observability, 4-필드 finding contract, decision-observability)
+- `/audit` 스킬 — 루프 1 호출 실행 (dimension 병렬 → 4-필드 finding → 전역 단일 번호 → ledger)
+- `ledger.sh` + `.claude/memory/audit-ledger.jsonl` — 폐루프: append(open)→enqueue(auto-build)→mark-fixed→pending-verify→resolve(verified/refuted). R7 F-G01~G12 seed.
+- PR-1 #114(framework) + PR-2 #115(improve 자동화 enqueue + 폐루프). 근거 레포 china-qijizhifeng/agentic-harness-engineering.
+
+## Round 8 (2026-07, `/audit` 첫 라이브 dogfooding) — 3 PR (#116~#118 머지 완료)
+
+**AHE 스킬을 실제로 처음 실행.** Phase 0(R7 11건 verified 반증, 폐루프 첫 실작동) → 4 dimension 병렬 → 12 finding.
+
+| Dim | R7 | R8 | Δ | 핵심 |
+|-----|----|----|---|------|
+| D1 | 4.3 | 4.4 | +0.1 | MEMORY stale + ledger lifecycle 노출 |
+| D2 | 4.3 | 4.0 | -0.3 | plugin.json audit 누락 + ledger 상태머신 gap |
+| D3 | 4.3 | 4.5 | +0.2 | **R7 telemetry fix 실데이터 작동 측정 확인** |
+| D4 | 3.6 | 3.8 | +0.2 | 신규 인프라 대체로 정확, 동시성·경계 결함 |
+
+**메타-패턴**: `/audit`이 자신이 방금 만든 AHE 인프라의 실 결함 발굴 + **Phase 3 실행 도중 자기 octal 버그(F-H12) 라이브 적발** + 내 superficial Phase 0(F-H07)까지 D1·D3 교차 self-적발. dogfooding의 궁극.
+
+**12 Finding**: F-H01 plugin.json audit 누락 / F-H02 ledger append TOCTOU race / F-H03 빈문자열 vs null / F-H04 validate orphan 24/45 / F-H05 CI mktemp false-skip / F-H06 MEMORY stale / F-H07 ledger lifecycle 단락(내 실행 결함) / F-H08 mark-fixed 가드 / F-H09 audit 과잉권한 / F-H10 phantom skill telemetry / F-H11 diagnostic gate(defer) / F-H12 next_num octal(라이브 적발).
+
+**3 PR**: #116 ledger.sh 견고성(H02/03/08/12, mkdir 락+octal) / #117 배포·검증 wire(H01/04/05) / #118 doc·telemetry(H06/07/09/10). 11 fixed + F-H11 deferred.
+
+**다음 진입점 = R8 머지 후 누적 → Round 9 를 `/audit`로. R8 fix 들을 pending-verify→resolve 로 반증(decision-observability 2회차). F-H11 + F-G11 별도 트랙 잔여.**
+
 ## Linked memories
 
 - [[phase3-1-r10-functional-pass-f14-f15]] — Phase 3.1 cloud cycle 결과
