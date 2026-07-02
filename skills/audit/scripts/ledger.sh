@@ -31,7 +31,8 @@ next_num() {
   local round="$1" max
   max=$(jq -r --arg r "$round" 'select(.round==$r) | .id | ltrimstr("F-") | ltrimstr($r)' "$LEDGER" 2>/dev/null \
         | grep -E '^[0-9]+$' | sort -n | tail -1)
-  printf '%02d' "$(( ${max:-0} + 1 ))"
+  # 10# 강제 base-10 — leading-zero(08/09)를 8진수로 오해석하는 버그 방지
+  printf '%02d' "$(( 10#${max:-0} + 1 ))"
 }
 
 case "$cmd" in
