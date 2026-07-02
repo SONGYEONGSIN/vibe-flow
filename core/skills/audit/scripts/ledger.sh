@@ -31,7 +31,8 @@ next_num() {
   local round="$1" max
   max=$(jq -r --arg r "$round" 'select(.round==$r) | .id | ltrimstr("F-") | ltrimstr($r)' "$LEDGER" 2>/dev/null \
         | grep -E '^[0-9]+$' | sort -n | tail -1)
-  printf '%02d' "$(( ${max:-0} + 1 ))"
+  # 10# 강제 base-10 — leading-zero(08/09)를 8진수로 오해석하는 버그 방지
+  printf '%02d' "$(( 10#${max:-0} + 1 ))"
 }
 
 case "$cmd" in
@@ -39,21 +40,32 @@ case "$cmd" in
     IN=$(cat)
     round=$(echo "$IN" | jq -r '.round // empty')
     [ -z "$round" ] && { echo "error: .round required" >&2; exit 1; }
+    # F-H02 (audit R8): next_num→dup-check→append 를 mkdir 원자 락으로 직렬화.
+    # 병렬 append 시 동일 id 부여 race 차단 (flock 은 macOS 미탑재 → mkdir 패턴, queue.sh 와 동일).
+    LOCK="$LEDGER.lock"; tries=0
+    until mkdir "$LOCK" 2>/dev/null; do
+      tries=$((tries + 1)); [ "$tries" -gt 100 ] && { echo "error: ledger lock timeout" >&2; exit 1; }
+      sleep 0.05
+    done
     num=$(next_num "$round")
     id="F-${round}${num}"
     # id 충돌 방지(전역 단일): 이미 존재하면 거부
     if jq -e --arg i "$id" 'select(.id==$i)' "$LEDGER" >/dev/null 2>&1; then
+      rmdir "$LOCK" 2>/dev/null
       echo "error: id $id already exists" >&2; exit 1
     fi
     echo "$IN" | jq -c --arg id "$id" --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
       '{ts:$ts, round:.round, id:$id, component:.component, dimension:.dimension,
         evidence:.evidence, root_cause:.root_cause, fix:.fix,
         predicted_delta:.predicted_delta, actual_delta:null, status:"open", enqueued_task:null}' >> "$LEDGER"
+    rmdir "$LOCK" 2>/dev/null
     echo "$id"
     ;;
   resolve)
     id="${1:-}"; actual="${2:-}"; status="${3:-}"
-    [ -z "$id" ] || [ -z "$status" ] && { echo "usage: resolve <id> <actual_delta> <status>" >&2; exit 1; }
+    # F-H03 (audit R8): actual_delta 는 decision-observability 핵심 측정값 — 빈값 거부
+    # (빈 문자열이 저장되면 pending-verify 의 ==null 필터를 통과해 미측정 fix 가 verified 로 샘)
+    [ -z "$id" ] || [ -z "$actual" ] || [ -z "$status" ] && { echo "usage: resolve <id> <actual_delta> <status>" >&2; exit 1; }
     case "$status" in fixed|verified|refuted|deferred) ;; *) echo "error: status ∈ fixed|verified|refuted|deferred" >&2; exit 1 ;; esac
     jq -e --arg i "$id" 'select(.id==$i)' "$LEDGER" >/dev/null 2>&1 || { echo "error: id $id not found" >&2; exit 1; }
     tmp=$(mktemp)
@@ -80,7 +92,7 @@ case "$cmd" in
     [ -f "$QUEUE_SH" ] || { echo "error: queue.sh not found: $QUEUE_SH" >&2; exit 1; }
     count=0
     ids=$(jq -r --arg r "$r" \
-      'select(.status=="open") | select($r=="" or .round==$r) | select((.enqueued_task // null)==null) | .id' \
+      'select(.status=="open") | select($r=="" or .round==$r) | select((.enqueued_task // "")=="") | .id' \
       "$LEDGER" 2>/dev/null)
     for id in $ids; do
       task=$(jq -r --arg i "$id" \
@@ -100,6 +112,9 @@ case "$cmd" in
     # 다음 라운드가 pending-verify 로 집어 측정 후 resolve(verify/refute).
     id="${1:-}"; [ -z "$id" ] && { echo "usage: mark-fixed <id>" >&2; exit 1; }
     jq -e --arg i "$id" 'select(.id==$i)' "$LEDGER" >/dev/null 2>&1 || { echo "error: id $id not found" >&2; exit 1; }
+    # F-H08 (audit R8): 단방향 상태머신 가드 — open 에서만 fixed 전이 (verified/refuted→fixed 역전 차단)
+    cur=$(jq -r --arg i "$id" 'select(.id==$i) | .status' "$LEDGER")
+    [ "$cur" != "open" ] && { echo "error: mark-fixed 는 open 에서만 (현재: $cur)" >&2; exit 1; }
     tmp=$(mktemp)
     jq -c --arg i "$id" 'if .id==$i then .status="fixed" else . end' "$LEDGER" > "$tmp" && mv "$tmp" "$LEDGER"
     echo "$id → fixed"
@@ -109,7 +124,7 @@ case "$cmd" in
     # actual_delta 미기록인 finding. /audit Phase 0 가 측정 후 resolve 로 verify/refute.
     r="${1:-}"
     jq -r --arg r "$r" \
-      'select(.status=="fixed") | select(.actual_delta==null) | select($r=="" or .round==$r) | "\(.id)\t\(.dimension)\t\(.predicted_delta // "-")\t\(.fix)"' \
+      'select(.status=="fixed") | select((.actual_delta // "")=="") | select($r=="" or .round==$r) | "\(.id)\t\(.dimension)\t\(.predicted_delta // "-")\t\(.fix)"' \
       "$LEDGER" 2>/dev/null
     ;;
   *)
