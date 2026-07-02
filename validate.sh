@@ -395,16 +395,27 @@ if [ -f "$STATE" ]; then
   ok "state 명시 파일 존재 (stage 3 결과)"
 
   # orphan 검출 — extension 시그니처 디렉토리가 .claude/skills/에 있는데 state에는 없음
+  # F-H04 (audit R8): CORE_SKILLS 화이트리스트는 하드코딩이라 신규 base skill 추가 시
+  # drift(15/45 커버). vibe-flow repo(core/ 존재)면 core/skills/ 를 직접 enumerate 하고,
+  # downstream(core/ 부재)이면 화이트리스트로 폴백 — repo blind-spot 제거 + downstream 미파손.
   CORE_SKILLS="brainstorm plan finish release scaffold test worktree verify security commit review-pr receive-review status learn audit"
   EXT_SIGNATURES="eval-skill evolve design-sync design-audit pair discuss metrics retrospective feedback"
+
+  is_base_skill() {  # vibe-flow repo면 core/skills/ 실재로, downstream이면 whitelist로 판정
+    if [ -d "$VIBE_FLOW_ROOT/core/skills" ]; then
+      [ -d "$VIBE_FLOW_ROOT/core/skills/$1" ]
+    else
+      echo "$CORE_SKILLS" | grep -qw "$1"
+    fi
+  }
 
   ORPHAN_COUNT=0
   for skill_dir in "$CLAUDE_DIR/skills"/*/; do
     [ -d "$skill_dir" ] || continue
     skill="$(basename "$skill_dir")"
 
-    # Core skill?
-    if echo "$CORE_SKILLS" | grep -qw "$skill"; then continue; fi
+    # Core/base skill?
+    if is_base_skill "$skill"; then continue; fi
 
     # state.extensions에 매칭?
     if jq -r '.extensions | to_entries[] | .value.files[]' "$STATE" 2>/dev/null \

@@ -31,24 +31,21 @@ jobs:
         run: |
           set -u
           failed=0
+          # F-H05 (audit R8): CI-SKIP 마커(.claude 런타임/gh 등 CI 부재 의존) 테스트만 제외,
+          # 나머지는 전부 RUN. 기존 mktemp 휴리스틱은 core-only CI-safe 테스트
+          # (persona-vote/notify-pr)를 false-skip 하던 결함 → 명시 마커 방식으로 전환.
           for t in scripts/tests/*.sh; do
-            # 환경 의존(gh 위치 등) 테스트는 CI-SKIP 마커로 제외
             if grep -q 'CI-SKIP' "$t"; then
               echo "SKIP (CI-SKIP marker)  $(basename "$t")"
               continue
             fi
-            # fixture 기반(mktemp) 테스트만 — .claude 런타임 미러를 요구하는 것은 CI 에서 skip
-            if grep -q mktemp "$t"; then
-              echo "::group::$t"
-              if bash "$t"; then
-                echo "PASS  $(basename "$t")"
-              else
-                echo "FAIL  $(basename "$t")"
-                failed=1
-              fi
-              echo "::endgroup::"
+            echo "::group::$t"
+            if bash "$t"; then
+              echo "PASS  $(basename "$t")"
             else
-              echo "SKIP (needs .claude runtime)  $(basename "$t")"
+              echo "FAIL  $(basename "$t")"
+              failed=1
             fi
+            echo "::endgroup::"
           done
           exit $failed
