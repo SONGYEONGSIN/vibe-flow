@@ -4,6 +4,10 @@
 # VIBE_FLOW_ROOT 가 dirname "$0"(=.claude) 로 잘못 잡혀 drift 블록이
 # 조용히 skip 되던 버그(R3~R5 sync 검증 무력화) 회귀 방지.
 # 실행: bash scripts/tests/validate-drift-smoke.sh
+#
+# CI-SKIP: .claude/validate.sh(gitignored 런타임 미러)를 직접 실행하므로 CI fresh clone 에
+# 부재. root validate.sh 대상 동형 검증은 validate-drift-missing-smoke.sh 가 CI-safe 로 커버.
+# (F-H05, audit R8)
 
 set -u
 
