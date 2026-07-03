@@ -15,6 +15,7 @@ on:
       - 'validate.sh'
       - 'core/scripts/**'
       - 'core/hooks/**'
+      - 'core/skills/**/scripts/**'   # F-I05 (audit R9): ledger.sh 등 skill 내부 계측 스크립트
       - 'scripts/tests/**'
       - '.github/workflows/validation-tests.yml'
   push:
