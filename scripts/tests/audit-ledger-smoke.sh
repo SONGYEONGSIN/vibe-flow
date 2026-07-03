@@ -111,6 +111,16 @@ wait
 u=$(jq -r '.id' "$LED3" 2>/dev/null | sort -u | wc -l | tr -d ' '); t=$(wc -l < "$LED3" | tr -d ' ')
 { [ "$u" = "5" ] && [ "$t" = "5" ]; } && ok "병렬 5 append → 유니크 id 5/5 (race 없음)" || ng "uniq=$u total=$t (want 5/5)"
 
+echo "=== R9: 병렬 resolve lost-update 없음 (F-I04 with_lock) ==="
+LED4="$TMP/led4.jsonl"; : > "$LED4"
+for i in 1 2 3 4 5 6; do mkf | LEDGER="$LED4" bash "$SCRIPT" append >/dev/null; done
+for n in 01 02 03 04 05 06; do LEDGER="$LED4" bash "$SCRIPT" mark-fixed "F-Z$n" >/dev/null; done
+for n in 01 02 03 04 05 06; do ( LEDGER="$LED4" bash "$SCRIPT" resolve "F-Z$n" "+0.1 m" verified >/dev/null 2>&1 ) & done
+wait
+vc=$(jq -r 'select(.status=="verified")|.id' "$LED4" 2>/dev/null | wc -l | tr -d ' ')
+[ "$vc" = "6" ] && ok "6-way 병렬 resolve → 6건 전부 verified (lost-update 없음)" || ng "verified=$vc (want 6, lost-update)"
+[ ! -d "$LED4.lock" ] && ok "정상 op 후 .lock 잔존 없음 (release_lock)" || ng ".lock 누수"
+
 echo
 echo "=== 결과 ==="
 echo "  통과: $PASS / 실패: $FAIL"
