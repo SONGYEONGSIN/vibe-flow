@@ -61,7 +61,9 @@ classify_error() {
     *"json"*|*"parse error"*|*"syntaxerror"*|*"unexpected token"*|*"malformed"*)
       error_class="format_error"; retryable="false"
       recovery="입출력 JSON 포맷 확인. jq로 검증." ;;
-    *"build"*|*"webpack"*|*"vite"*|*"esbuild"*|*"rollup"*|*"next build"*)
+    # F-I06 (audit R9): bare "build" 제거 — repo 경로(/개발/build/vibe-flow)의 부분문자열이
+    # git log 등 stdout 에 섞여 build_error 오분류. "build error/failed", "next build" 문맥만 매치.
+    *"build error"*|*"build failed"*|*"webpack"*|*"vite"*|*"esbuild"*|*"rollup"*|*"next build"*)
       error_class="build_error"; retryable="false"
       recovery="빌드 설정 확인. 의존성 설치 상태 점검." ;;
     *"fail"*|*"vitest"*|*"jest"*|*"assert"*|*"expected"*|*"received"*)

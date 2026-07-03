@@ -66,6 +66,11 @@ assert_class "filename containing 'build' → unknown (not build_error)" "unknow
 c=$(run_classify "Bash" "next build failed: webpack compilation error in src/page.tsx")
 assert_class "genuine webpack build error → build_error" "build_error" "$c"
 
+# 3b. F-I06 — 'build' 가 경로 부분문자열로 섞여도(빌드에러 문맥 아님) build_error 아님
+c=$(run_classify "Bash" "Exit code 1
+git log: commit in build/vibe-flow tree")
+assert_class "path substring 'build' (문맥 없음) → NOT build_error (F-I06)" "unknown" "$c"
+
 # 4. ENOENT (path-only) → not_found
 c=$(run_classify "Bash" "open /etc/missing: ENOENT: no such file or directory")
 assert_class "ENOENT path → not_found" "not_found" "$c"

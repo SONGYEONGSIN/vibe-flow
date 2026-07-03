@@ -390,6 +390,17 @@ fi
 
 [ "$FRONTMATTER_FAIL" = 0 ] && ok "agent/skill frontmatter 정상"
 
+# F-I09 (audit R9): allowed-tools 미선언 skill 요약 경고 (per-skill 41개 노이즈 회피 — 1줄 요약)
+if [ -d "$CLAUDE_DIR/skills" ]; then
+  NO_ATOOLS=0; TOTAL_SK=0
+  for skill_dir in "$CLAUDE_DIR/skills"/*/; do
+    [ -f "$skill_dir/SKILL.md" ] || continue
+    TOTAL_SK=$((TOTAL_SK + 1))
+    head -10 "$skill_dir/SKILL.md" | grep -q "^allowed-tools:" || NO_ATOOLS=$((NO_ATOOLS + 1))
+  done
+  [ "$NO_ATOOLS" -gt 0 ] && warn "allowed-tools 미선언 skill ${NO_ATOOLS}/${TOTAL_SK} (권장 — least-privilege)" || ok "모든 skill allowed-tools 선언"
+fi
+
 # 9. State ↔ Filesystem reconciliation
 echo ""
 echo "[9/10] State ↔ Filesystem reconciliation"
