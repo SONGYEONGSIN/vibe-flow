@@ -2,7 +2,22 @@
 
 ## [Unreleased]
 
-(none)
+## [2.1.0] - 2026-07-04 — AHE `/audit` 자기 진화 루프 + R6~R9 감사 하드닝
+
+### Added
+- **`/audit` 스킬 — 관찰성 기반 harness 자기 진화 (AHE)**: 내부 감사를 실행 가능한 계약으로. dimension 에이전트 병렬 분석 → 4-필드 finding(증거·원인·수정·예측효과) → decision-observability ledger(예측 vs 실측 반증). 2 라운드 연속 자립 운영으로 자기 인프라 결함까지 스스로 적발·수정.
+- **`core/rules/harness-evolution.md`** — AHE doctrine (evaluate→analyze→improve, 7-component observability, ledger lifecycle 불변식).
+- **`.claude/memory/audit-ledger.jsonl`** — finding 폐루프 추적(append→enqueue→mark-fixed→pending-verify→resolve). mkdir 원자 락(macOS 포팅) / base-10 번호 / 빈문자열 가드 / 4-커맨드 동시성 완비.
+- **CI `validation-tests.yml`** — 검증·계측 툴링 회귀를 PR 단계에서 차단.
+
+### Fixed
+- **사용량 텔레메트리 집계 복원** — 잠복 결함으로 Top5/Total 이 줄곧 빈 값이던 것을 교정(events-source 첫 정상 측정).
+- **drift 검증 강화** — core-only 신규 파일이 조용히 통과하던 비대칭, agents.json/규칙/스킬 커버리지, hook·유틸 경계 정확화.
+- **계측 정확도** — 존재하지 않는 슬래시명(phantom) 기록 차단, plan 완료 이벤트, 도구 실패 오분류 축소.
+- **매니페스트/문서 정확도** — 플러그인 skills=45 / hooks=26, 프로젝트 메모리 현행화.
+
+### Changed
+- 내부 감사 R6~R9 완주 (평균 점수 3.0 → 4.37, 35 PR). ad-hoc 감사 → `/audit` 스킬 상시 운영으로 전환.
 
 ## [2.0.0] - 2026-06-06 — marketplace publish + audit closure + adoption infra
 
