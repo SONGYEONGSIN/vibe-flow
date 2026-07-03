@@ -104,15 +104,17 @@ if [ -d "$CLAUDE_DIR/hooks" ]; then
   # 필수 훅 파일 목록
   # F-B8 (audit round 2): 누락 6개 hook 추가 — auto-build-safety, budget-warn,
   # security-lint, session-memory-sync, skill-tracker, tool-invocation-tracker
-  REQUIRED_HOOKS="_common command-guard smart-guard prettier-format eslint-fix typecheck test-runner metrics-collector pattern-check design-lint debate-trigger message-bus readme-sync session-log session-review uncommitted-warn tool-failure-handler notify pre-compact tdd-enforce context-prune model-suggest auto-build-safety budget-warn security-lint session-memory-sync skill-tracker tool-invocation-tracker"
+  REQUIRED_HOOKS="command-guard smart-guard prettier-format eslint-fix typecheck test-runner metrics-collector pattern-check design-lint debate-trigger readme-sync session-log session-review uncommitted-warn tool-failure-handler notify pre-compact tdd-enforce context-prune model-suggest auto-build-safety budget-warn security-lint session-memory-sync skill-tracker tool-invocation-tracker"
+  # F-I03 (audit R9): _common(sourced 라이브러리)·message-bus(CLI 유틸)는 이벤트 훅이 아님 — 분리
+  REQUIRED_UTILITIES="_common message-bus"
   HOOK_MISSING=0
-  for hook in $REQUIRED_HOOKS; do
+  for hook in $REQUIRED_HOOKS $REQUIRED_UTILITIES; do
     if [ ! -f "$CLAUDE_DIR/hooks/${hook}.sh" ]; then
       err "${hook}.sh 누락"
       HOOK_MISSING=$((HOOK_MISSING+1))
     fi
   done
-  [ "$HOOK_MISSING" = 0 ] && ok "필수 훅 $(echo "$REQUIRED_HOOKS" | wc -w | tr -d ' ')개 모두 존재"
+  [ "$HOOK_MISSING" = 0 ] && ok "훅 $(echo "$REQUIRED_HOOKS" | wc -w | tr -d ' ')개 + 유틸 $(echo "$REQUIRED_UTILITIES" | wc -w | tr -d ' ')개 모두 존재"
 
   # 실행 권한 확인
   NON_EXEC=0
