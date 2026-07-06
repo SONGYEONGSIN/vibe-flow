@@ -412,7 +412,7 @@ if [ -f "$STATE" ]; then
   # drift(15/45 커버). vibe-flow repo(core/ 존재)면 core/skills/ 를 직접 enumerate 하고,
   # downstream(core/ 부재)이면 화이트리스트로 폴백 — repo blind-spot 제거 + downstream 미파손.
   CORE_SKILLS="brainstorm plan finish release scaffold test worktree verify security commit review-pr receive-review status learn audit"
-  EXT_SIGNATURES="eval-skill evolve design-sync design-audit pair discuss metrics retrospective feedback"
+  EXT_SIGNATURES="eval-skill evolve design-sync design-audit frontend-flow pair discuss metrics retrospective feedback"
 
   is_base_skill() {  # vibe-flow repo면 core/skills/ 실재로, downstream이면 whitelist로 판정
     if [ -d "$VIBE_FLOW_ROOT/core/skills" ]; then

@@ -6,11 +6,12 @@
 ## 실행
 
 ```bash
-node scripts/anti-slop-check.js <src 디렉토리|파일> [정본 DESIGN.md 경로]
+# 스킬 실행 CWD는 프로젝트 루트 → 루트 기준 풀 경로로 호출
+node extensions/design-system/skills/frontend-flow/scripts/anti-slop-check.js <src 디렉토리|파일> [정본 DESIGN.md 경로]
 ```
 
 - stdout에 JSON `{target, checks:[{id,status,detail}], passed, failed}`
-- 전부 통과 exit 0, 하나라도 실패 exit 1, 인자 없음 exit 2
+- 전부 통과 exit 0, 하나라도 실패 exit 1, 인자 없음·경로 없음·**스캔 대상 0개**(커버리지 0) exit 2
 
 ## v1 체크 (구현됨)
 

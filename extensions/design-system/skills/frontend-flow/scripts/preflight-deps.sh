@@ -1,7 +1,7 @@
 #!/bin/bash
 # P0 fail-closed dependency gate for /frontend-flow.
 # 모든 필수 커맨드가 PATH에 있으면 exit 0, 없으면 exit 1 + 설치 안내(stderr).
-set -u
+set -euo pipefail  # F-J13 (audit R10): 방어적 하드닝 (미정의 변수·파이프 실패 조기 노출)
 
 REQUIRED="${FRONTEND_FLOW_DEPS:-node npx jq}"
 
