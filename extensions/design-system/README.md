@@ -8,6 +8,7 @@
 |------|------|------|
 | Skill | `/design-sync <URL\|이미지\|--from-file>` | 7/5/6 단계 자동 워크플로우, 싱크율 95%/85~90%/92% 목표 |
 | Skill | `/design-audit` | 토큰 커버리지, 하드코딩 색상, 중복 UI 패턴 감사 |
+| Skill | `/frontend-flow <URL\|--from-image> [--design DESIGN.md]` | 참고사이트+DESIGN.md → 토큰 추출·정본화·기술선정·구현·검증 오케스트레이션 |
 
 ## 의존
 
