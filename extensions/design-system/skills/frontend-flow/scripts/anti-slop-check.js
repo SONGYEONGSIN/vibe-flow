@@ -9,6 +9,10 @@ if (!targetRoot) {
   console.error('usage: node anti-slop-check.js <targetRoot> [designMdPath]');
   process.exit(2);
 }
+if (!fs.existsSync(targetRoot)) {
+  console.error(`target not found: ${targetRoot}`);
+  process.exit(2);
+}
 
 // 브랜드 승인 신호 (금지 규칙 양보 근거)
 const FORBIDDEN_FONTS = ['Inter', 'Fraunces', 'Instrument Serif'];

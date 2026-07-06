@@ -47,5 +47,8 @@ assert_exit "override-exit" "1" "$EC"
 echo "Test A4: 인자 없음 → exit 2"
 node "$JS" >/dev/null 2>&1; assert_exit "noarg-exit" "2" "$?"
 
+echo "Test A5: 존재하지 않는 경로 → exit 2 (스택트레이스 아님)"
+node "$JS" "$TMP/__nope__" >/dev/null 2>&1; assert_exit "missing-path-exit" "2" "$?"
+
 echo ""; echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
