@@ -28,7 +28,7 @@ cd /your/project
 bash /path/to/vibe-flow/setup.sh
 ```
 
-→ 44 skills + 22 agents + 29 hooks + 7 rules are activated immediately.
+→ 44 skills + 22 agents + 26 hooks + 7 rules are activated immediately.
 
 ## 🎯 First cycle (5 minutes)
 
@@ -172,7 +172,7 @@ specialists (`@api-architect`, `@frontend-design-specialist`,
 `@project-planner`)
 + extensions: `@skill-reviewer`, `@grader`
 
-## 🛠 Automatic enforcement (29 hooks)
+## 🛠 Automatic enforcement (26 hooks)
 
 Runs without `/verify`:
 - every `Write/Edit` → prettier, eslint, typecheck, test, design-lint

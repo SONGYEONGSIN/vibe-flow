@@ -21,7 +21,9 @@ let brandAllowsBlack = false;
 if (designMdPath && fs.existsSync(designMdPath)) {
   const dm = fs.readFileSync(designMdPath, 'utf8').toLowerCase();
   brandFonts = FORBIDDEN_FONTS.filter((f) => dm.includes(f.toLowerCase()));
-  brandAllowsBlack = /#000000|#000\b|\bblack\b/.test(dm);
+  // F-J05 (audit R10): 승인 신호는 순수검정 hex 명시로 한정. 산문 "black"(예: "never
+  // use black" 같은 금지 문장)까지 승인으로 오인하던 경로 제거 — brand-override 거짓승인 차단.
+  brandAllowsBlack = /#000000|#000\b/.test(dm);
 }
 
 // 대상 소스 수집
@@ -34,6 +36,11 @@ function walk(dir, acc) {
   return acc;
 }
 const files = fs.statSync(targetRoot).isDirectory() ? walk(targetRoot, []) : [targetRoot];
+// F-J02 (audit R10): 스캔 대상 0개(비대상 확장자만)를 'clean'으로 오인 금지 — 커버리지 0과 통과 구분.
+if (files.length === 0) {
+  console.error(`no scannable source files under ${targetRoot}`);
+  process.exit(2);
+}
 const corpus = files.map((f) => fs.readFileSync(f, 'utf8')).join('\n');
 
 const checks = [];
@@ -51,7 +58,9 @@ record('forbidden-font', foundFonts.length === 0,
   foundFonts.length ? `not-brand-approved: ${foundFonts.join(', ')}` : 'none');
 
 // 3. 순수 검정 금지 — 브랜드 승인 시 양보
-const pureBlack = /#000000|#000\b/i.test(corpus);
+// F-J06 (audit R10): hex 뿐 아니라 tailwind 순수검정 유틸 클래스도 탐지 (고정 스택에서 더 흔함).
+const pureBlack = /#000000|#000\b/i.test(corpus)
+  || /\b(?:bg|text|border|ring|fill|stroke)-black\b/.test(corpus);
 record('pure-black-ban', !pureBlack || brandAllowsBlack,
   pureBlack ? (brandAllowsBlack ? 'present-but-brand-approved' : 'pure black #000 present') : 'none');
 

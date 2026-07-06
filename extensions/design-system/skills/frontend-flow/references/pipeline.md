@@ -6,7 +6,7 @@
 ## P0 Intake
 
 - **입력**: 참고사이트 URL (0~n, 선택) + DESIGN.md 경로 (선택). 최소 1개 필수.
-- **동작**: `bash scripts/preflight-deps.sh`로 의존성 fail-closed 체크. 입력 모드 감지(URL/이미지/로컬). 신규 빌드 vs 리스킨(기존 앱 개편) 판별.
+- **동작**: `bash extensions/design-system/skills/frontend-flow/scripts/preflight-deps.sh`(루트 기준 풀 경로)로 의존성 fail-closed 체크. 입력 모드 감지(URL/이미지/로컬). 신규 빌드 vs 리스킨(기존 앱 개편) 판별.
 - **실패처리**: 의존성 없으면 설치법 출력 후 **중단** (거짓 점수 방지).
 
 ## P1 Analyze
@@ -39,9 +39,9 @@
 
 ## P4 Verify
 
-- **동작**: `/design-audit`(oklch 인식 색상 커버리지) + `/design-sync` 싱크율 pre/post(모드별 목표 URL 95% / 이미지 90%) + `node scripts/anti-slop-check.js <src> <DESIGN.md>`(`references/anti-slop-preflight.md`). 실제 브라우저 a11y(Playwright 접근성 트리)는 도구 있으면 실행, 없으면 graceful skip.
-- **출력**: `events.jsonl` 텔레메트리(sync_rate_initial/final/target).
-- **실패처리**: 도구 없으면 graceful skip + 건너뛴 검사 명시.
+- **동작**: `/design-audit`(oklch 인식 색상 커버리지) + `/design-sync` 싱크율 pre/post(모드별 목표 URL 95% / 이미지 85~90%) + `node extensions/design-system/skills/frontend-flow/scripts/anti-slop-check.js <src> <DESIGN.md>`(루트 기준 풀 경로, `references/anti-slop-preflight.md`). 실제 브라우저 a11y(Playwright 접근성 트리)는 도구 있으면 실행, 없으면 graceful skip.
+- **출력**: `events.jsonl` 텔레메트리(sync_rate_initial/final/target). skip 된 검사는 `status:skipped`로 기록(≠pass) — skip을 성공으로 오기록 금지.
+- **실패처리**: 도구 없으면 graceful skip + 건너뛴 검사 명시. 단 **측정된 게이트가 하나도 없으면**(전부 skip) Gate C를 fail-closed 처리 — 거짓 점수 방지.
 
 ## Gate C (리뷰, 스킵 가능)
 

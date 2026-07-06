@@ -20,3 +20,4 @@
 - **아이콘**: 한 패밀리(`@phosphor-icons/react` 권장), strokeWidth 전역 고정.
 - **모션**: `motion/react`(구 framer-motion). 연속값은 `useMotionValue`, `useState` 금지.
 - 예외 라우팅(데이터 집약→Carbon, 공공→GOV.UK)은 게이트 B에서 사용자 승인 후에만.
+  **판정 규칙**(후보 제시 트리거): 참고사이트/DESIGN.md에서 표·대시보드가 화면의 과반이면 Carbon 후보, 정부기관 도메인(`.gov`/`.go.kr` 등)이거나 DESIGN.md `domain:`이 공공이면 GOV.UK 후보 — 두 경우 모두 게이트 B에서만 확정(자동 적용 금지).

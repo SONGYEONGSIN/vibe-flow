@@ -50,5 +50,27 @@ node "$JS" >/dev/null 2>&1; assert_exit "noarg-exit" "2" "$?"
 echo "Test A5: 존재하지 않는 경로 → exit 2 (스택트레이스 아님)"
 node "$JS" "$TMP/__nope__" >/dev/null 2>&1; assert_exit "missing-path-exit" "2" "$?"
 
+# F-J02 (audit R10): 스캔 대상 0개(비대상 확장자만) → 커버리지 0을 clean 으로 오인하면 안 됨.
+echo "Test A6: 비대상 corpus(.ts/.html 만) → exit 2 (빈 corpus 거짓PASS 아님)"
+mkdir -p "$TMP/nocov"
+printf 'export const x = 1\n' > "$TMP/nocov/util.ts"
+printf '<!doctype html><body>hi</body>\n' > "$TMP/nocov/index.html"
+node "$JS" "$TMP/nocov" >/dev/null 2>&1; assert_exit "empty-corpus-exit" "2" "$?"
+
+# F-J05 (audit R10): DESIGN.md 산문 "black"(금지 문장)이 순수검정 승인으로 오인되면 안 됨.
+echo "Test A7: DESIGN.md 'never use black'(hex 없음) + #000000 컴포넌트 → pure-black FAIL (거짓승인 아님)"
+printf '# DESIGN\n- Rule: Never use pure black. Avoid black backgrounds.\n' > "$TMP/prose.md"
+printf 'export const K = () => <div className="text-[#000000]">x</div>\n' > "$TMP/black.tsx"
+OUT=$(node "$JS" "$TMP/black.tsx" "$TMP/prose.md" 2>/dev/null); EC=$?
+assert_exit "prose-black-exit" "1" "$EC"
+[ "$(status_of "$OUT" pure-black-ban)" = "fail" ] && { echo "  ✓ prose-black-not-approved"; PASS=$((PASS+1)); } || { echo "  ✗ prose-black-not-approved"; FAIL=$((FAIL+1)); }
+
+# F-J06 (audit R10): tailwind 순수검정 유틸 클래스(hex 아님)도 탐지해야 함.
+echo "Test A8: tailwind bg-black/text-black (hex 없음) → pure-black FAIL"
+printf 'export const T = () => <div className="bg-black text-black">x</div>\n' > "$TMP/util.tsx"
+OUT=$(node "$JS" "$TMP/util.tsx" 2>/dev/null); EC=$?
+assert_exit "tw-black-exit" "1" "$EC"
+[ "$(status_of "$OUT" pure-black-ban)" = "fail" ] && { echo "  ✓ tw-black-detected"; PASS=$((PASS+1)); } || { echo "  ✗ tw-black-detected"; FAIL=$((FAIL+1)); }
+
 echo ""; echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
