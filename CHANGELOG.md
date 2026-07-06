@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-07-07 — frontend-flow 제작 오케스트레이션 스킬 + 내부 감사 R10
+
+### Added
+- **`/frontend-flow` 스킬** — 참고사이트 URL(또는 캡처 이미지)과 DESIGN.md를 넣으면 토큰 추출→정본화→기술선정→구현→검증까지 프론트엔드를 제작하는 오케스트레이션. 스택은 Next.js + Tailwind v4 + shadcn/ui 고정, 비싼 빌드 전 프로토타입으로 먼저 승인받는 게이트 구조. 기존 `/design-sync`·`/design-audit`·`frontend-design-specialist`를 지휘.
+
+### Fixed
+- **내부 감사 R10 — frontend-flow 13개 결함 수정**: 스킬 스크립트가 문서 그대로 실행하면 경로를 못 찾아 게이트가 항상 실패하던 P0 버그, anti-slop 검사가 빈 소스·금지문 오해석·tailwind 검정 클래스를 놓쳐 조용히 통과하던 거짓 통과 3종, 신규 스크립트가 CI 검사 트리거에서 빠지던 사각지대, 그리고 종합 제작 스킬과 단발 컴포넌트 에이전트의 발동 경계 모호성을 교정.
+- **문서 카운트 현행화** — README의 hook 수(29→26) 등 잔여 stale 수치 정정, 아키텍처 다이어그램 자동 재생성.
+
+### Changed
+- 감사 ledger R10 폐루프 — finding 13건을 `fixed`로 전이해 다음 라운드가 예측 효과를 실측 반증하도록 대기 상태로 둠(decision-observability).
+
 ## [2.1.0] - 2026-07-04 — AHE `/audit` 자기 진화 루프 + R6~R9 감사 하드닝
 
 ### Added
