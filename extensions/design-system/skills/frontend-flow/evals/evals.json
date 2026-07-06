@@ -1,0 +1,32 @@
+{
+  "skill_name": "frontend-flow",
+  "description": "참고사이트+DESIGN.md 기반 프론트엔드 제작 오케스트레이션 품질 평가",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/frontend-flow https://example.com --design ./DESIGN.md 를 실행한다. 참고사이트와 DESIGN.md가 모두 주어진 상황이다.",
+      "expectations": [
+        { "description": "P0에서 의존성 게이트를 먼저 실행한다", "type": "must_pass" },
+        { "description": "P1에서 /design-sync로 토큰을 추출하고 DESIGN.md와 병합해 정본을 만든다", "type": "must_pass" },
+        { "description": "P3 구현 전 게이트 B에서 사용자 승인을 받는다", "type": "must_pass" },
+        { "description": "P4에서 anti-slop-check.js와 /design-audit를 실행한다", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/frontend-flow 를 DESIGN.md 없이 참고 URL만으로 실행한다.",
+      "expectations": [
+        { "description": "사이트에서 정본 DESIGN.md를 생성한다", "type": "must_pass" },
+        { "description": "DESIGN.md 미제공을 이유로 실패하지 않는다", "type": "must_pass" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "참고사이트가 Inter 폰트와 #000000 텍스트를 쓰는 브랜드다. /frontend-flow 실행 후 P4 anti-slop 검사가 도는 상황이다.",
+      "expectations": [
+        { "description": "브랜드 토큰(Inter/black)이 anti-slop 금지 규칙을 무효화한다", "type": "must_pass" },
+        { "description": "em-dash 등 브랜드 무관 규칙은 계속 적용한다", "type": "should_pass" }
+      ]
+    }
+  ]
+}
