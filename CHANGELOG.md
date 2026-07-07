@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-07-07 — 접근성 audit + anti-slop 구조 검사 강화
+
+### Added
+- **정적 접근성 audit (P4)** — `/frontend-flow` 검증 단계에 **브라우저 없이도** 도는 4-차원 접근성 리뷰(대비/색상 · 시맨틱 HTML · 키보드/포커스 · 모션·폼)를 추가. Playwright가 설치돼 있지 않아도 접근성 게이트가 비지 않고, 고정 스택(shadcn/ui) 특성을 반영해 오탐을 줄인다.
+- **anti-slop 구조 검사 2종** — 코너 반경 체계 일관성(`radius-system`)과 eyebrow 밀도(`eyebrow-density`)를 자동 점검. 빌드를 막지 않는 경고(WARN)로 보고해 "AI 템플릿 티 나는" 패턴을 제작 초기에 드러낸다.
+
+### Changed
+- anti-slop 검사 출력이 pass/fail 2단계에서 **pass/warn/fail 3단계**로 확장. warn은 빌드를 차단하지 않는 리뷰 신호로, 판단이 필요한 규칙(색상 조합·editorial-warm 등)은 에이전트 리뷰에 위임하는 경계를 명확히 했다.
+
 ## [2.2.0] - 2026-07-07 — frontend-flow 제작 오케스트레이션 스킬 + 내부 감사 R10
 
 ### Added
