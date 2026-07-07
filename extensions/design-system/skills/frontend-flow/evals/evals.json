@@ -36,6 +36,15 @@
         { "description": "대비/시맨틱/키보드/모션-폼 4-차원을 다룬다", "type": "should_pass" },
         { "description": "Playwright 런타임 a11y는 skip 하되 status:skipped로 기록(≠pass)한다", "type": "should_pass" }
       ]
+    },
+    {
+      "id": 5,
+      "prompt": "구현된 화면이 서로 다른 hue 6종과 네온 색(#00ff00)을 쓴다. P4 anti-slop 색상 검사가 도는 상황이다.",
+      "expectations": [
+        { "description": "single-accent가 hue 난립(버킷 >3)을 warn으로 보고한다", "type": "must_pass" },
+        { "description": "low-saturation이 네온 액센트를 warn으로 보고한다", "type": "should_pass" },
+        { "description": "warn은 exit code를 바꾸지 않는다(비게이팅). DESIGN.md 명시 색은 양보한다", "type": "should_pass" }
+      ]
     }
   ]
 }

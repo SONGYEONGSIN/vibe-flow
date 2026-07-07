@@ -3,6 +3,7 @@
 // Usage: node anti-slop-check.js <targetRoot> [designMdPath]
 const fs = require('fs');
 const path = require('path');
+const { extractAccents, bucketOf } = require(path.join(__dirname, 'color-utils.js'));
 
 const [, , targetRoot, designMdPath] = process.argv;
 if (!targetRoot) {
@@ -18,12 +19,17 @@ if (!fs.existsSync(targetRoot)) {
 const FORBIDDEN_FONTS = ['Inter', 'Fraunces', 'Instrument Serif'];
 let brandFonts = [];
 let brandAllowsBlack = false;
+let brandBuckets = new Set(); // 브랜드 팔레트 hue 버킷 — sprawl 카운트에서 제외
+let brandRaws = new Set();    // 브랜드 raw 색값 — 과포화 검사에서 제외
 if (designMdPath && fs.existsSync(designMdPath)) {
-  const dm = fs.readFileSync(designMdPath, 'utf8').toLowerCase();
+  const dmRaw = fs.readFileSync(designMdPath, 'utf8');
+  const dm = dmRaw.toLowerCase();
   brandFonts = FORBIDDEN_FONTS.filter((f) => dm.includes(f.toLowerCase()));
   // F-J05 (audit R10): 승인 신호는 순수검정 hex 명시로 한정. 산문 "black"(예: "never
   // use black" 같은 금지 문장)까지 승인으로 오인하던 경로 제거 — brand-override 거짓승인 차단.
   brandAllowsBlack = /#000000|#000\b/.test(dm);
+  // 브랜드 우선: DESIGN.md에 명시된 색은 색상 WARN(single-accent/low-saturation)에서 양보.
+  for (const a of extractAccents(dmRaw)) { brandBuckets.add(bucketOf(a.hue)); brandRaws.add(a.raw); }
 }
 
 // 대상 소스 수집
@@ -111,6 +117,35 @@ const eyebrowClean = sections === 0 || eyebrows <= budget;
 warn('eyebrow-density', eyebrowClean, sections === 0
   ? 'no <section> (N/A)'
   : `eyebrow=${eyebrows}, budget=ceil(${sections}/3)=${budget}`);
+
+// 6·7. 색상 WARN — 유색 액센트 추출(hex·oklch·tailwind). 브랜드(DESIGN.md) 색은 양보.
+const accents = extractAccents(scan);
+
+// 6. single-accent (규칙7): 색상 난립. hue 버킷 >3(sprawl) 또는 한 버킷 raw >3(near-dup 토큰 미추출). WARN.
+//    브랜드 팔레트 버킷은 sprawl 카운트에서 제외.
+const srcBuckets = new Set(accents.map((a) => bucketOf(a.hue)).filter((b) => !brandBuckets.has(b)));
+const rawByBucket = {};
+for (const a of accents) {
+  if (a.kind === 'tw' || brandRaws.has(a.raw)) continue; // tailwind shade=토큰, 브랜드색=양보
+  const b = bucketOf(a.hue);
+  (rawByBucket[b] = rawByBucket[b] || new Set()).add(a.raw);
+}
+const sprawl = srcBuckets.size > 3;
+const nearDup = Object.entries(rawByBucket).find(([, s]) => s.size > 3);
+const accentClean = !sprawl && !nearDup;
+warn('single-accent', accentClean, accentClean
+  ? `accent hue buckets=${srcBuckets.size}`
+  : [sprawl ? `hue sprawl=${srcBuckets.size} (>3)` : null,
+     nearDup ? `bucket ${nearDup[0]}: ${nearDup[1].size} near-dup values (>3)` : null].filter(Boolean).join('; '));
+
+// 7. low-saturation (규칙7): 과포화 액센트. hex HSL S≥90 또는 oklch chroma≥0.25 = 네온. tailwind 면제(curated). WARN.
+//    브랜드 명시 색은 양보.
+const oversaturated = accents.filter((a) => !brandRaws.has(a.raw)
+  && ((a.kind === 'hex' && a.sat >= 90) || (a.kind === 'oklch' && a.sat >= 0.25)));
+const satClean = oversaturated.length === 0;
+warn('low-saturation', satClean, satClean
+  ? 'no over-saturated accent'
+  : `over-saturated: ${oversaturated.slice(0, 3).map((a) => a.raw).join(', ')}`);
 
 const failed = checks.filter((c) => c.status === 'fail').length;
 const warned = checks.filter((c) => c.status === 'warn').length;
