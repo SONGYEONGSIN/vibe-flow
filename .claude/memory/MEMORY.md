@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-**v2.3.1 출시 (2026-07-07)** — `/frontend-flow` 오케스트레이션 스킬(#122) + 접근성 audit + anti-slop 3단계(pass/warn/fail) 검사 및 정확도 패치(#125/#126). 내부 감사 R10(J) 13건 fixed→pending-verify. cloud-native cron-triggered auto-build cycle 본 목표는 v2.0.0(2026-06-06, #106)에서 달성 완료(marketplace publish 포함).
+**v2.3.2 출시 (2026-07-07)** — frontend-flow anti-slop/디자인 품질 라인 완성. anti-slop 검사가 em-dash·폰트·순수검정(FAIL) + radius·eyebrow·single-accent·low-saturation(WARN) 7종 + a11y 4-차원(정적 소스, 브라우저 불필요)으로 완비. 세션 흐름: a11y+anti-slop 이식(v2.3.0, #125) → 엣지 배터리로 결함 발굴·패치(v2.3.1, #126) → 문서 카운트 drift 정정(#127) → **문서 동기화 CI 게이트**(#128, `scripts/check-doc-counts.sh` — 문서 fix가 게이트 밖이라 반복되던 stale 차단) → 색상 WARN 2종(v2.3.2, #129, `color-utils.js`) → eval-regression Windows robustness(#130, jq CRLF + cp949). 내부 감사 R10(J) 13건 fixed→pending-verify. cloud-native auto-build cycle 본 목표는 v2.0.0(#106) 달성 완료.
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
@@ -55,8 +55,8 @@ Phase 2 / Phase 3.0:
 
 ## 다음 진입점
 
-1. **R10/J fix 실측 반증** — 다음 `/audit` 라운드에서 F-J01~F-J13 `pending-verify`→`resolve` (폐루프 종결)
-2. **frontend-flow 후속** — 색상 WARN 2종(single-accent/low-saturation) 구현, editorial-warm-combo 에이전트 리뷰 실배선, anti-slop 주석 스트립은 v2.3.1에 반영 완료
+1. **frontend-flow 잔여 백로그** (우선) — (a) `editorial-warm-combo` 에이전트 리뷰 실배선(크림배경+serif+italic+테라코타 4신호 조합 탐지, 표면 분류가 기계화 불가라 에이전트 판단 필요, 스펙은 `references/anti-slop-preflight.md` deferred에 확정) (b) `docs/ARCHITECTURE.md` Self-Improving Loop 섹션 전면 재작성(현행 AHE/audit/ledger 반영, 지금은 legacy 배너만 — 카운트·dead-ref는 #127에서 정리됨)
+2. **R10/J fix 실측 반증** — 다음 `/audit` 라운드에서 F-J01~F-J13 `pending-verify`→`resolve` (폐루프 종결)
 3. 신규 기능 트랙 후보: `docs/character-system-spec-plan` 브랜치 (Phase 4 동적 캐릭터 시스템, spec/plan만 존재 미구현)
 
 ## 참고
