@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-07-07 — anti-slop WARN 검사 정확도 패치
+
+엣지케이스 배터리(26종)로 발견한 신규 WARN 2종의 오탐/미탐을 수정.
+
+### Fixed
+- **eyebrow-density 미탐(FN) 수정** — `uppercase`와 `tracking` 유틸이 별도 className으로 쪼개진 `cn()` 패턴에서 eyebrow를 놓치던 문제. 파일 단위 판정으로 재설계해 분리된 경우도 포착.
+- **radius-system 오탐(FP) 수정** — 좌측 보더 '색상' 유틸(`border-l-zinc-200`)을 SaaS 카드 조합으로 오인하던 문제. 실제 보더 '폭' 유틸(`border-l`/`border-l-0/2/4/8`)만 매칭.
+- **주석 오탐 제거** — 주석 속 em-dash·`<section>`·주석처리된 폰트명이 검사에 잡히던 문제. 스캔 전 블록/라인 주석 제거(URL `://`은 보존).
+
+### Added
+- anti-slop 스모크 회귀 테스트 확장(28 → 35종): eyebrow 분리, border-l 색상/폭 구분, 주석 스트립, URL 미오손상.
+
 ## [2.3.0] - 2026-07-07 — 접근성 audit + anti-slop 구조 검사 강화
 
 ### Added

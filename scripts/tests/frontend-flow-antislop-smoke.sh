@@ -101,5 +101,35 @@ assert_exit "nofp-exit0" "0" "$EC"
 [ "$(status_of "$OUT" eyebrow-density)" = "pass" ] && { echo "  ✓ nofp-eyebrow-pass"; PASS=$((PASS+1)); } || { echo "  ✗ nofp-eyebrow-pass (got '$(status_of "$OUT" eyebrow-density)')"; FAIL=$((FAIL+1)); }
 assert_jq "nofp-warned0" '.warned == 0' "$OUT"
 
+# ── v2.3.1 결함 회귀 (엣지테스트 발견분) ──
+echo "Test A13: eyebrow uppercase/tracking 분리(cn 패턴) → eyebrow-density WARN (FN 수정)"
+printf 'export const S = () => <section><span className="uppercase">A</span><span className="tracking-wide">B</span><span className="uppercase">C</span></section>\n' > "$TMP/split.tsx"
+OUT=$(node "$JS" "$TMP/split.tsx" 2>/dev/null)
+[ "$(status_of "$OUT" eyebrow-density)" = "warn" ] && { echo "  ✓ eyebrow-split-warn"; PASS=$((PASS+1)); } || { echo "  ✗ eyebrow-split-warn (got '$(status_of "$OUT" eyebrow-density)')"; FAIL=$((FAIL+1)); }
+
+echo "Test A14: border-l 색상 유틸(border-l-zinc-200)+rounded-xl → SaaS combo 아님 → pass (FP 수정)"
+printf 'export const C = () => <div className="rounded-xl border-l-zinc-200">x</div>\n' > "$TMP/blcolor.tsx"
+OUT=$(node "$JS" "$TMP/blcolor.tsx" 2>/dev/null)
+[ "$(status_of "$OUT" radius-system)" = "pass" ] && { echo "  ✓ border-l-color-pass"; PASS=$((PASS+1)); } || { echo "  ✗ border-l-color-pass (got '$(status_of "$OUT" radius-system)')"; FAIL=$((FAIL+1)); }
+echo "Test A14b: border-l-4 폭 유틸+rounded-xl → 실제 SaaS combo → warn (TP 유지)"
+printf 'export const W = () => <div className="rounded-xl border-l-4">x</div>\n' > "$TMP/blwidth.tsx"
+OUT=$(node "$JS" "$TMP/blwidth.tsx" 2>/dev/null)
+[ "$(status_of "$OUT" radius-system)" = "warn" ] && { echo "  ✓ border-l-width-warn"; PASS=$((PASS+1)); } || { echo "  ✗ border-l-width-warn (got '$(status_of "$OUT" radius-system)')"; FAIL=$((FAIL+1)); }
+
+echo "Test A15: 주석 속 em-dash → em-dash-ban pass (주석 스트립). JSX 텍스트 em-dash는 계속 fail"
+printf '// note \xe2\x80\x94 comment\nexport const M = () => <p>clean text</p>\n' > "$TMP/emcomment.tsx"
+OUT=$(node "$JS" "$TMP/emcomment.tsx" 2>/dev/null); EC=$?
+assert_exit "emcomment-exit0" "0" "$EC"
+[ "$(status_of "$OUT" em-dash-ban)" = "pass" ] && { echo "  ✓ emdash-comment-pass"; PASS=$((PASS+1)); } || { echo "  ✗ emdash-comment-pass (got '$(status_of "$OUT" em-dash-ban)')"; FAIL=$((FAIL+1)); }
+
+echo "Test A16: 주석 처리된 font-inter → forbidden-font pass (주석 스트립)"
+printf 'export const F = () => <p className="font-geist">{/* use font-inter later */}x</p>\n' > "$TMP/fontcomment.tsx"
+OUT=$(node "$JS" "$TMP/fontcomment.tsx" 2>/dev/null)
+[ "$(status_of "$OUT" forbidden-font)" = "pass" ] && { echo "  ✓ font-comment-pass"; PASS=$((PASS+1)); } || { echo "  ✗ font-comment-pass (got '$(status_of "$OUT" forbidden-font)')"; FAIL=$((FAIL+1)); }
+
+echo "Test A17: 주석 처리된 //-URL 미오손상 (https://) → 스캔 유지"
+printf 'export const U = () => <a href="https://ex.com/rounded-xl">x</a>\n' > "$TMP/url.tsx"
+node "$JS" "$TMP/url.tsx" >/dev/null 2>&1; assert_exit "url-noharm-exit0" "0" "$?"
+
 echo ""; echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

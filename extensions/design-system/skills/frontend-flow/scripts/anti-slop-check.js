@@ -43,24 +43,30 @@ if (files.length === 0) {
 }
 const corpus = files.map((f) => fs.readFileSync(f, 'utf8')).join('\n');
 
+// v2.3.1: 주석 스트립 후 스캔 — 주석 속 패턴(em-dash·<section>·주석처리된 font 등) 오탐 방지.
+// 블록 주석(JSX {/* */}, CSS /* */) 제거 + 라인 주석(//) 제거. 단 `://`·문자열 내 `//`(URL)은 보존.
+const scan = corpus
+  .replace(/\/\*[\s\S]*?\*\//g, ' ')
+  .replace(/(^|[^:'"`])\/\/[^\n]*/gm, '$1');
+
 const checks = [];
 const record = (id, ok, detail) => checks.push({ id, status: ok ? 'pass' : 'fail', detail });
 
-// 1. em-dash 금지 (—) — 브랜드 무관 항상 적용
-const emDashes = (corpus.match(/—/g) || []).length;
+// 1. em-dash 금지 (—) — 브랜드 무관 항상 적용 (주석 제외)
+const emDashes = (scan.match(/—/g) || []).length;
 record('em-dash-ban', emDashes === 0, `em-dash count = ${emDashes}`);
 
 // 2. 금지 폰트 — 브랜드 승인분 양보
 const foundFonts = FORBIDDEN_FONTS
-  .filter((f) => new RegExp(`\\b${f.replace(/ /g, '[ _-]?')}\\b`, 'i').test(corpus))
+  .filter((f) => new RegExp(`\\b${f.replace(/ /g, '[ _-]?')}\\b`, 'i').test(scan))
   .filter((f) => !brandFonts.includes(f));
 record('forbidden-font', foundFonts.length === 0,
   foundFonts.length ? `not-brand-approved: ${foundFonts.join(', ')}` : 'none');
 
 // 3. 순수 검정 금지 — 브랜드 승인 시 양보
 // F-J06 (audit R10): hex 뿐 아니라 tailwind 순수검정 유틸 클래스도 탐지 (고정 스택에서 더 흔함).
-const pureBlack = /#000000|#000\b/i.test(corpus)
-  || /\b(?:bg|text|border|ring|fill|stroke)-black\b/.test(corpus);
+const pureBlack = /#000000|#000\b/i.test(scan)
+  || /\b(?:bg|text|border|ring|fill|stroke)-black\b/.test(scan);
 record('pure-black-ban', !pureBlack || brandAllowsBlack,
   pureBlack ? (brandAllowsBlack ? 'present-but-brand-approved' : 'pure black #000 present') : 'none');
 
@@ -71,13 +77,15 @@ const warn = (id, clean, detail) => checks.push({ id, status: clean ? 'pass' : '
 // 4. radius-system (규칙3): 반경 체계 일관 + SaaS 카드 조합. WARN.
 //    브랜드 반경 스케일 파싱은 v1 범위 밖 — 비게이팅이라 FP 비용 낮음.
 const radii = new Set();
-for (const m of corpus.matchAll(/\brounded(?:-(sm|md|lg|xl|2xl|3xl))?\b/g)) {
+for (const m of scan.matchAll(/\brounded(?:-(sm|md|lg|xl|2xl|3xl))?\b/g)) {
   radii.add(m[1] || 'DEFAULT'); // full/none은 열거 목록 밖 → 자동 제외(스케일 아님)
 }
-for (const m of corpus.matchAll(/\brounded-\[[^\]]+\]/g)) radii.add(m[0]);
-for (const m of corpus.matchAll(/border-radius:\s*([^;{}]+)/gi)) radii.add(m[1].trim());
-const hasXl = /\brounded-xl\b/.test(corpus) || /border-radius:\s*12px/i.test(corpus);
-const hasLeftBorder = /\bborder-l(?:-\d+)?\b/.test(corpus) || /border-left:\s*\d+px\s+solid/i.test(corpus);
+for (const m of scan.matchAll(/\brounded-\[[^\]]+\]/g)) radii.add(m[0]);
+for (const m of scan.matchAll(/border-radius:\s*([^;{}]+)/gi)) radii.add(m[1].trim());
+const hasXl = /\brounded-xl\b/.test(scan) || /border-radius:\s*12px/i.test(scan);
+// v2.3.1: 좌측 보더 '폭' 유틸(border-l, border-l-0/2/4/8)만 매칭. 색상 유틸(border-l-zinc-200 등)은
+// 실제 보더 폭이 0이라 제외 — R9 FP 수정. 뒤에 -<영문/추가하이픈>이 오면(=색상) 매칭 안 함.
+const hasLeftBorder = /\bborder-l(?:-(?:0|2|4|8))?(?![\w-])/.test(scan) || /border-left:\s*\d+px\s+solid/i.test(scan);
 const saasCombo = hasXl && hasLeftBorder;
 const radiusClean = radii.size <= 2 && !saasCombo;
 warn('radius-system', radiusClean, radiusClean
@@ -86,12 +94,18 @@ warn('radius-system', radiusClean, radiusClean
 
 // 5. eyebrow-density (규칙8 스케일 감각): eyebrow ≤ ceil(sectionCount/3). WARN.
 //    section 0개면 밀도 정의 불가 → N/A(pass)로 FP 방지.
+// v2.3.1: eyebrow 신호를 파일 단위로 판정 — `uppercase`가 있는 className 개수를,
+//    파일에 `tracking-wid*`가 존재할 때 eyebrow로 카운트. uppercase/tracking이 별도
+//    className으로 쪼개진 cn() 패턴(E7 FN)도 포착.
+const hasTracking = /\btracking-wid(?:e|er|est)\b/.test(scan);
 let eyebrows = 0;
-for (const m of corpus.matchAll(/class(?:Name)?\s*=\s*(?:"([^"]*)"|'([^']*)'|\{\s*`([^`]*)`)/g)) {
-  const cls = m[1] || m[2] || m[3] || '';
-  if (/\buppercase\b/.test(cls) && /\btracking-wid(?:e|er|est)\b/.test(cls)) eyebrows++;
+if (hasTracking) {
+  for (const m of scan.matchAll(/class(?:Name)?\s*=\s*(?:"([^"]*)"|'([^']*)'|\{\s*`([^`]*)`)/g)) {
+    const cls = m[1] || m[2] || m[3] || '';
+    if (/\buppercase\b/.test(cls)) eyebrows++;
+  }
 }
-const sections = (corpus.match(/<section\b/gi) || []).length;
+const sections = (scan.match(/<section\b/gi) || []).length;
 const budget = Math.ceil(sections / 3);
 const eyebrowClean = sections === 0 || eyebrows <= budget;
 warn('eyebrow-density', eyebrowClean, sections === 0
