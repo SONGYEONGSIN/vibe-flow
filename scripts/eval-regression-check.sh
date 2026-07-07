@@ -167,7 +167,8 @@ AGENTS_JSON="core/agents.json"
 if [ -f "$AGENTS_JSON" ]; then
   if jq empty "$AGENTS_JSON" >/dev/null 2>&1; then
     AGENTS_BEFORE=$FAIL
-    JSON_AGENTS=$(jq -r '.agents[]' "$AGENTS_JSON" 2>/dev/null)
+    # tr -d '\r': Windows jq.exe는 CRLF 출력 → 파일명이 'name\r'로 깨져 존재검사 오탐. CI(LF) 무해.
+    JSON_AGENTS=$(jq -r '.agents[]' "$AGENTS_JSON" 2>/dev/null | tr -d '\r')
     for agent in $JSON_AGENTS; do
       if [ ! -f "core/agents/${agent}.md" ]; then
         err "agents.json에 '${agent}' 있으나 core/agents/${agent}.md 없음"
@@ -221,7 +222,8 @@ if [ -d "$TEMPLATE_DIR" ]; then
           err "$f: invalid YAML (yq)"
         fi
       else
-        if ! python3 -c "import yaml,sys; yaml.safe_load(open(sys.argv[1]))" "$f" 2>/dev/null; then
+        # encoding='utf-8': Windows python3 open()은 cp949 기본 → UTF-8 한글 템플릿 decode 실패. 명시로 고정.
+        if ! python3 -c "import yaml,sys; yaml.safe_load(open(sys.argv[1], encoding='utf-8'))" "$f" 2>/dev/null; then
           err "$f: invalid YAML (python3 yaml)"
         fi
       fi
