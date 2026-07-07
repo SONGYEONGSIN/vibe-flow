@@ -8,11 +8,11 @@
 
 ## Active Phase
 
-**Phase 3.1 / Phase 4 종료 + v2.0.0 출시 (2026-06-06, PR #106)** — cloud-native cron-triggered auto-build cycle 본 목표 달성. R8~R13 dogfooding cycle 완주. Claude Code marketplace publish (`.claude-plugin/` manifest, PR #105). R12 silent fail root cause(run-cloud.sh stub)까지 해소되어 routine fire → cycle 완주 결정적.
+**v2.3.1 출시 (2026-07-07)** — `/frontend-flow` 오케스트레이션 스킬(#122) + 접근성 audit + anti-slop 3단계(pass/warn/fail) 검사 및 정확도 패치(#125/#126). 내부 감사 R10(J) 13건 fixed→pending-verify. cloud-native cron-triggered auto-build cycle 본 목표는 v2.0.0(2026-06-06, #106)에서 달성 완료(marketplace publish 포함).
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round 9)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round 10/J)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. 상세 round 별 finding/점수는 user-level memory `project_audit_20260601.md` 참조.
 
@@ -21,7 +21,8 @@
 - **R7 종결 (2026-06-23, #110~#113 머지)** — D1~D3 + **D4 메타-검증 dimension 신설**, F-G01~F-G12 (3-dim 평균 4.30, D4 절대 3.6). drift 게이트 강화(F-G01 missing-dst / F-G03 agents.json / F-G02 CI), 계측 정확도(F-G04 telemetry from_entries 폴백), 문서 drift(F-G05/06/07).
 - **AHE 정식화 (2026-06-23, #114/#115 머지)** — 감사를 실행 가능 계약으로: `core/rules/harness-evolution.md` + `/audit` 스킬 + `.claude/memory/audit-ledger.jsonl`(decision-observability: append→enqueue→mark-fixed→pending-verify→resolve).
 - **R8 종결 (2026-07, `/audit` 첫 라이브 dogfooding, 3 PR #116~118)** — F-H01~F-H12 (11 fixed/1 defer). ledger.sh 자기결함 + Phase 3 중 octal 라이브 적발. R7 11건 verified.
-- **R9 (2026-07, `/audit` 2회차)** — R8 fix 실측 반증(폐루프 정상 종료, F-H07 준수). F-I01~F-I09 발굴 (3-dim 평균 4.37). F-H02 미완(락을 4 커맨드로 확장)·CI paths 사각(F-I05)·manifest 카운트(F-I02) 등. fix PR 순차 머지.
+- **R9/I (2026-07, `/audit` 2회차)** — R8 fix 실측 반증(폐루프 정상 종료, F-H07 준수). F-I01~F-I09 발굴 (3-dim 평균 4.37). F-H02 미완(락을 4 커맨드로 확장)·CI paths 사각(F-I05)·manifest 카운트(F-I02) 등. fix PR 순차 머지.
+- **R10/J 종결 (2026-07-06~07)** — F-J01~F-J13 (13 fixed → pending-verify). frontend-flow 13개 결함(P0 경로 버그·anti-slop 거짓통과 3종·CI 신규 스크립트 사각) + manifest/문서 카운트 현행화. 다음 라운드가 실측 반증 대기.
 
 ## Brainstorm 인덱스 (최근)
 
@@ -54,8 +55,8 @@ Phase 2 / Phase 3.0:
 
 ## 다음 진입점
 
-1. **감사 R9 finding fix PR 완주** (F-I01~F-I09 — 락 완성/CI-manifest/doc-telemetry 3 PR). 이후 R10을 `/audit`로 (R9 fix 실측 반증). F-H11+F-I06-잔여는 별도 트랙
-2. **R8 머지 후 데이터 누적 → Round 9** — `/audit`로 실행, R8 fix 효과를 `pending-verify`→`resolve`로 반증
+1. **R10/J fix 실측 반증** — 다음 `/audit` 라운드에서 F-J01~F-J13 `pending-verify`→`resolve` (폐루프 종결)
+2. **frontend-flow 후속** — 색상 WARN 2종(single-accent/low-saturation) 구현, editorial-warm-combo 에이전트 리뷰 실배선, anti-slop 주석 스트립은 v2.3.1에 반영 완료
 3. 신규 기능 트랙 후보: `docs/character-system-spec-plan` 브랜치 (Phase 4 동적 캐릭터 시스템, spec/plan만 존재 미구현)
 
 ## 참고

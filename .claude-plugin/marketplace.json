@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "vibe-flow",
-  "description": "Self-evolving Claude Code workflow kit — 45 skills, 22 agents, 26 hooks, validate.sh drift detection, audit cycle proven 3.0→4.53/5",
+  "description": "Self-evolving Claude Code workflow kit — 45 skills, 22 agents, 28 hooks, validate.sh drift detection, audit cycle proven 3.0→4.53/5",
   "owner": {
     "name": "SONGYEONGSIN",
     "email": "ysong2526@gmail.com"
@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "vibe-flow",
-      "description": "Self-evolving workflow kit for Claude Code. Karpathy 4 principles enforced mechanically. 45 skills + 22 agents + 26 hooks. validate.sh drift detection. TDD strict mode. Cloud-cron auto-build cycle via Anthropic RemoteTrigger.",
+      "description": "Self-evolving workflow kit for Claude Code. Karpathy 4 principles enforced mechanically. 45 skills + 22 agents + 28 hooks. validate.sh drift detection. TDD strict mode. Cloud-cron auto-build cycle via Anthropic RemoteTrigger.",
       "version": "2.3.1",
       "author": {
         "name": "SONGYEONGSIN",

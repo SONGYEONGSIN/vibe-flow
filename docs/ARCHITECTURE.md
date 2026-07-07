@@ -2,30 +2,32 @@
 
 self-improving 시스템의 데이터 흐름 + 컴포넌트 통합 패턴.
 
+> ⚠️ **일부 다이어그램은 구식**입니다. 자기진화 루프의 **현행 정본**은 `core/rules/harness-evolution.md`(AHE evaluate→analyze→improve + `/audit` + `audit-ledger.jsonl`)입니다. 아래 "Self-Improving Loop" 섹션은 구(舊) retrospective→`/evolve` 경로로, 전면 재작성 대기 중. 컴포넌트 카운트는 `.claude-plugin/plugin.json` 기준.
+
 ## 4 Layer 구조
 
 ```
-┌─ Skills (23) ──────────────────────────────────┐
-│  Core 14: brainstorm/plan/finish/...            │
-│  Extensions 9: eval/evolve/pair/...             │
+┌─ Skills (57) ──────────────────────────────────┐
+│  Core 45: brainstorm/plan/finish/...            │
+│  Extensions 12: eval/pair/frontend-flow/...     │
 └────────────────────────────────────────────────┘
                        │
                        ▼ 호출
-┌─ Agents (12) ──────────────────────────────────┐
-│  Core 10: developer/qa/security/...             │
+┌─ Agents (24) ──────────────────────────────────┐
+│  Core 22: developer/qa/security/...             │
 │  Extensions 2: skill-reviewer/grader            │
 └────────────────────────────────────────────────┘
                        │
                        ▼ 행동
-┌─ Hooks (22) ───────────────────────────────────┐
+┌─ Hooks (28) ───────────────────────────────────┐
 │  PreToolUse: command-guard, tdd-enforce         │
-│  PostToolUse: prettier, eslint, metrics-collect │
+│  PostToolUse: security-lint, design-lint        │
 │  Stop: session-review, session-log              │
 │  PreCompact: context-prune                      │
 └────────────────────────────────────────────────┘
                        │
                        ▼ 강제
-┌─ Rules (6) ────────────────────────────────────┐
+┌─ Rules (8) ────────────────────────────────────┐
 │  tdd / donts / git / design / conventions /     │
 │  debugging                                       │
 └────────────────────────────────────────────────┘
@@ -60,8 +62,8 @@ brainstorms ──────  trigger
 | 위치 | 용도 | 추적 |
 |------|------|------|
 | `.claude/memory/patterns.md` | 학습 패턴 (코드/에러/hook 룰) | git ✓ |
-| `.claude/memory/project-profile.md` | 프로젝트 특성 | git ✓ |
-| `.claude/memory/improvements.md` | 회고 결과 누적 | git ✓ |
+| `.claude/memory/audit-ledger.jsonl` | 감사 finding 폐루프(predicted→actual) | git ✓ |
+| `.claude/memory/auto-build-queue.jsonl` | 자율 auto-build 태스크 큐 | git ✓ |
 | `.claude/memory/brainstorms/` | brainstorm spec 파일 | git ✓ |
 | `.claude/memory/reviews/` | 리뷰 수용 기록 | git ✓ |
 | `.claude/plans/` | 활성 + 완료 plans | git ✓ |
@@ -140,7 +142,6 @@ Verdict (consensus / strong_majority / moderator_decision / needs_human)
     ▼
 .claude/messages/debates/debate-<id>.json   ← 영구 보관
 .claude/messages/debates/debate-<id>.md      ← 트랜스크립트
-.claude/memory/improvements.md               ← 결정 요약
 ```
 
 ## Eval & Evolve Loop (Extensions/meta-quality)
