@@ -232,6 +232,19 @@ if [ -d "$TEMPLATE_DIR" ]; then
   fi
 fi
 
+# ─── G. 문서 카운트 일관성 (drift 게이트) ───
+# 실측 카운트 ↔ README/plugin.json/marketplace.json 문서 카운트 일치 강제.
+# 문서 fix가 게이트 밖이라 반복 재발하던 stale을 CI에서 차단.
+if [ -f scripts/check-doc-counts.sh ]; then
+  if bash scripts/check-doc-counts.sh; then
+    ok "문서 카운트 일관성 (skills/agents/hooks/rules)"
+  else
+    err "문서 카운트 drift — scripts/check-doc-counts.sh 출력 참조"
+  fi
+else
+  err "scripts/check-doc-counts.sh 없음"
+fi
+
 # ─── 결과 ───
 echo ""
 echo "=== 결과 ==="
