@@ -25,35 +25,18 @@ node extensions/design-system/skills/frontend-flow/scripts/anti-slop-check.js <s
 
 - **radius-system** — 스케일 반경 고유값 > 2(full/none 제외) **또는** SaaS 카드 조합(`rounded-xl` + 좌측 보더 **폭** 유틸 `border-l`/`border-l-0/2/4/8`)이면 warn. 색상 유틸(`border-l-zinc-200`)은 실 폭 0이라 제외(v2.3.1). 규칙 3.
 - **eyebrow-density** — `uppercase` className 개수(파일에 `tracking-wid*` 존재 시) > `ceil(sectionCount/3)`이면 warn. `uppercase`/`tracking`이 별도 className으로 쪼개진 `cn()` 패턴도 포착(v2.3.1). `<section>` 0개면 N/A(pass). 규칙 8 스케일 감각.
+- **single-accent** (v2.3.2) — 유색 액센트(hex·oklch·tailwind, 중성색 제외)를 hue 30° 버킷화. **버킷 > 3**(색상 난립) **또는** 한 버킷에 raw 값 > 3개(near-dup 토큰 미추출, "파랑 다섯")이면 warn. tailwind shade는 토큰이라 near-dup 대상 아님. 규칙 7. `scripts/color-utils.js` 헬퍼 사용.
+- **low-saturation** (v2.3.2) — 과포화 네온 액센트: hex **HSL S ≥ 90%** 또는 oklch **chroma ≥ 0.25**이면 warn. 정상 브랜드 채도(예: blue-600 S=83%)는 통과(FP 방지). tailwind 유틸은 curated 팔레트라 채도 검사 면제. 규칙 7.
 
+> **브랜드 우선(색상)**: DESIGN.md에 명시된 색은 `single-accent`(버킷 제외)·`low-saturation`(raw 제외)에서 양보.
 > **주석 스트립(v2.3.1)**: 모든 검사는 블록/라인 주석 제거 후 스캔한다(주석 속 em-dash·`<section>`·주석처리된 `font-inter` 오탐 방지). `://`·문자열 내 `//`(URL)은 보존.
 
 ## deferred 체크 (스펙 확정 · `anti-slop-check.js` 미구현)
 
 > 아래는 **후속 구현 대상**이며 현재 스크립트는 실행하지 않는다(스펙만 확정).
-> 색상 모델(hue/채도 변환)·문맥(표면 분류) 판단이 필요해 이진 FAIL이 아닌 **WARN**(exit 0 유지)로 구현하거나 에이전트 리뷰에 위임할 것.
-> `radius-system`·`eyebrow-density`는 v1에서 이미 구현됨(위 WARN 섹션).
+> 문맥(표면 분류) 판단이 필요해 이진 FAIL이 아닌 **WARN**으로 구현하거나 에이전트 리뷰에 위임할 것.
+> `radius-system`·`eyebrow-density`(v2.3.1)·`single-accent`·`low-saturation`(v2.3.2)은 이미 구현됨(위 WARN 섹션).
 > 원격 규칙 출처: Trystan-SA/claude-design-system-prompt `ai-slop-check.md` (MIT).
-
-### single-accent (규칙 7 — 색상값은 토큰으로 추적)
-
-- **탐지**: 소스 전체 유색(회색·흰·검 제외) hex/oklch/tailwind 컬러 유틸을 색상군(hue 30° 버킷)으로 그룹핑. 한 페이지에서 서로 다른 액센트 hue가 **2개 초과**면 지적 — "한 파일에 미묘하게 다른 파랑 다섯 = 인라인 즉흥 색".
-- **임계값**: 액센트 hue 그룹 ≤ 1. 초과분은 토큰으로 통합 제안.
-- **브랜드 우선**: DESIGN.md가 다액센트 팔레트를 명시하면 양보.
-- **심각도**: WARN. (색상 변환 헬퍼 필요 → 후속)
-
-### low-saturation (규칙 7 — oklch 조화 팔레트)
-
-- **탐지**: 액센트 색의 채도(HSL S 또는 oklch chroma 환산)가 과포화면 지적. oklch 기반이면 명도·채도 일관성 확인.
-- **임계값**: 액센트 채도 < 80%(HSL 기준). 초과 시 톤 조정 제안.
-- **브랜드 우선**: 브랜드가 고채도를 명시하면 양보.
-- **심각도**: WARN.
-
-### eyebrow-density (규칙 8 스케일 감각 응용 — 밀도 억제)
-
-- **탐지**: eyebrow/kicker(섹션 상단 소형 라벨·`uppercase tracking-wide text-xs` 패턴) 개수가 섹션 수 대비 과다면 지적.
-- **임계값**: eyebrow 밀도 ≤ `ceil(sectionCount / 3)`.
-- **심각도**: WARN.
 
 ### layout-family (마케팅 표면 한정)
 

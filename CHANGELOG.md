@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [2.3.2] - 2026-07-07 — anti-slop 색상 WARN 2종 (single-accent · low-saturation)
+
+frontend-flow anti-slop에 색상 품질 검사를 추가. 색상 변환 헬퍼(`color-utils.js`) 신설.
+
+### Added
+- **single-accent WARN** — 유색 액센트(hex·oklch·tailwind)를 hue 30° 버킷화해 **색상 난립**(버킷 >3)이나 **near-duplicate 토큰 미추출**("한 파일에 미묘하게 다른 파랑 다섯", 한 버킷 raw >3)을 경고. tailwind shade는 토큰이라 제외.
+- **low-saturation WARN** — 과포화 **네온 액센트**(hex HSL S≥90% 또는 oklch chroma≥0.25)를 경고. 정상 브랜드 채도(blue-600 S=83%)는 통과해 오탐 방지, tailwind는 curated 팔레트라 면제.
+- **`color-utils.js`** — hex→HSL, oklch, tailwind 색상군→hue 파싱 헬퍼(순수 함수, 중성색 자동 제외).
+- anti-slop 스모크 회귀 확장(35 → 46종): sprawl/near-dup/네온/브랜드블루-FP/oklch/tailwind면제/브랜드override.
+
+### Changed
+- 색상 WARN도 **브랜드 우선**: DESIGN.md에 명시된 색은 single-accent 버킷·low-saturation raw에서 양보.
+
 ## [2.3.1] - 2026-07-07 — anti-slop WARN 검사 정확도 패치
 
 엣지케이스 배터리(26종)로 발견한 신규 WARN 2종의 오탐/미탐을 수정.

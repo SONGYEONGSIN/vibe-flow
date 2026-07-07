@@ -10,7 +10,7 @@
     {
       "name": "vibe-flow",
       "description": "Self-evolving workflow kit for Claude Code. Karpathy 4 principles enforced mechanically. 45 skills + 22 agents + 28 hooks. validate.sh drift detection. TDD strict mode. Cloud-cron auto-build cycle via Anthropic RemoteTrigger.",
-      "version": "2.3.1",
+      "version": "2.3.2",
       "author": {
         "name": "SONGYEONGSIN",
         "email": "ysong2526@gmail.com"
@@ -30,5 +30,5 @@
       ]
     }
   ],
-  "version": "2.3.1"
+  "version": "2.3.2"
 }
