@@ -5,10 +5,15 @@ on:
     paths:
       - 'core/skills/**'
       - 'core/agents/**'
+      - 'core/hooks/**'
+      - 'core/rules/**'
       - 'extensions/**'
       - 'core/agents.json'
+      - 'README.md'
+      - '.claude-plugin/**'
       - 'templates/.github/workflows/**'
       - 'scripts/eval-regression-check.sh'
+      - 'scripts/check-doc-counts.sh'
       - '.github/workflows/eval-regression.yml'
   push:
     branches: [main]
