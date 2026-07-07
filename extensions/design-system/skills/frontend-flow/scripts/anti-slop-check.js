@@ -64,6 +64,42 @@ const pureBlack = /#000000|#000\b/i.test(corpus)
 record('pure-black-ban', !pureBlack || brandAllowsBlack,
   pureBlack ? (brandAllowsBlack ? 'present-but-brand-approved' : 'pure black #000 present') : 'none');
 
+// ── 구조적 WARN 체크 (비게이팅) — 결정론적 카운팅만. exit code 불변(WARN은 exit 0 유지).
+// 판단·문맥(single-accent/low-saturation/editorial-warm)은 에이전트 리뷰로 위임(references/anti-slop-preflight.md).
+const warn = (id, clean, detail) => checks.push({ id, status: clean ? 'pass' : 'warn', detail });
+
+// 4. radius-system (규칙3): 반경 체계 일관 + SaaS 카드 조합. WARN.
+//    브랜드 반경 스케일 파싱은 v1 범위 밖 — 비게이팅이라 FP 비용 낮음.
+const radii = new Set();
+for (const m of corpus.matchAll(/\brounded(?:-(sm|md|lg|xl|2xl|3xl))?\b/g)) {
+  radii.add(m[1] || 'DEFAULT'); // full/none은 열거 목록 밖 → 자동 제외(스케일 아님)
+}
+for (const m of corpus.matchAll(/\brounded-\[[^\]]+\]/g)) radii.add(m[0]);
+for (const m of corpus.matchAll(/border-radius:\s*([^;{}]+)/gi)) radii.add(m[1].trim());
+const hasXl = /\brounded-xl\b/.test(corpus) || /border-radius:\s*12px/i.test(corpus);
+const hasLeftBorder = /\bborder-l(?:-\d+)?\b/.test(corpus) || /border-left:\s*\d+px\s+solid/i.test(corpus);
+const saasCombo = hasXl && hasLeftBorder;
+const radiusClean = radii.size <= 2 && !saasCombo;
+warn('radius-system', radiusClean, radiusClean
+  ? `radius scale=${radii.size}, no SaaS-card combo`
+  : [radii.size > 2 ? `distinct radius=${radii.size} (>2)` : null, saasCombo ? 'rounded-xl+border-left combo' : null].filter(Boolean).join('; '));
+
+// 5. eyebrow-density (규칙8 스케일 감각): eyebrow ≤ ceil(sectionCount/3). WARN.
+//    section 0개면 밀도 정의 불가 → N/A(pass)로 FP 방지.
+let eyebrows = 0;
+for (const m of corpus.matchAll(/class(?:Name)?\s*=\s*(?:"([^"]*)"|'([^']*)'|\{\s*`([^`]*)`)/g)) {
+  const cls = m[1] || m[2] || m[3] || '';
+  if (/\buppercase\b/.test(cls) && /\btracking-wid(?:e|er|est)\b/.test(cls)) eyebrows++;
+}
+const sections = (corpus.match(/<section\b/gi) || []).length;
+const budget = Math.ceil(sections / 3);
+const eyebrowClean = sections === 0 || eyebrows <= budget;
+warn('eyebrow-density', eyebrowClean, sections === 0
+  ? 'no <section> (N/A)'
+  : `eyebrow=${eyebrows}, budget=ceil(${sections}/3)=${budget}`);
+
 const failed = checks.filter((c) => c.status === 'fail').length;
-console.log(JSON.stringify({ target: targetRoot, checks, passed: checks.length - failed, failed }, null, 2));
-process.exit(failed === 0 ? 0 : 1);
+const warned = checks.filter((c) => c.status === 'warn').length;
+const passed = checks.filter((c) => c.status === 'pass').length;
+console.log(JSON.stringify({ target: targetRoot, checks, passed, warned, failed }, null, 2));
+process.exit(failed === 0 ? 0 : 1); // WARN은 exit code에 영향 없음 — failed만 게이팅

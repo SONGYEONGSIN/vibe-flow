@@ -22,7 +22,7 @@ effort: high
 - **게이트 B (메인 디렉팅)** — `prototype.html` + 정본 DESIGN.md + 기술선정안 승인. 모호점은 `AskUserQuestion`. 빌드 전에 프로토타입으로 먼저 승인.
 - **P3 Build** — `frontend-design-specialist` 에이전트로 구현. 토큰만 사용(`design-lint` 훅). 다화면은 stitch-loop 바톤으로 토큰 강제 주입.
 - **P4 Verify** — `/design-audit`(색상 커버리지) + `node extensions/design-system/skills/frontend-flow/scripts/anti-slop-check.js <src> <DESIGN.md>`
-  (`references/anti-slop-preflight.md`). 실패 항목 수정. **게이트 C**.
+  (`references/anti-slop-preflight.md`) + 정적 소스 a11y audit(`references/a11y-audit.md`, 브라우저 없이 4-차원 병렬 리뷰). 실패 항목 수정. **게이트 C**.
 - **P5 Learn** — ≥90% 성공 시 `learned/` 캐시.
 
 ## 브랜드 우선 원칙
