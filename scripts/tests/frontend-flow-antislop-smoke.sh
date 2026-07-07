@@ -72,5 +72,34 @@ OUT=$(node "$JS" "$TMP/util.tsx" 2>/dev/null); EC=$?
 assert_exit "tw-black-exit" "1" "$EC"
 [ "$(status_of "$OUT" pure-black-ban)" = "fail" ] && { echo "  ✓ tw-black-detected"; PASS=$((PASS+1)); } || { echo "  ✗ tw-black-detected"; FAIL=$((FAIL+1)); }
 
+# ── 구조적 WARN 체크 (radius-system, eyebrow-density) — 비게이팅: exit 0 유지 ──
+echo "Test A9: 반경 고유값 3개(sm/lg/xl) → radius-system WARN, exit 0(불변)"
+printf 'export const R = () => <div className="rounded-sm"><span className="rounded-lg"><b className="rounded-xl">x</b></span></div>\n' > "$TMP/radius3.tsx"
+OUT=$(node "$JS" "$TMP/radius3.tsx" 2>/dev/null); EC=$?
+assert_exit "radius3-exit0" "0" "$EC"
+[ "$(status_of "$OUT" radius-system)" = "warn" ] && { echo "  ✓ radius3-warn"; PASS=$((PASS+1)); } || { echo "  ✗ radius3-warn (got '$(status_of "$OUT" radius-system)')"; FAIL=$((FAIL+1)); }
+assert_jq "radius3-failed0" '.failed == 0' "$OUT"
+assert_jq "radius3-warned1" '.warned >= 1' "$OUT"
+
+echo "Test A10: SaaS 카드 조합(rounded-xl + border-l) → radius-system WARN, exit 0"
+printf 'export const C = () => <div className="rounded-xl border-l-4 border-zinc-200">card</div>\n' > "$TMP/saas.tsx"
+OUT=$(node "$JS" "$TMP/saas.tsx" 2>/dev/null); EC=$?
+assert_exit "saas-exit0" "0" "$EC"
+[ "$(status_of "$OUT" radius-system)" = "warn" ] && { echo "  ✓ saas-combo-warn"; PASS=$((PASS+1)); } || { echo "  ✗ saas-combo-warn (got '$(status_of "$OUT" radius-system)')"; FAIL=$((FAIL+1)); }
+
+echo "Test A11: eyebrow 2개 / section 1개(budget=1) → eyebrow-density WARN, exit 0"
+printf 'export const E = () => <section><p className="uppercase tracking-wide text-xs">A</p><p className="uppercase tracking-widest">B</p></section>\n' > "$TMP/eyebrow.tsx"
+OUT=$(node "$JS" "$TMP/eyebrow.tsx" 2>/dev/null); EC=$?
+assert_exit "eyebrow-exit0" "0" "$EC"
+[ "$(status_of "$OUT" eyebrow-density)" = "warn" ] && { echo "  ✓ eyebrow-warn"; PASS=$((PASS+1)); } || { echo "  ✗ eyebrow-warn (got '$(status_of "$OUT" eyebrow-density)')"; FAIL=$((FAIL+1)); }
+
+echo "Test A12: no-FP(반경 md+full 1종, eyebrow 1/section 3) → 둘 다 pass, warned=0, exit 0"
+printf 'export const G = () => (<div><div className="rounded-md rounded-full"/><section><span className="uppercase tracking-wide">E</span></section><section>b</section><section>c</section></div>)\n' > "$TMP/nofp.tsx"
+OUT=$(node "$JS" "$TMP/nofp.tsx" 2>/dev/null); EC=$?
+assert_exit "nofp-exit0" "0" "$EC"
+[ "$(status_of "$OUT" radius-system)" = "pass" ] && { echo "  ✓ nofp-radius-pass"; PASS=$((PASS+1)); } || { echo "  ✗ nofp-radius-pass (got '$(status_of "$OUT" radius-system)')"; FAIL=$((FAIL+1)); }
+[ "$(status_of "$OUT" eyebrow-density)" = "pass" ] && { echo "  ✓ nofp-eyebrow-pass"; PASS=$((PASS+1)); } || { echo "  ✗ nofp-eyebrow-pass (got '$(status_of "$OUT" eyebrow-density)')"; FAIL=$((FAIL+1)); }
+assert_jq "nofp-warned0" '.warned == 0' "$OUT"
+
 echo ""; echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

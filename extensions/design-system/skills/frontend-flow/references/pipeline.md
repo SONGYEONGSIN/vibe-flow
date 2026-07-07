@@ -39,7 +39,7 @@
 
 ## P4 Verify
 
-- **동작**: `/design-audit`(oklch 인식 색상 커버리지) + `/design-sync` 싱크율 pre/post(모드별 목표 URL 95% / 이미지 85~90%) + `node extensions/design-system/skills/frontend-flow/scripts/anti-slop-check.js <src> <DESIGN.md>`(루트 기준 풀 경로, `references/anti-slop-preflight.md`). 실제 브라우저 a11y(Playwright 접근성 트리)는 도구 있으면 실행, 없으면 graceful skip.
+- **동작**: `/design-audit`(oklch 인식 색상 커버리지) + `/design-sync` 싱크율 pre/post(모드별 목표 URL 95% / 이미지 85~90%) + `node extensions/design-system/skills/frontend-flow/scripts/anti-slop-check.js <src> <DESIGN.md>`(루트 기준 풀 경로, `references/anti-slop-preflight.md`). **a11y 2단**: (1) 정적 소스 audit(`references/a11y-audit.md`, 4-차원 병렬, 브라우저 불필요 → 항상 실행) + (2) 실제 브라우저 a11y(Playwright 접근성 트리)는 도구 있으면 실행, 없으면 graceful skip. (1)이 있으므로 Playwright 부재 시에도 a11y 게이트가 완전히 비지 않는다.
 - **출력**: `events.jsonl` 텔레메트리(sync_rate_initial/final/target). skip 된 검사는 `status:skipped`로 기록(≠pass) — skip을 성공으로 오기록 금지.
 - **실패처리**: 도구 없으면 graceful skip + 건너뛴 검사 명시. 단 **측정된 게이트가 하나도 없으면**(전부 skip) Gate C를 fail-closed 처리 — 거짓 점수 방지.
 

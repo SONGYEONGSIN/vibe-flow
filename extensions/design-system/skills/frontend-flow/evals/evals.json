@@ -27,6 +27,15 @@
         { "description": "브랜드 토큰(Inter/black)이 anti-slop 금지 규칙을 무효화한다", "type": "must_pass" },
         { "description": "em-dash 등 브랜드 무관 규칙은 계속 적용한다", "type": "should_pass" }
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Playwright가 설치되지 않은 환경에서 /frontend-flow의 P4 Verify가 실행된다. 구현된 화면의 접근성을 검증해야 한다.",
+      "expectations": [
+        { "description": "Playwright 부재에도 references/a11y-audit.md 기반 정적 소스 a11y audit을 실행한다", "type": "must_pass" },
+        { "description": "대비/시맨틱/키보드/모션-폼 4-차원을 다룬다", "type": "should_pass" },
+        { "description": "Playwright 런타임 a11y는 skip 하되 status:skipped로 기록(≠pass)한다", "type": "should_pass" }
+      ]
     }
   ]
 }
