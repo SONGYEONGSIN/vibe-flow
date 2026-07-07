@@ -23,8 +23,10 @@ node extensions/design-system/skills/frontend-flow/scripts/anti-slop-check.js <s
 
 ### WARN 비게이팅 (결정론적 카운팅 — exit 0 유지)
 
-- **radius-system** — 스케일 반경 고유값 > 2(full/none 제외) **또는** SaaS 카드 조합(`rounded-xl` + 좌측 보더)이면 warn. 규칙 3.
-- **eyebrow-density** — eyebrow(`uppercase` + `tracking-wid*`) 개수 > `ceil(sectionCount/3)`이면 warn. `<section>` 0개면 N/A(pass). 규칙 8 스케일 감각.
+- **radius-system** — 스케일 반경 고유값 > 2(full/none 제외) **또는** SaaS 카드 조합(`rounded-xl` + 좌측 보더 **폭** 유틸 `border-l`/`border-l-0/2/4/8`)이면 warn. 색상 유틸(`border-l-zinc-200`)은 실 폭 0이라 제외(v2.3.1). 규칙 3.
+- **eyebrow-density** — `uppercase` className 개수(파일에 `tracking-wid*` 존재 시) > `ceil(sectionCount/3)`이면 warn. `uppercase`/`tracking`이 별도 className으로 쪼개진 `cn()` 패턴도 포착(v2.3.1). `<section>` 0개면 N/A(pass). 규칙 8 스케일 감각.
+
+> **주석 스트립(v2.3.1)**: 모든 검사는 블록/라인 주석 제거 후 스캔한다(주석 속 em-dash·`<section>`·주석처리된 `font-inter` 오탐 방지). `://`·문자열 내 `//`(URL)은 보존.
 
 ## deferred 체크 (스펙 확정 · `anti-slop-check.js` 미구현)
 
