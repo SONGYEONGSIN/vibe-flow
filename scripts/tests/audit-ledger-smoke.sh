@@ -72,6 +72,32 @@ L resolve F-H02 "0.0 no movement" refuted >/dev/null
 rst=$(jq -r 'select(.id=="F-H02") | .status' "$LEDGER")
 [ "$rst" = "refuted" ] && ok "refuted 상태 전이 (메타-학습 신호)" || ng "status=$rst"
 
+# F-K02 (audit R11): mark-fixed 는 F-H08 로 단방향 가드를 얻었으나 resolve 는 무가드였다.
+# 종결(verified/refuted)된 finding 의 측정값이 조용히 덮어써지면 감사 이력이 재기록 가능해진다.
+echo "=== 가드: resolve 종결 상태 역전 차단 (F-K02) ==="
+L resolve F-H01 "OVERWRITTEN -9.9" refuted >/dev/null 2>&1 \
+  && ng "verified → refuted 역전 통과됨" || ok "verified 역전 거부 (exit≠0)"
+ad1=$(jq -r 'select(.id=="F-H01") | .actual_delta' "$LEDGER")
+[ "$ad1" = "+0.3 confirmed" ] && ok "원 측정값 보존됨" || ng "actual_delta 덮어써짐: $ad1"
+L resolve F-H02 "flip" verified >/dev/null 2>&1 \
+  && ng "refuted → verified 역전 통과됨" || ok "refuted 역전 거부 (exit≠0)"
+
+# resolve 로 status=fixed 를 쓰면 actual_delta 가 채워진 채 fixed 가 되어
+# open(status=="open") 과 pending-verify(actual_delta=="") 양쪽 워크리스트에서 사라진다.
+# 다음 라운드 Phase 0 은 빈 pending-verify 를 "전부 검증됨"으로 읽는다. mark-fixed 가 유일 경로.
+L resolve F-H03 "x" fixed >/dev/null 2>&1 \
+  && ng "resolve → fixed 통과됨 (워크리스트 소실)" || ok "resolve → fixed 거부 (mark-fixed 전용)"
+
+# F-K11 (audit R11): 손상된 라인 1개가 next_num 과 id 충돌검사 둘 다를 fail-open 시켜
+# 이미 존재하는 id 를 재발급한다 (중복 primary key). 격리된 LEDGER 로 검증.
+echo "=== 가드: 손상된 ledger 감지 (F-K11) ==="
+CORRUPT="$TMP/corrupt.jsonl"
+printf 'NOT JSON AT ALL\n{"ts":"t","round":"B","id":"F-B01","status":"open"}\n' > "$CORRUPT"
+out=$(mkfinding B skills D1 | LEDGER="$CORRUPT" bash "$SCRIPT" append 2>&1); rc=$?
+[ "$rc" -eq 3 ] && ok "손상 ledger → exit 3" || ng "손상 ledger append rc=$rc (want 3), out=$out"
+dup=$(grep -c '"id":"F-B01"' "$CORRUPT")
+[ "$dup" -eq 1 ] && ok "중복 id 미발급" || ng "F-B01 이 ${dup}건 (중복 primary key)"
+
 echo "=== improve 자동화: enqueue (open finding → auto-build 큐, idempotent) ==="
 # stub queue.sh — task 를 QSTORE 에 적재 + queued id 회신 (real queue.sh lock/의존 회피)
 export QSTORE="$TMP/queue.jsonl"; : > "$QSTORE"
