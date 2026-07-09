@@ -2,7 +2,7 @@
 
 > **2계층 메모리 분리 정책**:
 > - **project-level (이 파일)** — repo 자체 메모. 다른 사용자/협업자도 봐야 할 정보. git tracked.
-> - **user-level** (`~/.claude/projects/-Users-yss----build-vibe-flow/memory/MEMORY.md`) — 본인 작업 흐름, 개인 결정, session-specific. git untracked.
+> - **user-level** (`~/.claude/projects/<프로젝트별 슬러그>/memory/MEMORY.md`) — 본인 작업 흐름, 개인 결정, session-specific. git untracked. 슬러그는 환경마다 다르므로 경로를 하드코딩하지 않는다.
 >
 > 200줄 cap. 인덱스만 작성, 상세는 leaf 파일에 분리 (Karpathy §5 leaves 원칙).
 
@@ -10,11 +10,13 @@
 
 **v2.3.2 출시 (2026-07-07)** — frontend-flow anti-slop/디자인 품질 라인 완성. anti-slop 검사가 em-dash·폰트·순수검정(FAIL) + radius·eyebrow·single-accent·low-saturation(WARN) 7종 + a11y 4-차원(정적 소스, 브라우저 불필요)으로 완비. 세션 흐름: a11y+anti-slop 이식(v2.3.0, #125) → 엣지 배터리로 결함 발굴·패치(v2.3.1, #126) → 문서 카운트 drift 정정(#127) → **문서 동기화 CI 게이트**(#128, `scripts/check-doc-counts.sh` — 문서 fix가 게이트 밖이라 반복되던 stale 차단) → 색상 WARN 2종(v2.3.2, #129, `color-utils.js`) → eval-regression Windows robustness(#130, jq CRLF + cp949). 내부 감사 R10(J) 13건 fixed→pending-verify. cloud-native auto-build cycle 본 목표는 v2.0.0(#106) 달성 완료.
 
+**내부 감사 R11/K 종결 (2026-07-09)** — 감사가 처음으로 **자기 계기(instrument)** 를 겨눴다. harness 를 채점하는 두 장치(ledger `append`, 머지 게이트 `eval-regression`)가 **둘 다 fail-open** 이었고 실행으로 증명됐다. 4 PR(#132/#135/#134/#136) 머지 후 main 에서 거동 재검증 완료.
+
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
 ## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round 10/J)
 
-4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. 상세 round 별 finding/점수는 user-level memory `project_audit_20260601.md` 참조.
+4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
 - **R1~R5 종결 (2026-06-01~06)** — 20 PR (#80~#99) 머지. 평균 점수 3.0 → ~4.47. 핵심: F-C1 sync drift 6범위 검증, R13 self-evolving closed-loop, settings hook 중복 fire 봉쇄.
 - **R6 종결 (2026-06-10, #108/#109 머지)** — 평균 ~4.43 (R4 처럼 메타-검증 결함 노출 라운드). #108(F-F1 validate.sh drift no-op + F-F2 telemetry 오염 + F-D9 cycle over-count), #109(F-F3 본 MEMORY 갱신 + F-F4 inbox 10/12 정합 + F-F5 dead ref).
@@ -22,7 +24,12 @@
 - **AHE 정식화 (2026-06-23, #114/#115 머지)** — 감사를 실행 가능 계약으로: `core/rules/harness-evolution.md` + `/audit` 스킬 + `.claude/memory/audit-ledger.jsonl`(decision-observability: append→enqueue→mark-fixed→pending-verify→resolve).
 - **R8 종결 (2026-07, `/audit` 첫 라이브 dogfooding, 3 PR #116~118)** — F-H01~F-H12 (11 fixed/1 defer). ledger.sh 자기결함 + Phase 3 중 octal 라이브 적발. R7 11건 verified.
 - **R9/I (2026-07, `/audit` 2회차)** — R8 fix 실측 반증(폐루프 정상 종료, F-H07 준수). F-I01~F-I09 발굴 (3-dim 평균 4.37). F-H02 미완(락을 4 커맨드로 확장)·CI paths 사각(F-I05)·manifest 카운트(F-I02) 등. fix PR 순차 머지.
-- **R10/J 종결 (2026-07-06~07)** — F-J01~F-J13 (13 fixed → pending-verify). frontend-flow 13개 결함(P0 경로 버그·anti-slop 거짓통과 3종·CI 신규 스크립트 사각) + manifest/문서 카운트 현행화. 다음 라운드가 실측 반증 대기.
+- **R10/J 종결 (2026-07-06~07)** — F-J01~F-J13. R11 Phase 0 에서 **11 verified / 2 refuted**. anti-slop 3종은 fixture 실행으로 확인. refuted 2건은 같은 유형 — **산문에 쓴 규칙을 집행 델타로 청구**: F-J07(orphan 체크가 `.vibe-flow.json` 게이트라 실행횟수 0) / F-J12(Gate C fail-closed 가 산문뿐, 집행 코드 0건).
+- **R11/K 종결 (2026-07-09, 4 PR #132/#135/#134/#136)** — F-K01~F-K13, 4-dim 평균 3.98 (D1 4.2 / D2 4.5 / D3 3.6 / D4 3.6). 하락은 회귀가 아니라 **과대평가의 정정** — 해당 경로들은 내내 있었고 이번에 처음 실행으로 측정됐다.
+  - **7 fixed**: F-K01(ledger append 4-필드 미강제, P0) · F-K10(eval-regression 이 evals.json 33개 전삭제 상태에서 exit 0, P0) · F-K02(resolve 종결상태 재기록) · F-K11(손상 라인 1개 → 중복 primary key) · F-K04(EXT_SIGNATURES 하드코딩, ext 10/12) · F-K05(reconciliation unexercised → orphan smoke 신설) · F-K06(setup.sh 가 CI paths 밖)
+  - **공통 문법**: **"검사 대상 0건"을 "결함 0건"으로 렌더한다.** F-K01/K10/K11/K12 가 전부 같은 문장이고 R10 의 F-J02 도 그랬다. 결함을 발견한 자리만 고치고 **유형을 인접 진입점에 일반화하지 않은 것**이 반복 원인 — F-H08 은 `mark-fixed` 에만, `TEMPLATE_COUNT -gt 0` 가드는 templates 블록에만, 빈값 검사는 `resolve` 에만 있었다.
+  - **잔여 open 6건**: F-K03(`CLAUDE.md` 부재 → `core/rules/` 미로드) · F-K07(hook 미배선 → `events.jsonl` 사용 이벤트 0) — 둘 다 "**vibe-flow 가 자기 자신에 설치되지 않았다**"는 한 뿌리, `/plan` 게이트. F-K08/K09/K12(본 PR) · F-K13(windows matrix).
+  - **F-K13 근거**: CI 등가 스위트를 Windows 에서 돌리면 21개 중 5개 실패(`audit-ledger`/`persona-vote`/`queue-tests`/`schedule`/`statusline`)하는데 #134 의 ubuntu 로그는 **같은 5개가 전부 PASS**. 머지 게이트 플랫폼이 운용 플랫폼과 분리돼 있다.
 
 ## Brainstorm 인덱스 (최근)
 
@@ -56,11 +63,13 @@ Phase 2 / Phase 3.0:
 ## 다음 진입점
 
 1. **frontend-flow 잔여 백로그** (우선) — (a) `editorial-warm-combo` 에이전트 리뷰 실배선(크림배경+serif+italic+테라코타 4신호 조합 탐지, 표면 분류가 기계화 불가라 에이전트 판단 필요, 스펙은 `references/anti-slop-preflight.md` deferred에 확정) (b) `docs/ARCHITECTURE.md` Self-Improving Loop 섹션 전면 재작성(현행 AHE/audit/ledger 반영, 지금은 legacy 배너만 — 카운트·dead-ref는 #127에서 정리됨)
-2. **R10/J fix 실측 반증** — 다음 `/audit` 라운드에서 F-J01~F-J13 `pending-verify`→`resolve` (폐루프 종결)
+2. **R11/K fix 실측 반증** — 다음 `/audit` 라운드 Phase 0 가 `pending-verify` 7건(F-K01/K02/K04/K05/K06/K10/K11)을 `resolve`. 각 finding 의 `predicted_delta` 에 **실행 가능한 반증 명령**이 들어 있다 (예: `echo '{"round":"ZZ"}' | ledger.sh append; $?` 가 비-0). R10 의 두 refuted 가 산문 예측이었던 것에 대한 대응.
+3. **F-K13 스코핑** — windows matrix 를 켜기 전에 Windows 실패 5건의 원인 진단부터. 켜는 순간 CI 가 red 가 되고 크기를 모르면 되돌리는 압력이 생긴다. `enqueue` 는 D4 가 CRLF 를 배제했으나 기전 미규명.
+4. **`/plan` → 자기설치 (F-K03 + F-K07)** — F-K07 의 fix(plugin/settings hook 배선)는 스키마 미검증 추론이라 코드로 굳히지 않는다. 캐시의 어떤 플러그인도(공식 포함) `hooks` 키를 쓰지 않음을 확인함.
 3. 신규 기능 트랙 후보: `docs/character-system-spec-plan` 브랜치 (Phase 4 동적 캐릭터 시스템, spec/plan만 존재 미구현)
 
 ## 참고
 
-- 상세 audit round 별 finding/점수는 user-level memory `project_audit_20260601.md` 참조
+- 상세 audit round 별 finding/predicted_delta/actual_delta 는 `.claude/memory/audit-ledger.jsonl` (정본, git tracked). 조회: `bash core/skills/audit/scripts/ledger.sh round K`
 - session-specific 결정 흐름은 user-level MEMORY.md 참조
 - 이 파일은 협업자가 repo clone 후 바로 컨텍스트 잡을 수 있도록 작성

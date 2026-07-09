@@ -161,6 +161,34 @@ else
 fi
 teardown
 
+# ── T8: core/ 소스 0건 → --check 는 clean 이 아니라 환경 오류 (F-K12) ──
+# drift 는 core/ 측 순회로 계산된다. 소스 0건이면 비교 0건이고, 스크립트가 이를
+# "coverage 0" 이 아니라 "clean" 으로 렌더했다 (검사 대상 0건 = 결함 0건).
+# --check 의 계약은 깨진 설치를 *탐지*하는 것이므로 fail-closed 여야 한다.
+# (apply 모드에선 "동기화할 소스 없음"이 방어 가능하므로 --check 한정.)
+echo "Test T8: core/ 소스 0건 — --check 환경 오류 (F-K12)"
+setup_fixture
+rm -rf core/agents core/rules core/hooks core/skills
+OUT=$(bash "$SCRIPT" --check 2>&1)
+EC=$?
+assert_exit "T8.1 빈 core/ → --check exit 2 (환경 오류)" 2 "$EC"
+if echo "$OUT" | grep -q "no drift detected"; then
+  echo "  ✗ T8.2 소스 0건을 'no drift detected' 로 렌더 (공허한 통과)"
+  FAIL=$((FAIL + 1))
+else
+  echo "  ✓ T8.2 소스 0건을 clean 으로 렌더하지 않음"
+  PASS=$((PASS + 1))
+fi
+teardown
+
+# ── T9: 회귀 — 소스가 있으면 T1 처럼 정상 판정 (T8 가드가 과잉 차단하지 않음) ──
+echo "Test T9: 소스 존재 시 정상 판정 유지 (T8 과잉 차단 없음)"
+setup_fixture
+OUT=$(bash "$SCRIPT" --check 2>&1)
+EC=$?
+assert_exit "T9.1 소스 존재 + clean → exit 0" 0 "$EC"
+teardown
+
 echo
 echo "─────────────────────────────────────────"
 echo "PASS: $PASS   FAIL: $FAIL"
