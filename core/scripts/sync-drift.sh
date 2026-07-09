@@ -42,6 +42,9 @@ cd "$PROJECT_ROOT" || exit 2
 
 DRIFT_COUNT=0
 SYNC_COUNT=0
+# F-K12 (audit R11): 열거된 core/ 소스 파일 수. drift 를 core/ 측 순회로 계산하므로
+# 소스 0건이면 비교 0건이고, 이를 "clean" 으로 렌더하면 깨진 설치가 통과한다.
+SRC_COUNT=0
 
 log_verbose() { [ "$VERBOSE" = 1 ] && echo "  $1"; }
 
@@ -50,6 +53,7 @@ sync_dir_flat() {
   local subpath="$1"
   for src in "core/$subpath"/*.md "core/$subpath"/*.sh; do
     [ -f "$src" ] || continue
+    SRC_COUNT=$((SRC_COUNT + 1))
     local name=$(basename "$src")
     local dst=".claude/$subpath/$name"
     if [ ! -f "$dst" ] || ! diff -q "$src" "$dst" >/dev/null 2>&1; then
@@ -69,6 +73,7 @@ sync_dir_flat() {
 sync_skills_recursive() {
   while IFS= read -r src; do
     [ -f "$src" ] || continue
+    SRC_COUNT=$((SRC_COUNT + 1))
     local rel="${src#core/}"
     local dst=".claude/$rel"
     if [ ! -f "$dst" ] || ! diff -q "$src" "$dst" >/dev/null 2>&1; then
@@ -89,6 +94,7 @@ sync_hooks() {
   local skip_list=" git-post-commit.sh "
   for src in core/hooks/*.sh; do
     [ -f "$src" ] || continue
+    SRC_COUNT=$((SRC_COUNT + 1))
     local name=$(basename "$src")
     case "$skip_list" in
       *" $name "*) continue ;;
@@ -141,6 +147,13 @@ fi
 
 # ── 결과 ──────────────────────────────────────────────────
 if [ "$MODE" = "check" ]; then
+  # F-K12 (audit R11): 소스 0건이면 비교도 0건이라 DRIFT_COUNT=0 이 되고, 이를 "clean" 으로
+  # 렌더하면 깨진 설치(core/ 소실)가 통과한다. --check 의 계약은 그것을 *탐지*하는 것이다.
+  # apply 모드는 "동기화할 소스 없음"이 방어 가능하므로 --check 한정으로 fail-closed.
+  if [ "$SRC_COUNT" -eq 0 ]; then
+    echo "[sync-drift] core/ 소스 0건 — 환경 오류 (커버리지 0 ≠ drift 0)" >&2
+    exit 2
+  fi
   if [ "$DRIFT_COUNT" -eq 0 ]; then
     echo "[sync-drift] no drift detected ✓"
     exit 0
