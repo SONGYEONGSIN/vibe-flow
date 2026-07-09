@@ -199,7 +199,9 @@ case "$CMD" in
       | to_entries
       | map(select(.value.status == "queued") | .key)
       | .[]
-    ' "$QUEUE_STORE" 2>/dev/null)
+    ' "$QUEUE_STORE" 2>/dev/null | tr -d '\r')
+    # tr -d '\r': Windows jq.exe CRLF. 다중 라인이라 아래 `while read <<< "$QUEUED_IDS"` 의
+    # 마지막을 뺀 전 id 에 \r 이 남아 status_update 가 매칭되지 않았다 (clear 후에도 queued 잔존).
 
     [ -z "$QUEUED_IDS" ] && { echo "queue clear: queued entry 없음"; exit 0; }
 

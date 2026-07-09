@@ -29,7 +29,9 @@ THRESHOLD=$(jq -r '.warn_threshold // 0.8' "$BUDGET_FILE" 2>/dev/null || echo 0.
 TODAY=$(date -u +%Y-%m-%d)
 
 WARNINGS=()
-for type in $(jq -r '.limits | keys[]' "$BUDGET_FILE" 2>/dev/null); do
+# tr -d '\r': Windows jq.exe CRLF. keys[] 는 다중 라인이라 마지막 키를 뺀 전부가 'audit\r' 이 되어
+# 이어지는 `.limits[$t]` 조회가 null 을 반환했다 (한도가 조용히 0으로 읽힘).
+for type in $(jq -r '.limits | keys[]' "$BUDGET_FILE" 2>/dev/null | tr -d '\r'); do
   daily_limit=$(jq -r --arg t "$type" '.limits[$t].daily // 0' "$BUDGET_FILE" 2>/dev/null)
   [ -z "$daily_limit" ] || [ "$daily_limit" = "0" ] && continue
 
