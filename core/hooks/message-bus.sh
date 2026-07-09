@@ -33,7 +33,9 @@ DEBATES_DIR="${MSG_DIR}/debates"
 # 에이전트 목록은 .claude/agents.json에서 읽는다 (단일 소스)
 AGENTS_CONFIG="${PROJECT_ROOT}/.claude/agents.json"
 if [ -f "$AGENTS_CONFIG" ]; then
-  AGENTS=$(jq -r '.agents[]' "$AGENTS_CONFIG" | tr '\n' ' ')
+  # tr -d '\r': Windows jq.exe CRLF. tr '\n' ' ' 가 개행만 바꾸므로 'a\r b\r c\r ' 가 되어
+  # 이후 agent 이름 매칭이 전부 빗나갔다 (마지막 줄도 \r 이 남는다 — 파이프라 $() 가 못 뗀다).
+  AGENTS=$(jq -r '.agents[]' "$AGENTS_CONFIG" | tr -d '\r' | tr '\n' ' ')
 else
   # agents.json 없으면 폴백 (하위 호환) — agents.json 의 10 참여자와 일치 (F-F4)
   AGENTS="comparator designer developer feedback moderator planner qa retrospective security validator"

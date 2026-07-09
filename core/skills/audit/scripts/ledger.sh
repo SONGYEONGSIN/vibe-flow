@@ -134,9 +134,12 @@ case "$cmd" in
     [ -f "$QUEUE_SH" ] || { echo "error: queue.sh not found: $QUEUE_SH" >&2; exit 1; }
     acquire_lock
     count=0
+    # F-K14 (audit R11): Windows jq.exe 는 매 라인에 \r\n 을 붙이고 $(...) 는 *마지막* 줄의
+    # \r\n 만 뗀다 → 다중 라인 캡처는 마지막을 뺀 전 줄에 \r 이 남아 --arg 매칭이 빗나갔다.
+    # 그 결과 첫 finding 의 enqueued_task 가 기록되지 않아 재실행마다 큐가 중복 적재됐다.
     ids=$(jq -r --arg r "$r" \
       'select(.status=="open") | select($r=="" or .round==$r) | select((.enqueued_task // "")=="") | .id' \
-      "$LEDGER" 2>/dev/null)
+      "$LEDGER" 2>/dev/null | tr -d '\r')
     for id in $ids; do
       task=$(jq -r --arg i "$id" \
         'select(.id==$i) | "[audit \(.id)/\(.dimension)/\(.component)] \(.fix). 근거: \(.evidence). 원인: \(.root_cause). 예상효과: \(.predicted_delta)."' \
