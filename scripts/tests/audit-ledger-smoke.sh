@@ -54,6 +54,19 @@ L resolve F-H02 "x" bogus >/dev/null 2>&1 && ng "bogus status 통과됨" || ok "
 L resolve F-Z99 "x" verified >/dev/null 2>&1 && ng "없는 id 통과됨" || ok "없는 id 거부 (exit≠0)"
 echo '{"component":"skills"}' | L append >/dev/null 2>&1 && ng "round 누락 통과됨" || ok "round 누락 거부 (exit≠0)"
 
+# F-K01 (audit R11): SKILL.md 가 선언한 "4 필드 누락 시 append 거부" 계약이 실재하는지.
+# 계약 부재 시 4 필드 전부 null 인 finding 이 유효 id 를 달고 status:open 으로 기록되어,
+# 다음 라운드 pending-verify 가 반증할 predicted_delta 자체를 잃는다 (폐루프 단락).
+echo '{"round":"ZZ"}' | L append >/dev/null 2>&1 && ng "4 필드 전부 누락 통과됨" || ok "4 필드 누락 거부 (exit≠0)"
+for miss in evidence root_cause fix predicted_delta; do
+  jq -nc --arg m "$miss" '{round:"ZZ",evidence:"e",root_cause:"r",fix:"f",predicted_delta:"p"}
+    | del(.[$m])' | L append >/dev/null 2>&1 \
+    && ng "$miss 누락 통과됨" || ok "$miss 누락 거부 (exit≠0)"
+done
+# 빈 문자열도 누락과 동치 (resolve 의 F-H03 과 동형)
+echo '{"round":"ZZ","evidence":"","root_cause":"r","fix":"f","predicted_delta":"p"}' \
+  | L append >/dev/null 2>&1 && ng "빈 evidence 통과됨" || ok "빈 evidence 거부 (exit≠0)"
+
 echo "=== refuted 경로 (fix 가 지표 못 움직임) ==="
 L resolve F-H02 "0.0 no movement" refuted >/dev/null
 rst=$(jq -r 'select(.id=="F-H02") | .status' "$LEDGER")

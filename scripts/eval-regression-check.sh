@@ -160,7 +160,14 @@ for f in core/skills/*/evals/evals.json extensions/*/skills/*/evals/evals.json; 
   check_evals_json "$f"
   EVALS_COUNT=$((EVALS_COUNT+1))
 done
-[ "$FAIL" = "$EVALS_BEFORE" ] && ok "All evals.json valid (${EVALS_COUNT} files)"
+# F-K10 (audit R11): glob 미매칭 시 FAIL 이 불변이라 "검사 대상 0건"이 "결함 0건"으로
+# 렌더되던 경로. evals.json 을 전부 지워도 머지 게이트가 통과했다. 커버리지 0 ≠ 통과.
+# (templates 블록의 TEMPLATE_COUNT -gt 0 가드와 동형. 단 이쪽은 err 로 fail-closed.)
+if [ "$EVALS_COUNT" -eq 0 ]; then
+  err "evals.json 0건 — 커버리지 0 ≠ 통과"
+elif [ "$FAIL" = "$EVALS_BEFORE" ]; then
+  ok "All evals.json valid (${EVALS_COUNT} files)"
+fi
 
 # ─── D. agents.json ↔ files ───
 AGENTS_JSON="core/agents.json"
