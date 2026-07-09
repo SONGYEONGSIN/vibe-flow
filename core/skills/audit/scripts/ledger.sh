@@ -24,6 +24,15 @@ LEDGER="${LEDGER:-$PROJECT_ROOT/.claude/memory/audit-ledger.jsonl}"
 mkdir -p "$(dirname "$LEDGER")" 2>/dev/null || true
 touch "$LEDGER" 2>/dev/null || true
 
+# F-K11 (audit R11): 손상된 라인 1개가 next_num(:32) 과 id 충돌검사 둘 다를 fail-open 시킨다.
+# 둘 다 `jq ... 2>/dev/null` 이라 파스 에러를 "비어있음/존재하지 않음"으로 해석하고,
+# 두 fail-open read 가 합성돼 이미 존재하는 id 를 재발급한다 (중복 primary key).
+# 감사 이력은 append-only 신뢰가 전제이므로 손상 시 조용히 진행하지 않고 즉시 중단한다.
+if [ -s "$LEDGER" ] && ! jq empty "$LEDGER" >/dev/null 2>&1; then
+  echo "error: ledger corrupt — 수동 복구 필요: $LEDGER" >&2
+  exit 3
+fi
+
 cmd="${1:-}"; shift 2>/dev/null || true
 
 # 라운드 내 다음 번호 (기존 F-<round><NN> 최대값+1, 없으면 1) — 전역 단일 시퀀스
@@ -88,6 +97,18 @@ case "$cmd" in
     case "$status" in fixed|verified|refuted|deferred) ;; *) echo "error: status ∈ fixed|verified|refuted|deferred" >&2; exit 1 ;; esac
     acquire_lock
     jq -e --arg i "$id" 'select(.id==$i)' "$LEDGER" >/dev/null 2>&1 || { release_lock; echo "error: id $id not found" >&2; exit 1; }
+    # F-K02 (audit R11): mark-fixed 는 F-H08 로 단방향 가드를 얻었으나 resolve 는 현재 상태를
+    # 읽지 않아 같은 역전을 다른 진입점으로 수행할 수 있었다 (측정된 actual_delta 가 조용히 소실).
+    cur=$(jq -r --arg i "$id" 'select(.id==$i) | .status' "$LEDGER")
+    case "$cur" in
+      verified|refuted) release_lock
+        echo "error: $cur 는 종결 상태 — 재기록 불가 (현재: $cur)" >&2; exit 1 ;;
+    esac
+    # resolve 로 fixed 를 쓰면 actual_delta 가 채워진 채 fixed 가 되어 open(status=="open") 과
+    # pending-verify(actual_delta=="") 양쪽 워크리스트에서 사라진다 → 다음 라운드 Phase 0 이
+    # 빈 pending-verify 를 "전부 검증됨"으로 오독. fixed 전이는 mark-fixed 가 유일 경로.
+    [ "$status" = "fixed" ] && { release_lock
+      echo "error: fixed 전이는 mark-fixed 전용 (resolve 는 측정 결과만 기록)" >&2; exit 1; }
     tmp=$(mktemp)
     jq -c --arg i "$id" --arg a "$actual" --arg s "$status" \
       'if .id==$i then .actual_delta=$a | .status=$s else . end' "$LEDGER" > "$tmp" && mv "$tmp" "$LEDGER"
