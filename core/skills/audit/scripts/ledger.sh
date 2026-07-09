@@ -54,6 +54,16 @@ case "$cmd" in
     IN=$(cat)
     round=$(echo "$IN" | jq -r '.round // empty')
     [ -z "$round" ] && { echo "error: .round required" >&2; exit 1; }
+    # F-K01 (audit R11): rules/harness-evolution.md §3 의 4-필드 계약을 기계 강제.
+    # 종전엔 .round 만 검사해 4 필드가 전부 null 인 finding 이 유효 id 로 기록됐고,
+    # predicted_delta 가 null 이면 다음 라운드 pending-verify 가 반증할 대상을 잃는다.
+    # 빈 문자열도 누락과 동치로 본다 (resolve 의 F-H03 가드와 동형).
+    for field in evidence root_cause fix predicted_delta; do
+      if [ -z "$(echo "$IN" | jq -r --arg f "$field" '.[$f] // empty')" ]; then
+        echo "error: .$field required (4-필드 계약: evidence/root_cause/fix/predicted_delta)" >&2
+        exit 1
+      fi
+    done
     # F-H02(R8)+F-I04(R9): append 를 원자 락으로 직렬화 (병렬 append 동일 id race 차단).
     acquire_lock
     num=$(next_num "$round")
