@@ -10,7 +10,7 @@
 
 **v2.3.2 출시 (2026-07-07)** — frontend-flow anti-slop/디자인 품질 라인 완성. anti-slop 검사가 em-dash·폰트·순수검정(FAIL) + radius·eyebrow·single-accent·low-saturation(WARN) 7종 + a11y 4-차원(정적 소스, 브라우저 불필요)으로 완비. 세션 흐름: a11y+anti-slop 이식(v2.3.0, #125) → 엣지 배터리로 결함 발굴·패치(v2.3.1, #126) → 문서 카운트 drift 정정(#127) → **문서 동기화 CI 게이트**(#128, `scripts/check-doc-counts.sh` — 문서 fix가 게이트 밖이라 반복되던 stale 차단) → 색상 WARN 2종(v2.3.2, #129, `color-utils.js`) → eval-regression Windows robustness(#130, jq CRLF + cp949). 내부 감사 R10(J) 13건 fixed→pending-verify. cloud-native auto-build cycle 본 목표는 v2.0.0(#106) 달성 완료.
 
-**내부 감사 R11/K 종결 (2026-07-09)** — 감사가 처음으로 **자기 계기(instrument)** 를 겨눴다. harness 를 채점하는 두 장치(ledger `append`, 머지 게이트 `eval-regression`)가 **둘 다 fail-open** 이었고 실행으로 증명됐다. 4 PR(#132/#135/#134/#136) 머지 후 main 에서 거동 재검증 완료.
+**내부 감사 R11/K 종결 (2026-07-09)** — 감사가 처음으로 **자기 계기(instrument)** 를 겨눴다. harness 를 채점하는 두 장치(ledger `append`, 머지 게이트 `eval-regression`)가 **둘 다 fail-open** 이었고 실행으로 증명됐다. 7 PR(#132/#135/#134/#136/#137/#138/#139) 머지, 각각 main 에서 거동 재검증 완료. finding 16건 중 **11 fixed(pending-verify) / 5 open**.
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
@@ -63,10 +63,22 @@ Phase 2 / Phase 3.0:
 ## 다음 진입점
 
 1. **frontend-flow 잔여 백로그** (우선) — (a) `editorial-warm-combo` 에이전트 리뷰 실배선(크림배경+serif+italic+테라코타 4신호 조합 탐지, 표면 분류가 기계화 불가라 에이전트 판단 필요, 스펙은 `references/anti-slop-preflight.md` deferred에 확정) (b) `docs/ARCHITECTURE.md` Self-Improving Loop 섹션 전면 재작성(현행 AHE/audit/ledger 반영, 지금은 legacy 배너만 — 카운트·dead-ref는 #127에서 정리됨)
-2. **R11/K fix 실측 반증** — 다음 `/audit` 라운드 Phase 0 가 `pending-verify` 7건(F-K01/K02/K04/K05/K06/K10/K11)을 `resolve`. 각 finding 의 `predicted_delta` 에 **실행 가능한 반증 명령**이 들어 있다 (예: `echo '{"round":"ZZ"}' | ledger.sh append; $?` 가 비-0). R10 의 두 refuted 가 산문 예측이었던 것에 대한 대응.
-3. **F-K13 스코핑** — windows matrix 를 켜기 전에 Windows 실패 5건의 원인 진단부터. 켜는 순간 CI 가 red 가 되고 크기를 모르면 되돌리는 압력이 생긴다. `enqueue` 는 D4 가 CRLF 를 배제했으나 기전 미규명.
-4. **`/plan` → 자기설치 (F-K03 + F-K07)** — F-K07 의 fix(plugin/settings hook 배선)는 스키마 미검증 추론이라 코드로 굳히지 않는다. 캐시의 어떤 플러그인도(공식 포함) `hooks` 키를 쓰지 않음을 확인함.
-3. 신규 기능 트랙 후보: `docs/character-system-spec-plan` 브랜치 (Phase 4 동적 캐릭터 시스템, spec/plan만 존재 미구현)
+2. **R11/K fix 실측 반증** — 다음 `/audit` Phase 0 가 `pending-verify` **11건**(F-K01/K02/K04/K05/K06/K08/K09/K10/K11/K12/K16)을 `resolve`. 각 `predicted_delta` 에 **실행 가능한 반증 명령**이 들어 있다 (예: `echo '{"round":"ZZ"}' | ledger.sh append; $?` 가 비-0). R10 의 두 refuted 가 산문 예측이었던 것에 대한 대응.
+
+   ⚠️ **F-K13 은 그대로 반증하면 안 된다.** 기록된 `predicted_delta`("windows leg 이 최초 실행에서 red, green 이면 refuted")는 스코핑 이전의 것이다. 스코핑 결과 Windows 실패 5건은 **3개 뿌리**로 갈렸고 그중 A는 이미 고쳐졌다(F-K16, PR #139). B·C(F-K14/F-K15)를 마저 고치면 windows leg 은 **green 이 정상**이므로, 원 `predicted_delta` 를 곧이곧대로 적용하면 옳은 fix 를 refuted 로 오판한다. R12 Phase 0 은 F-K13 을 `refuted`(예측 지표 자체가 틀림 — 메타-학습)로 종결하고, matrix 켜기는 F-K14/K15 머지 후 새 finding 으로 다룬다.
+
+3. **Windows 이식성 잔여 (F-K14 → F-K15 → matrix 순)**
+   - **F-K14** [P2, 실 버그] `schedule-register.sh:109` 가 `uuidgen` 하드 의존(Windows 부재) + 그 가드가 `:178` claude CLI 검사보다 **앞서** 실행돼 진단이 도달 불가. 가짜 `uuidgen` 주입 시 27/2 로 회복. fix = `python3 -c "import uuid;print(uuid.uuid4())"` 폴백 + uuid 생성 블록을 claude 가드 뒤로 이동
+   - **F-K15** [P3, 테스트 전용] `statusline-tests.sh:79-80` 의 astral-plane emoji(`🔧` U+1F527, `📋` U+1F4CB) grep 이 git-bash UTF-8 로케일에서 실패. `LC_ALL=C` 로 10/0. `statusline.sh` 자체는 정상
+   - 둘 다 머지 후에야 windows matrix(1줄)를 green 으로 켤 수 있다
+
+4. **`/plan` → 자기설치 (F-K03 + F-K07)** — 한 뿌리. F-K07 의 fix(plugin/settings hook 배선)는 **스키마 미검증 추론**이라 코드로 굳히지 않는다. 캐시의 어떤 플러그인도(공식 포함) `hooks` 키를 쓰지 않음을 확인했다. `/plan` 없이 착수 금지.
+
+5. 신규 기능 트랙 후보: `docs/character-system-spec-plan` 브랜치 (Phase 4 동적 캐릭터 시스템, spec/plan만 존재 미구현)
+
+### R11 세션이 남긴 방법론 교훈
+
+증거 없이 세운 가설은 그럴듯할수록 위험하다. 이번 세션에서 **최소 5건의 가설이 실행 검증에서 무너졌다** — `check-doc-counts` 게이트 미실행 / `28 hooks` 카운트 drift / `plugin.json` 에 `hooks` 키 추가 / `auto-build-safety` iteration cap fail-open / `ledger next_num` 파손. 전부 **코드로 굳히기 전에** RED 단계나 독립 검증이 잡았다. dimension agent 에 오염된 힌트를 심어도 D1·D2·D4 는 독립 증거로 기각했고, 반대로 D1 의 F-K09 예측(`resolve 실패 1→0`)은 측정 기준이 틀려 규약 확인 없이 실행했다면 정상 참조 6개를 깨뜨렸을 것이다. **finding 을 그대로 실행하지 말고 매번 재확인한다.**
 
 ## 참고
 
