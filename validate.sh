@@ -412,7 +412,16 @@ if [ -f "$STATE" ]; then
   # drift(15/45 커버). vibe-flow repo(core/ 존재)면 core/skills/ 를 직접 enumerate 하고,
   # downstream(core/ 부재)이면 화이트리스트로 폴백 — repo blind-spot 제거 + downstream 미파손.
   CORE_SKILLS="brainstorm plan finish release scaffold test worktree verify security commit review-pr receive-review status learn audit"
+  # F-K04 (audit R11): EXT_SIGNATURES 는 하드코딩 리터럴 10개라 extensions/ 실측 12개 중
+  # i18n-audit·k8s-audit 을 놓쳤다(커버리지 10/12). is_base_skill 은 F-H04 에서 이미 실측
+  # enumerate 로 전환됐는데 확장 쪽만 수동 갱신에 의존해 뒤처졌다. 같은 대칭을 적용한다:
+  # vibe-flow repo(extensions/ 존재)면 실측, downstream(부재)이면 리터럴 폴백.
   EXT_SIGNATURES="eval-skill evolve design-sync design-audit frontend-flow pair discuss metrics retrospective feedback"
+  if [ -d "$VIBE_FLOW_ROOT/extensions" ]; then
+    _ext_measured="$(find "$VIBE_FLOW_ROOT/extensions" -name SKILL.md -exec dirname {} \; 2>/dev/null \
+      | xargs -r -n1 basename 2>/dev/null | sort -u | tr '\n' ' ')"
+    [ -n "${_ext_measured// /}" ] && EXT_SIGNATURES="$_ext_measured"
+  fi
 
   is_base_skill() {  # vibe-flow repo면 core/skills/ 실재로, downstream이면 whitelist로 판정
     if [ -d "$VIBE_FLOW_ROOT/core/skills" ]; then

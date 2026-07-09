@@ -13,6 +13,9 @@ on:
   pull_request:
     paths:
       - 'validate.sh'
+      - 'setup.sh'                     # F-K06 (audit R11): cloud-init-smoke.sh 가 setup.sh 를
+                                       # 실행·검증하는데 트리거 경로에 없어, setup.sh 단독 수정 PR 은
+                                       # 두 워크플로 모두 미발화했다 (게이트는 있고 트리거가 없던 상태).
       - 'core/scripts/**'
       - 'core/hooks/**'
       - 'core/skills/**/scripts/**'   # F-I05 (audit R9): ledger.sh 등 skill 내부 계측 스크립트
