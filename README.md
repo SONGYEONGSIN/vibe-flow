@@ -8,7 +8,7 @@ English | [한국어](README.ko.md)
 [![Skills](https://img.shields.io/badge/Skills-45-blue)](docs/REFERENCE.md)
 [![Extensions](https://img.shields.io/badge/Extensions-7-purple)](extensions/)
 [![Hooks](https://img.shields.io/badge/Hooks-28-orange)](docs/REFERENCE.md)
-[![Agents](https://img.shields.io/badge/Agents-22-green)](docs/REFERENCE.md)
+[![Agents](https://img.shields.io/badge/Agents-23-green)](docs/REFERENCE.md)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
 ## ⚡ 30-second start
@@ -28,7 +28,7 @@ cd /your/project
 bash /path/to/vibe-flow/setup.sh
 ```
 
-→ 45 skills + 22 agents + 28 hooks + 8 rules are activated immediately.
+→ 45 skills + 23 agents + 28 hooks + 8 rules are activated immediately.
 
 ## 🎯 First cycle (5 minutes)
 
