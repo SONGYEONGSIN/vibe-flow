@@ -25,6 +25,21 @@ MODE="${CLAUDE_TDD_ENFORCE:-warn}"
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null)
 
+# F-K18: 프로젝트 루트 밖 파일은 TDD 게이트 대상 아님 (리포 밖 스크래치 오차단 방지)
+# CLAUDE_PROJECT_DIR 우선, 없으면 hook payload 의 .cwd 폴백. 둘 다 없으면 기존 동작 유지.
+PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-}"
+[ -z "$PROJECT_ROOT" ] && PROJECT_ROOT=$(echo "$INPUT" | jq -r '.cwd // empty' 2>/dev/null)
+case "$FILE_PATH" in
+  /*)  # 절대 경로일 때만 스코프 판정 (상대 경로는 루트 기준 해석 불가 — 기존 동작 유지)
+    if [ -n "$PROJECT_ROOT" ]; then
+      case "$FILE_PATH" in
+        "$PROJECT_ROOT"/*) ;;
+        *) exit 0 ;;
+      esac
+    fi
+    ;;
+esac
+
 # 대상 확장자 외 스킵
 case "$FILE_PATH" in
   *.ts|*.tsx|*.js|*.jsx) ;;
