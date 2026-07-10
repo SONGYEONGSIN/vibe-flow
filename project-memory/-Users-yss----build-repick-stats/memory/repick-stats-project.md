@@ -1,22 +1,27 @@
 ---
 name: repick-stats-project
-description: repick-stats 프로젝트의 목표·방향·성장 로드맵
+description: repick 프로젝트의 목표·방향·아키텍처 (Phase 1 완료 상태)
 metadata: 
   node_type: memory
   type: project
   originSessionId: c01fb6d5-b9fa-4361-8e54-26f5611ea0ef
 ---
 
-repick-stats = 한국부동산원 R-ONE OpenAPI 기반 **지역 비교 아파트 가격 대시보드**. 사용자가 관심 지역을 골라(pick) 아파트 매매·전세 가격지수를 시계열로 겹쳐 비교.
+repick = 아파트 **실거래가·시세 공개 서비스** (일반 대중 대상, Next.js 16 App Router + TS + Tailwind v4). 데이터: 국토교통부 실거래가 + 한국부동산원 R-ONE.
 
-**결정된 방향** (2026-07-04 brainstorm): "지역 비교 대시보드" 방향 + **실서비스 지향, 단 MVP부터 단계적**. 핵심 근거 — 실서비스의 심장은 R-ONE 데이터 정규화·캐싱 레이어이고 계정·알림도 그 위에 얹히므로, 그 레이어를 먼저 검증. 인증·DB·결제는 사용자 검증 후 증축 (조기 구축 금지).
+**히스토리**: 초기엔 '지역 비교 가격지수 대시보드 + 실거래가 탐색'(구버전, `../repick-stats-backup-20260707-205214`에 백업)으로 만들었으나, 2026-07-07 사용자가 **공개 서비스로 범위 재설정** + 처음부터 재구축. 키 2개(.env.local)와 전국 250 시군구 코드표(`src/data/lawdCodes.ts`)만 보존하고 클린 슬레이트로 재출발. vibe-flow 하네스 정식 설치(`.claude/` — agents/hooks/skills/rules), brainstorm→plan→TDD 워크플로우로 진행.
 
-**MVP 완료** (T1~T10): Next.js 16 App Router + TS + Tailwind + Recharts. Server Component + searchParams 아키텍처(useEffect fetch 금지 규칙 준수), R-ONE 키는 서버 전용(`lib/reb/client.ts` `import 'server-only'`)으로 은닉 — HTML·클라이언트 번들 미노출 검증 완료.
+**로드맵** (4축, 순차): P1 실거래 딥다이브(✅) → P2 지역 비교 지수 대시보드 `/compare`(✅, reb 레이어) → P3 투자 스크리너 `/screener`(✅, 전세가율 A_2024_00072 + 전월세전환율 A_2024_00156) → **P4 계정+관심단지+알림(DB+인증+Cron, 미착수)**. 백로그: 실거래 랭킹·지도 히트맵·시세 카드 이미지. 커밋: chore(하네스)/feat P1/P2/P3 4개, 워킹트리 클린. 아직 미배포.
 
-**2차 완료 — 실거래가 탭 추가** (2026-07-07): 국토교통부 아파트 매매 실거래가 API 통합. 앱은 이제 두 탭 — **가격지수**(R-ONE, 시/도 지수) + **실거래가**(국토부, 동·단지·면적·층·거래가). 시군구(전국 250개 코드표 `src/data/lawdCodes.ts`) 선택 → 법정동·단지 필터 → 요약/월별 시세차트/거래테이블. 데이터소스가 둘로 갈림: R-ONE는 구 단위 지수까지, 실거래가(효성동·특정 단지)는 국토부 API.
+**Phase 1 아키텍처** (완료, `.claude/plans/repick-phase1.md`):
+- 단지 URL `/apt/[aptSeq]` — aptSeq(단지 일련번호, 형식 `{lawd}-{serial}` 예 "11680-290")가 단지당 안정적 1:1(실API 검증). lawd는 aptSeq에서 파싱(`features/apt/slug.ts`).
+- 지역 URL `/region/[lawd]` (시군구), 홈=지역검색 진입, `/search`.
+- SEO: 지역 SSG 성격 + 단지 ISR(revalidate 12h) + `sitemap.ts`(250 지역) + `robots.ts` + generateMetadata(canonical) + 루트 OG(라틴).
+- 데이터 레이어 `lib/molit/`(client 서버전용·UA·parseTagValue:false·동시성4 / aggregate / types), `features/{apt,region,search}`.
+- 검색: 아파트 전역 인덱스 없음(시군구+월 API) → **지역 검색이 진입점**, 단지는 지역 페이지에서 필터.
 
-**국토부 실거래가 API 함정 3가지** (`src/lib/molit/`에 반영): ①WAF가 비-브라우저 User-Agent를 400 "Request Blocked"로 차단 → 브라우저 UA 헤더 필수. ②fast-xml-parser 기본값이 `<resultCode>000</resultCode>`을 숫자 0으로 변환 → `parseTagValue:false` 필수. ③강원·전북은 특별자치도 전환 후 신 법정동코드(51·52) 사용, 구코드(42·45)는 조용히 0건 반환. 키는 `.env.local` `DATA_GO_KR_KEY`(data.go.kr, R-ONE 키와 별개).
+**디자인 — "데이터 저널리즘"** (`DESIGN.md` 권위 소스, designer가 수립): 웜 아이보리 페이퍼(#faf8f4 계열, oklch hue 83) + 딥 잉크 + **피콕 틸 브랜드**(hue 200, 파랑/초록 배제 — 한국 부동산 상승=적/하락=청 관례와 무충돌). Pretendard(sans, CDN) × Newsreader(serif, 숫자 전용). 라이트 기본 + .dark. 보더-퍼스트(그림자 없음), 숫자 tabnum+우측정렬, base 14px. 토큰: `globals.css @theme` + `lib/design-tokens.ts`(chartColorVars·marketColors). 시장색 상승=text-up(적)/하락=text-down(청).
 
-**성장 로드맵** (미착수): 계정(Clerk 등) → 관심지역 저장(Postgres) → 임계치 알림(Vercel Cron + Discord/이메일). Vercel 배포는 사용자 로그인 필요로 보류.
+**국토부 실거래가 API 함정 3종** (`lib/molit/`에 반영): ①WAF가 비-브라우저 UA를 400 차단 → 브라우저 UA 필수. ②fast-xml-parser `parseTagValue:false` 필수(안 하면 resultCode "000"→0 오판). ③강원·전북은 특별자치도 신 법정동코드(51/52), 구코드(42/45)는 조용히 0건. 키는 `.env.local`: `REB_API_KEY`(R-ONE), `DATA_GO_KR_KEY`(국토부, data.go.kr). data.go.kr 개발계정 키는 발급 후 최대 1~2시간 전파 지연.
 
-R-ONE API 사용법·STATBL_ID·데이터 정규화는 코드(`src/lib/reb/`)와 `.claude/plans/repick-stats-mvp.md`에 있음. R-ONE 데이터는 **시간 오름차순 페이지네이션**(최근 데이터가 마지막 페이지)이라 전체 수집 후 캐싱하는 패턴 사용.
+**미해결/후속**: 배포(Vercel, NEXT_PUBLIC_SITE_URL 설정 필요) · Pretendard self-host(현재 CDN) · 한글 단지명 OG(폰트 임베딩 필요) · 미커밋 상태.

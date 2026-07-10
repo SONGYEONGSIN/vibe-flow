@@ -20,6 +20,7 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "claude-fable-5[1m]",
   "statusLine": {
     "type": "command",
     "command": "bash /Users/yss/.claude/statusline.sh",
