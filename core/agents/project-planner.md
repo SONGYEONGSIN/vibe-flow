@@ -5,7 +5,8 @@ description: |
   <example>Context: 사용자가 "새 프로젝트 시작", "PRD 만들어줘", "요구사항 정리", "스코프 정의", "사용자 여정 작성" 요청 시<commentary>project-planner에 위임 — 0→1 기획 단계</commentary></example>
   <example>Context: 사용자가 "이 코드 어떻게 분해?", "영향 파일", "구현 태스크 쪼개기" 요청 시<commentary>planner agent에 위임 (project-planner는 신규 기획 전용)</commentary></example>
 tools: Read, Write, Grep, Glob, Bash, WebSearch, WebFetch
-model: sonnet
+model: opus
+effort: xhigh
 color: orange
 skills:
   - start-docs

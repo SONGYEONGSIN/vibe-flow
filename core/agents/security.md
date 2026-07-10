@@ -8,7 +8,7 @@ tools: Read, Grep, Glob
 disallowedTools: Edit, Write
 model: opus
 maxTurns: 20
-effort: high
+effort: xhigh
 initialPrompt: "메시지 수신함을 확인하고, 프로젝트의 src/ 디렉토리를 OWASP Top 10 기준으로 스캔을 시작하라. 발견된 취약점은 read-only로 보고만 하고, fix 적용이 필요한 경우 security-specialist에 위임 권장을 보고서에 명시."
 ---
 

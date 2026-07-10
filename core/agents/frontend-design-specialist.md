@@ -5,7 +5,8 @@ description: |
   <example>Context: 사용자가 "UI 만들어줘", "랜딩 페이지 만들어줘", "대시보드 디자인", "컴포넌트 생성" 요청 시<commentary>frontend-design-specialist에 위임하여 독창적 UI 구현</commentary></example>
   <example>Context: 사용자가 "접근성 검사", "UI 검증", "디자인 개선", "반응형 만들어줘", "애니메이션 추가" 요청 시<commentary>frontend-design-specialist에 위임</commentary></example>
 tools: Read, Edit, Write, Bash, Grep, Glob
-model: sonnet
+model: opus
+effort: xhigh
 color: magenta
 skills:
   - document-skills:frontend-design

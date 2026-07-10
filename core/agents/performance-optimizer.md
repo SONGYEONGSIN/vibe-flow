@@ -5,7 +5,8 @@ description: |
   <example>Context: 사용자가 "성능 최적화", "번들 분석", "로딩 속도", "렌더링 개선" 요청 시<commentary>performance-optimizer에 위임</commentary></example>
   <example>Context: 사용자가 "캐싱 전략", "쿼리 최적화", "Core Web Vitals", "코드 스플리팅" 요청 시<commentary>performance-optimizer에 위임</commentary></example>
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: opus
+effort: xhigh
 skills:
   - performance-checker
 debate:

@@ -5,7 +5,8 @@ description: |
   <example>Context: 사용자가 "아키텍처 리뷰", "리팩토링 제안해줘", "기술부채 분석", "구조 점검" 요청 시<commentary>architecture-reviewer에 위임하여 체계적 구조 리뷰 수행</commentary></example>
   <example>Context: 사용자가 "패턴 일관성 점검", "코드 품질 확인", "아키텍처 검증", "유지보수성 개선" 요청 시<commentary>architecture-reviewer에 위임</commentary></example>
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: opus
+effort: xhigh
 skills:
   - systematic-debugging
   - superpowers:verification-before-completion
