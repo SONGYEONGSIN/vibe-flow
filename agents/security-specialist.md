@@ -7,6 +7,7 @@ description: |
   <example>Context: 사용자가 "read-only OWASP 스캔만", "코드 리포트만 (Edit 금지)" 요청 시<commentary>security agent에 위임 (이 agent는 Bash까지 가능하므로 over-privileged)</commentary></example>
 tools: Read, Grep, Glob, Bash
 model: opus
+effort: xhigh
 skills: [security-audit]
 debate:
   expertise: ["보안", "security", "xss", "csrf", "injection", "owasp", "authentication", "authorization", "encryption", "취약점", "인증", "인가", "rls"]

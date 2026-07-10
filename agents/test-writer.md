@@ -6,7 +6,8 @@ description: |
   <example>Context: 사용자가 "Playwright 실행", "browser 자동화 E2E" 요청 시<commentary>qa agent에 위임 (test-writer는 코드 작성만, MCP 없음)</commentary></example>
   <example>Context: 사용자가 "/test src/foo.ts" 단일 파일 요청 시<commentary>test skill에 위임 (test-writer는 over-engineering)</commentary></example>
 tools: Read, Edit, Write, Bash, Grep, Glob
-model: sonnet
+model: opus
+effort: xhigh
 color: cyan
 skills:
   - test-driven-development

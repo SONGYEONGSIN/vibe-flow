@@ -6,6 +6,7 @@ description: |
   <example>Context: 사용자가 "RLS 정책", "인덱스 추가", "마이그레이션 작성", "Supabase 설정", "데이터베이스 성능" 요청 시<commentary>supabase-db-specialist에 위임</commentary></example>
 tools: Read, Edit, Write, Bash, Grep, Glob
 model: opus
+effort: xhigh
 color: green
 skills: []
 debate:

@@ -1,3 +1,4 @@
+- [Fable 5 모델 전략](feedback_model_strategy_fable.md) — 기본 Fable+xhigh 유지, fan-out(general-purpose/Explore/Plan)은 반드시 model:"sonnet"/"opus" 오버라이드 (Fable 상속 = 2× 요금)
 - [vibe-flow ↔ dashboard pairing](project_vibe_flow_pairing.md) — 두 repo 짝 운영, hook 추가 시 dashboard 매핑도 같이 업데이트
 - [stacked PR squash 머지 주의](feedback_stacked_pr_merge.md) — --delete-branch가 후속 PR 자동 close 시킴, 진정 sequential 필요
 - [gh pr edit body 우회](feedback_gh_pr_edit_body.md) — projects-classic GraphQL 에러 시 `gh api -X PATCH` REST 경로로

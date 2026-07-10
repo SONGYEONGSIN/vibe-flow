@@ -39,7 +39,9 @@ MAPPING_FILE="${SCRIPT_DIR}/../data/persona-mapping.json"
 [ -f "$MAPPING_FILE" ] || { echo "[persona-vote] persona-mapping.json 부재: $MAPPING_FILE" >&2; exit 2; }
 
 # 카테고리 매핑 추출
-PERSONAS=$(jq -r --arg cat "$CATEGORY" '.[$cat] // empty | .[]' "$MAPPING_FILE" 2>/dev/null)
+# tr -d '\r': Windows jq.exe 는 매 라인에 \r\n 을 붙이고 $(...) 는 마지막 줄의 것만 뗀다.
+# 다중 라인이라 마지막 persona 를 뺀 전부가 'designer\r' 이 되어 AGENT_DISPATCH 라인이 깨졌다.
+PERSONAS=$(jq -r --arg cat "$CATEGORY" '.[$cat] // empty | .[]' "$MAPPING_FILE" 2>/dev/null | tr -d '\r')
 if [ -z "$PERSONAS" ]; then
   echo "[persona-vote] unknown_category: $CATEGORY" >&2
   echo "[persona-vote] 가능 카테고리: $(jq -r 'keys | map(select(startswith("_") | not)) | join(", ")' "$MAPPING_FILE")" >&2
