@@ -115,6 +115,24 @@ run_hook "/brainstorm 주제"
 assert_skill "실재 skill 정상 기록" "brainstorm"
 teardown
 
+# Case 8: F-K20 — 비 git cwd 에서도 stdin 을 drain 해야 함.
+# stdin 미소비 조기 종료 시 writer(Claude Code)가 EPIPE
+# ("UserPromptSubmit hook error: Failed to write to socket") —
+# pipe buffer(64KB) 초과 payload 로 결정적으로 재현.
+echo "=== Case 8: 비 git cwd + 대형 stdin → writer SIGPIPE 없음 (F-K20) ==="
+NOGIT=$(mktemp -d)
+cd "$NOGIT"
+printf 'x%.0s' $(seq 1 120000) | jq -Rs '{prompt: .}' | bash "$SCRIPT" >/dev/null 2>&1
+rc=("${PIPESTATUS[@]}")
+if [ "${rc[1]}" = "141" ]; then
+  echo "  ✗ writer SIGPIPE(141) — stdin 미소비 조기 종료 (EPIPE 재현)"
+  FAIL=$((FAIL + 1))
+else
+  echo "  ✓ writer 정상 종료 (jq exit ${rc[1]}) — stdin drain 확인"
+  PASS=$((PASS + 1))
+fi
+cd /; rm -rf "$NOGIT"
+
 echo
 echo "=== 결과 ==="
 echo "  통과: $PASS / 실패: $FAIL"
