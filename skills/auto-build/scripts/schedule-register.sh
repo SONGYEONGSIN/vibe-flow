@@ -105,6 +105,13 @@ REPO_URL_RAW="${REPO_URL:-$(git remote get-url origin 2>/dev/null || echo '<unkn
 # sources[].git_repository.url은 .git suffix 없는 형태 사용 (R8/R9 routine 패턴)
 REPO_URL_VALUE="${REPO_URL_RAW%.git}"
 
+# F-K14 뿌리(순서): 값싼 환경 검사(claude CLI)를 uuid 생성보다 먼저 —
+# 실 등록 경로에서 uuidgen/python3 부재(exit 5)가 claude 부재(exit 2)를 가리지 않게.
+if [ "$DRYRUN" != "1" ] && ! command -v claude >/dev/null 2>&1; then
+  echo "claude CLI not found — install Claude Code first" >&2
+  exit 2
+fi
+
 # message UUID (RemoteTrigger 각 events entry 고유)
 # F-K14: uuidgen 없는 플랫폼(일부 Windows git-bash) 폴백 — python3 uuid
 if command -v uuidgen >/dev/null 2>&1; then
@@ -178,12 +185,7 @@ if [ "$DRYRUN" = "1" ]; then
   exit 0
 fi
 
-# ── 실 등록 (DRYRUN=0) ─────────────────────────────────────
-if ! command -v claude >/dev/null 2>&1; then
-  echo "claude CLI not found — install Claude Code first" >&2
-  exit 2
-fi
-
+# ── 실 등록 (DRYRUN=0) — claude CLI 검사는 uuid 생성 전에 수행됨 (F-K14) ──
 cat >&2 <<EOM
 Manual step required:
   1. Open Claude Code interactive session
