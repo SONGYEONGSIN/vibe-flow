@@ -85,7 +85,13 @@ for f in core/skills/*/SKILL.md extensions/*/skills/*/SKILL.md; do
   check_skill_md "$f"
   SKILL_COUNT=$((SKILL_COUNT+1))
 done
-[ "$FAIL" = "$SKILL_BEFORE" ] && ok "All SKILL.md frontmatter valid (${SKILL_COUNT} files)"
+# F-L09 (audit R12): F-K10 의 "커버리지 0 ≠ 통과" 가드를 형제 섹션에도 일반화.
+# glob 0매칭 시 "valid (0 files)" 로 렌더되던 vacuous pass 차단.
+if [ "$SKILL_COUNT" -eq 0 ]; then
+  err "SKILL.md 0건 — 커버리지 0 ≠ 통과"
+elif [ "$FAIL" = "$SKILL_BEFORE" ]; then
+  ok "All SKILL.md frontmatter valid (${SKILL_COUNT} files)"
+fi
 
 # ─── B. agents/*.md frontmatter ───
 check_agent_md() {
@@ -115,7 +121,13 @@ for f in core/agents/*.md extensions/*/agents/*.md; do
   check_agent_md "$f"
   AGENT_COUNT=$((AGENT_COUNT+1))
 done
-[ "$FAIL" = "$AGENT_BEFORE" ] && ok "All agents.md frontmatter valid (${AGENT_COUNT} files)"
+# F-L09 (audit R12): agents 는 카운트 플로어가 어디에도 없어(section E 는 skills 만)
+# 0-agents 가 "valid (0 files)" 로 통과하던 경로 — section C 가드와 동형으로 차단.
+if [ "$AGENT_COUNT" -eq 0 ]; then
+  err "agents.md 0건 — 커버리지 0 ≠ 통과"
+elif [ "$FAIL" = "$AGENT_BEFORE" ]; then
+  ok "All agents.md frontmatter valid (${AGENT_COUNT} files)"
+fi
 
 # ─── C. evals.json 구조 ───
 # 두 스키마 허용:
@@ -192,6 +204,17 @@ fi
 # ─── E. Core/Extension 카운트 ───
 CORE_SKILLS=$(find core/skills -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
 EXT_SKILLS=$(find extensions -mindepth 3 -maxdepth 3 -type d -path '*/skills/*' 2>/dev/null | wc -l | tr -d ' ')
+
+# F-L08 (audit R12): 플로어는 디렉토리 수를 세고 section A 는 부재 파일을 iterate-skip
+# 하므로, SKILL.md 없는 스킬 dir 이 두 fail-open 합성으로 게이트를 통과했다.
+# dir 수 ↔ SKILL.md 파일 수 일치를 강제해 manifest 없는 깨진 스킬을 차단.
+CORE_SKILL_MDS=$(find core/skills -mindepth 2 -maxdepth 2 -name SKILL.md 2>/dev/null | wc -l | tr -d ' ')
+EXT_SKILL_MDS=$(find extensions -mindepth 4 -maxdepth 4 -path '*/skills/*/SKILL.md' 2>/dev/null | wc -l | tr -d ' ')
+if [ "$CORE_SKILLS" -ne "$CORE_SKILL_MDS" ] || [ "$EXT_SKILLS" -ne "$EXT_SKILL_MDS" ]; then
+  err "스킬 dir ↔ SKILL.md 불일치 (core ${CORE_SKILL_MDS}/${CORE_SKILLS}, ext ${EXT_SKILL_MDS}/${EXT_SKILLS}) — SKILL.md 없는 스킬 dir 존재"
+else
+  ok "스킬 dir ↔ SKILL.md 일치 (core ${CORE_SKILLS}, ext ${EXT_SKILLS})"
+fi
 
 if [ "$CORE_SKILLS" -ge 19 ]; then
   ok "Core skills count: ${CORE_SKILLS} (≥ 19)"
