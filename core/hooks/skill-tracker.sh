@@ -4,10 +4,12 @@ set -u
 # 사용자 프로젝트의 .claude/events.jsonl을 dashboard가 tail해서 캐릭터 반응 트리거.
 # 실패해도 exit 0 — 기존 워크플로우 절대 차단 X.
 
+# F-K20: stdin drain 을 반드시 첫 동작으로 — 미소비 조기 종료 시 Claude Code(writer)가
+# EPIPE("UserPromptSubmit hook error: Failed to write to socket")를 매 프롬프트마다 띄운다.
+INPUT=$(cat)
+
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
 [ -z "$PROJECT_ROOT" ] && exit 0
-
-INPUT=$(cat)
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty' 2>/dev/null)
 [ -z "$PROMPT" ] && exit 0
 
