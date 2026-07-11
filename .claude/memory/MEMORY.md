@@ -10,11 +10,13 @@
 
 **v2.3.2 출시 (2026-07-07)** — frontend-flow anti-slop/디자인 품질 라인 완성. anti-slop 검사가 em-dash·폰트·순수검정(FAIL) + radius·eyebrow·single-accent·low-saturation(WARN) 7종 + a11y 4-차원(정적 소스, 브라우저 불필요)으로 완비. 세션 흐름: a11y+anti-slop 이식(v2.3.0, #125) → 엣지 배터리로 결함 발굴·패치(v2.3.1, #126) → 문서 카운트 drift 정정(#127) → **문서 동기화 CI 게이트**(#128, `scripts/check-doc-counts.sh` — 문서 fix가 게이트 밖이라 반복되던 stale 차단) → 색상 WARN 2종(v2.3.2, #129, `color-utils.js`) → eval-regression Windows robustness(#130, jq CRLF + cp949). 내부 감사 R10(J) 13건 fixed→pending-verify. cloud-native auto-build cycle 본 목표는 v2.0.0(#106) 달성 완료.
 
-**내부 감사 R11/K 종결 (2026-07-09)** — 감사가 처음으로 **자기 계기(instrument)** 를 겨눴다. harness 를 채점하는 두 장치(ledger `append`, 머지 게이트 `eval-regression`)가 **둘 다 fail-open** 이었고 실행으로 증명됐다. 7 PR(#132/#135/#134/#136/#137/#138/#139) 머지, 각각 main 에서 거동 재검증 완료. finding 16건 중 **11 fixed(pending-verify) / 5 open**.
+**내부 감사 R11/K 종결 (2026-07-09~11)** — 감사가 처음으로 **자기 계기(instrument)** 를 겨눴다. harness 를 채점하는 두 장치(ledger `append`, 머지 게이트 `eval-regression`)가 **둘 다 fail-open** 이었고 실행으로 증명됐다. fix PR #132~#153 머지. 최종: F-K01~F-K21 중 **19 verified / 1 refuted(F-K07 오진) / 1 open(F-K03)** — R12 Phase 0 실측으로 종결.
+
+**내부 감사 R12/L (2026-07-11)** — Phase 0 에서 K 라운드 pending-verify 19건 **전건 verified**(스모크 20/20 + F-K13 은 CI windows job 실측 red→green + F-K17 은 runner 첫 실사용 0→1) + F-K07 refuted(자체 반증 기준 충족 — 격리 환경 측정 아티팩트, setup.sh 설치 플로우가 의도된 설계). 4-dim 재채점 **D1 3.9 / D2 4.2 / D3 4.3 / D4 4.2 (평균 4.15, R9 4.28 대비 -0.13)**. 신규 **F-L01~F-L11** (P1 3건: L01 MEMORY 인덱스 desync / L04 check-doc-counts 배열 길이 미검증 false green / L08 eval-regression SKILL.md 부재 통과 재현).
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round 10/J)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round 12/L)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
@@ -28,8 +30,9 @@
 - **R11/K 종결 (2026-07-09, 4 PR #132/#135/#134/#136)** — F-K01~F-K13, 4-dim 평균 3.98 (D1 4.2 / D2 4.5 / D3 3.6 / D4 3.6). 하락은 회귀가 아니라 **과대평가의 정정** — 해당 경로들은 내내 있었고 이번에 처음 실행으로 측정됐다.
   - **7 fixed**: F-K01(ledger append 4-필드 미강제, P0) · F-K10(eval-regression 이 evals.json 33개 전삭제 상태에서 exit 0, P0) · F-K02(resolve 종결상태 재기록) · F-K11(손상 라인 1개 → 중복 primary key) · F-K04(EXT_SIGNATURES 하드코딩, ext 10/12) · F-K05(reconciliation unexercised → orphan smoke 신설) · F-K06(setup.sh 가 CI paths 밖)
   - **공통 문법**: **"검사 대상 0건"을 "결함 0건"으로 렌더한다.** F-K01/K10/K11/K12 가 전부 같은 문장이고 R10 의 F-J02 도 그랬다. 결함을 발견한 자리만 고치고 **유형을 인접 진입점에 일반화하지 않은 것**이 반복 원인 — F-H08 은 `mark-fixed` 에만, `TEMPLATE_COUNT -gt 0` 가드는 templates 블록에만, 빈값 검사는 `resolve` 에만 있었다.
-  - **잔여 open 6건**: F-K03(`CLAUDE.md` 부재 → `core/rules/` 미로드) · F-K07(hook 미배선 → `events.jsonl` 사용 이벤트 0) — 둘 다 "**vibe-flow 가 자기 자신에 설치되지 않았다**"는 한 뿌리, `/plan` 게이트. F-K08/K09/K12(본 PR) · F-K13(windows matrix).
-  - **F-K13 근거**: CI 등가 스위트를 Windows 에서 돌리면 21개 중 5개 실패(`audit-ledger`/`persona-vote`/`queue-tests`/`schedule`/`statusline`)하는데 #134 의 ubuntu 로그는 **같은 5개가 전부 PASS**. 머지 게이트 플랫폼이 운용 플랫폼과 분리돼 있다.
+  - **후속 확장 (07-10~11, #141~#153)**: F-K13~K21 — windows 2-leg 머지 게이트(최초 run red 로 잔여 결함 적발 후 green, 게이트 유효성 실증) · uuidgen 폴백+LC_ALL=C(#146) · runner 저비용 agent 신설+tdd-enforce 스코프(#142) · doc-counts BSD sed(#144) · hook stdin drain 전수 계약화(#150/#152, hooks-stdin-drain-smoke 27/27).
+  - **종결 (R12 Phase 0, 2026-07-11)**: 19 verified / F-K07 refuted(오진 — 원 증거가 gitignored 런타임 미상속 격리 환경 측정) / F-K03 만 open 잔존.
+- **R12/L (2026-07-11)** — F-L01~F-L11 등록 (11건: P1 3 / P2 4 / P3 4). 주제 반복 확인: **"게이트가 있으나 검증 축이 빗나감"** — L04(문자열만 대조, 배열 길이 미대조) / L08(디렉토리 수만 대조, 파일 존재 미대조) / L09(F-K10 가드가 형제 섹션 미일반화) / L10(스모크 러너 자신이 실행-건수 플로어 없음) / L11(피검 파일이 CI paths 밖). fix 는 ledger `round L` 로 조회.
 
 ## Brainstorm 인덱스 (최근)
 
@@ -58,23 +61,16 @@ Phase 2 / Phase 3.0:
 - **TDD RED-GREEN-REFACTOR Iron Law** (`core/rules/tdd.md`) — `*.test.*` 또는 `tests/*-smoke.sh` 부재 시 commit 금지
 - **Surgical Change** (`core/rules/donts.md`) — 무관한 dead code/comment 임의 수정 금지
 - **Context Engineering** (`core/rules/karpathy-principles.md` §5) — tee 금지, 긴 출력 file redirect, 대형 조회 subagent 위임
-- **core/ ↔ .claude/ sync** — `core/` 가 source, `.claude/` 는 런타임 미러(gitignore 다수). 양쪽 수정 필수. `bash .claude/validate.sh` [4.5/10] + `core/scripts/sync-drift.sh --check` 가 drift 검증.
+- **core/ ↔ .claude/ sync** — `core/` 가 source, `.claude/` 는 런타임 미러(gitignore 다수). 양쪽 수정 필수. `bash .claude/validate.sh` (통과/경고/실패 카운트 출력) + `core/scripts/sync-drift.sh --check` 가 drift 검증.
 
 ## 다음 진입점
 
 1. **frontend-flow 잔여 백로그** (우선) — (a) `editorial-warm-combo` 에이전트 리뷰 실배선(크림배경+serif+italic+테라코타 4신호 조합 탐지, 표면 분류가 기계화 불가라 에이전트 판단 필요, 스펙은 `references/anti-slop-preflight.md` deferred에 확정) (b) `docs/ARCHITECTURE.md` Self-Improving Loop 섹션 전면 재작성(현행 AHE/audit/ledger 반영, 지금은 legacy 배너만 — 카운트·dead-ref는 #127에서 정리됨)
-2. **R11/K fix 실측 반증** — 다음 `/audit` Phase 0 가 `pending-verify` **11건**(F-K01/K02/K04/K05/K06/K08/K09/K10/K11/K12/K16)을 `resolve`. 각 `predicted_delta` 에 **실행 가능한 반증 명령**이 들어 있다 (예: `echo '{"round":"ZZ"}' | ledger.sh append; $?` 가 비-0). R10 의 두 refuted 가 산문 예측이었던 것에 대한 대응.
+2. **R12/L fix 시퀀스** — F-L01~F-L11 (11건). 권장 PR 묶음: **PR-1 D4 게이트**(L08 eval-regression SKILL.md 파일 플로어 / L09 vacuous 가드 형제 섹션 일반화 / L10 스모크 러너 실행-건수 assert / L11 statusline paths) · **PR-2 manifest**(L04 doc-counts 배열 길이 assertion — L03 보다 먼저 넣어 RED 실증 → L03 runner.md 등재로 GREEN / L05 hook taxonomy 통일) · **PR-3 telemetry**(L06 `*"fail"*` qualifier / L07 phantom 잔재 1회성 정리). L01/L02 는 본 라운드 종결 커밋에서 fix. 머지 후 `ledger.sh mark-fixed` → R13 Phase 0 이 반증.
 
-   ⚠️ **F-K13 은 그대로 반증하면 안 된다.** 기록된 `predicted_delta`("windows leg 이 최초 실행에서 red, green 이면 refuted")는 스코핑 이전의 것이다. 스코핑 결과 Windows 실패 5건은 **3개 뿌리**로 갈렸고 그중 A는 이미 고쳐졌다(F-K16, PR #139). B·C(F-K14/F-K15)를 마저 고치면 windows leg 은 **green 이 정상**이므로, 원 `predicted_delta` 를 곧이곧대로 적용하면 옳은 fix 를 refuted 로 오판한다. R12 Phase 0 은 F-K13 을 `refuted`(예측 지표 자체가 틀림 — 메타-학습)로 종결하고, matrix 켜기는 F-K14/K15 머지 후 새 finding 으로 다룬다.
+3. **`/plan` → 자기설치 (F-K03 단독)** — repo 루트 `CLAUDE.md` 부재로 `core/rules/` 미로드. F-K07(hook 배선)은 R12 에서 refuted(오진) — 로컬 배선은 setup.sh 로 이미 성립, 짝이 아니다. `/plan` 없이 착수 금지는 유지.
 
-3. **Windows 이식성 잔여 (F-K14 → F-K15 → matrix 순)**
-   - **F-K14** [P2, 실 버그] `schedule-register.sh:109` 가 `uuidgen` 하드 의존(Windows 부재) + 그 가드가 `:178` claude CLI 검사보다 **앞서** 실행돼 진단이 도달 불가. 가짜 `uuidgen` 주입 시 27/2 로 회복. fix = `python3 -c "import uuid;print(uuid.uuid4())"` 폴백 + uuid 생성 블록을 claude 가드 뒤로 이동
-   - **F-K15** [P3, 테스트 전용] `statusline-tests.sh:79-80` 의 astral-plane emoji(`🔧` U+1F527, `📋` U+1F4CB) grep 이 git-bash UTF-8 로케일에서 실패. `LC_ALL=C` 로 10/0. `statusline.sh` 자체는 정상
-   - 둘 다 머지 후에야 windows matrix(1줄)를 green 으로 켤 수 있다
-
-4. **`/plan` → 자기설치 (F-K03 + F-K07)** — 한 뿌리. F-K07 의 fix(plugin/settings hook 배선)는 **스키마 미검증 추론**이라 코드로 굳히지 않는다. 캐시의 어떤 플러그인도(공식 포함) `hooks` 키를 쓰지 않음을 확인했다. `/plan` 없이 착수 금지.
-
-5. 신규 기능 트랙 후보: `docs/character-system-spec-plan` 브랜치 (Phase 4 동적 캐릭터 시스템, spec/plan만 존재 미구현)
+4. 신규 기능 트랙 후보: `docs/character-system-spec-plan` 브랜치 (Phase 4 동적 캐릭터 시스템, spec/plan만 존재 미구현)
 
 ### R11 세션이 남긴 방법론 교훈
 
