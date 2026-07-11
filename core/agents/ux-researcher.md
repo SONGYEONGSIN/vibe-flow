@@ -6,7 +6,8 @@ description: |
   <example>Context: 사용자가 "사용자 여정 맵", "인터랙션 분석", "경쟁사 UX 비교", "인지 부하 검토" 요청 시<commentary>ux-researcher에 위임</commentary></example>
   <example>Context: 사용자가 "에러 경로 분석", "에러 핸들링 점검", "실패 시나리오 열거", "에러 UX 진단", "빈 상태 점검", "오프라인 대응 확인" 요청 시<commentary>ux-researcher에 위임하여 error-path-analysis 스킬로 코드 기반 에러 경험 진단 수행</commentary></example>
 tools: Read, Write, Grep, Glob, Bash, WebSearch, WebFetch
-model: sonnet
+model: opus
+effort: xhigh
 skills:
   - behavioral-science
   - error-path-analysis

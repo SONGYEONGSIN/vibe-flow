@@ -5,7 +5,8 @@ description: |
   <example>Context: 사용자가 "기능 기획", "MVP 정의", "우선순위 결정", "사용자 경험" 요청 시<commentary>product-strategist에 위임</commentary></example>
   <example>Context: 사용자가 "비즈니스 관점", "ROI 분석", "사용자 리서치", "제품 로드맵" 요청 시<commentary>product-strategist에 위임</commentary></example>
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
-model: sonnet
+model: opus
+effort: xhigh
 skills:
   - superpowers:brainstorming
   - idea

@@ -7,7 +7,7 @@ description: |
 tools: Read, Grep, Glob, Agent
 model: opus
 maxTurns: 20
-effort: max
+effort: xhigh
 memory: project
 ---
 

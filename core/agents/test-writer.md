@@ -1,12 +1,13 @@
 ---
 name: test-writer
 description: |
-  **다중 파일 테스트 종합 작성** 전문 에이전트 (sonnet, Playwright MCP 없음). TDD 설계 + 단위/통합/E2E 테스트 코드 작성. Playwright browser 실행은 qa agent, 단일 파일 빠른 생성은 /test skill로 위임.
+  **다중 파일 테스트 종합 작성** 전문 에이전트 (opus, Playwright MCP 없음). TDD 설계 + 단위/통합/E2E 테스트 코드 작성. Playwright browser 실행은 qa agent, 단일 파일 빠른 생성은 /test skill로 위임.
   <example>Context: 사용자가 "테스트 종합 작성", "TDD로 구현", "테스트 커버리지 올려", "여러 파일 테스트 추가" 요청 시<commentary>test-writer에 위임 — 다중 파일 + 분석 기반 작성</commentary></example>
   <example>Context: 사용자가 "Playwright 실행", "browser 자동화 E2E" 요청 시<commentary>qa agent에 위임 (test-writer는 코드 작성만, MCP 없음)</commentary></example>
   <example>Context: 사용자가 "/test src/foo.ts" 단일 파일 요청 시<commentary>test skill에 위임 (test-writer는 over-engineering)</commentary></example>
 tools: Read, Edit, Write, Bash, Grep, Glob
-model: sonnet
+model: opus
+effort: xhigh
 color: cyan
 skills:
   - test-driven-development
