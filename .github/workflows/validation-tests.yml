@@ -27,11 +27,27 @@ on:
 
 jobs:
   smoke:
-    runs-on: ubuntu-latest
+    # F-K13 (audit R11): 머지 게이트 플랫폼이 harness 실 운용 플랫폼(Windows git-bash)과
+    # 분리돼 Windows 전용 회귀(jq CRLF, uuidgen 부재, 로케일 매칭)가 CI PASS 뒤에 숨었다.
+    # windows-latest leg 를 추가해 양 플랫폼을 머지 게이트로 승격.
+    strategy:
+      fail-fast: false            # ubuntu 결과가 windows red 에 가려지지 않게
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash               # windows 기본 pwsh 대신 git-bash — 실 운용 환경과 동일
     steps:
+      - name: Disable autocrlf (Windows)
+        if: runner.os == 'Windows'
+        run: git config --global core.autocrlf false
+        # checkout 전에 실행 — 라인엔딩 변환 노이즈가 아니라 스크립트 로직을 검증
       - uses: actions/checkout@v4
-      - name: Install jq
+      - name: Install jq (Linux)
+        if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y jq
+        # windows-latest 는 jq 프리인스톨 (러너 이미지 포함)
       - name: Run fixture-based validation & instrumentation smoke tests
         run: |
           set -u
