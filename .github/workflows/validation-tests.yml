@@ -21,6 +21,8 @@ on:
       - 'core/skills/**/scripts/**'   # F-I05 (audit R9): ledger.sh 등 skill 내부 계측 스크립트
       - 'extensions/**/scripts/**'    # F-J03 (audit R10): frontend-flow 등 extensions skill 스크립트
       - 'scripts/tests/**'
+      - 'scripts/statusline.sh'        # F-L11 (audit R12): statusline-tests.sh 의 피검 대상인데
+                                       # 트리거 경로에 없어 단독 수정 PR 의 회귀가 CI PASS 뒤에 숨었다.
       - '.github/workflows/validation-tests.yml'
   push:
     branches: [main]
@@ -52,6 +54,7 @@ jobs:
         run: |
           set -u
           failed=0
+          executed=0
           # F-H05 (audit R8): CI-SKIP 마커(.claude 런타임/gh 등 CI 부재 의존) 테스트만 제외,
           # 나머지는 전부 RUN. 기존 mktemp 휴리스틱은 core-only CI-safe 테스트
           # (persona-vote/notify-pr)를 false-skip 하던 결함 → 명시 마커 방식으로 전환.
@@ -60,6 +63,7 @@ jobs:
               echo "SKIP (CI-SKIP marker)  $(basename "$t")"
               continue
             fi
+            executed=$((executed+1))
             echo "::group::$t"
             if bash "$t"; then
               echo "PASS  $(basename "$t")"
@@ -69,4 +73,12 @@ jobs:
             fi
             echo "::endgroup::"
           done
+          # F-L10 (audit R12): "커버리지 0 ≠ 통과" 플로어를 집행하는 러너 자신이
+          # 실행-건수 플로어가 없어, 스모크 삭제·우발 CI-SKIP 매칭에 의한 부분 소실이
+          # 무탐지였다. 플로어 미달 시 fail — 의도된 감축이면 플로어를 같은 PR 에서 갱신.
+          echo "executed smoke tests: $executed"
+          if [ "$executed" -lt 26 ]; then
+            echo "::error::실행된 스모크 $executed < 플로어 26 — 커버리지 부분 소실"
+            failed=1
+          fi
           exit $failed
