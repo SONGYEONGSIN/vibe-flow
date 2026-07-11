@@ -1,4 +1,7 @@
 #!/bin/bash
+# F-K21: stdin drain — payload 미소비 종료 시 writer(Claude Code)가 EPIPE
+# ('hook error: Failed to write to socket'). TTY(수동 실행)면 스킵.
+[ -t 0 ] || cat >/dev/null 2>&1
 # session-review.sh — Stop prompt 훅
 #
 # 세션 종료 시 작업 품질을 종합 평가한다:
