@@ -95,6 +95,17 @@ assert_class "read-only variable → diagnostic (F-G09)" "diagnostic" "$c"
 c=$(run_classify "Bash" "open /etc/missing: ENOENT: no such file or directory")
 assert_class "real not_found stays not_found (gate 오작동 없음)" "not_found" "$c"
 
+# 10. F-L06 — 산문 속 "failure" 부분문자열(bare "fail" 매치)은 test_error 아님
+#     실이벤트 재현: 감사 문서 grep exit-1 출력의 'tool-failure over-classification 노출'
+c=$(run_classify "Bash" "Exit code 1
+D3 dogfooding: tool-failure over-classification 노출")
+assert_class "prose 'tool-failure' substring → NOT test_error (F-L06)" "unknown" "$c"
+
+# 10b. F-L06 positive — 진짜 테스트 실패 신호는 test_error 유지
+c=$(run_classify "Bash" "Tests: 1 failed, 12 passed
+vitest run exited with code 1")
+assert_class "genuine 'N failed' test output → test_error" "test_error" "$c"
+
 teardown
 
 echo
