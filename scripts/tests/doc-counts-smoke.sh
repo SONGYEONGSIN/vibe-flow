@@ -10,6 +10,7 @@ assert_exit() {
   else echo "  ✗ $1 (expected $2, got $3)"; FAIL=$((FAIL+1)); fi
 }
 
+# F-K19: sed -i 는 BSD sed(macOS)에서 백업 suffix 필수 — -i.bak + rm 으로 GNU/BSD 겸용
 # ── fixture 빌더: 실측 skills=3 agents=2 hooks=2 rules=1 ──
 make_fixture() {
   local d="$1"
@@ -44,17 +45,17 @@ bash "$CHK" "$TMP/ok" >/dev/null 2>&1; assert_exit "match-exit0" "0" "$?"
 
 echo "Test D2: README 배지 hooks 불일치(2→9) → exit 1"
 make_fixture "$TMP/badbadge"
-sed -i 's/Hooks-2-orange/Hooks-9-orange/' "$TMP/badbadge/README.md"
+sed -i.bak 's/Hooks-2-orange/Hooks-9-orange/' "$TMP/badbadge/README.md" && rm -f "$TMP/badbadge/README.md.bak"
 bash "$CHK" "$TMP/badbadge" >/dev/null 2>&1; assert_exit "bad-badge-exit1" "1" "$?"
 
 echo "Test D3: README 본문 skills 불일치(3→7) → exit 1 (본문·배지 divergence 포착)"
 make_fixture "$TMP/badbody"
-sed -i 's/3 skills/7 skills/' "$TMP/badbody/README.md"
+sed -i.bak 's/3 skills/7 skills/' "$TMP/badbody/README.md" && rm -f "$TMP/badbody/README.md.bak"
 bash "$CHK" "$TMP/badbody" >/dev/null 2>&1; assert_exit "bad-body-exit1" "1" "$?"
 
 echo "Test D4: plugin.json hooks 불일치(2→5) → exit 1"
 make_fixture "$TMP/badplugin"
-sed -i 's/2 hooks/5 hooks/' "$TMP/badplugin/.claude-plugin/plugin.json"
+sed -i.bak 's/2 hooks/5 hooks/' "$TMP/badplugin/.claude-plugin/plugin.json" && rm -f "$TMP/badplugin/.claude-plugin/plugin.json.bak"
 bash "$CHK" "$TMP/badplugin" >/dev/null 2>&1; assert_exit "bad-plugin-exit1" "1" "$?"
 
 echo "Test D5: 실제 core/hooks에 훅 추가로 실측 변동 → 문서 미갱신이면 exit 1"
