@@ -25,7 +25,8 @@ assert_equals() {
 
 assert_contains() {
   local name="$1" pattern="$2" actual="$3"
-  if echo "$actual" | grep -q "$pattern"; then
+  # F-K15: git-bash UTF-8 로케일이 astral-plane 문자(🔧, 📋) 매칭에 실패 — LC_ALL=C 바이트 매칭
+  if echo "$actual" | LC_ALL=C grep -q "$pattern"; then
     echo "  ✓ $name"
     PASS=$((PASS + 1))
   else

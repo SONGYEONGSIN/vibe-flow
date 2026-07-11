@@ -106,11 +106,15 @@ REPO_URL_RAW="${REPO_URL:-$(git remote get-url origin 2>/dev/null || echo '<unkn
 REPO_URL_VALUE="${REPO_URL_RAW%.git}"
 
 # message UUID (RemoteTrigger 각 events entry 고유)
-if ! command -v uuidgen >/dev/null 2>&1; then
-  echo "uuidgen not found — required for message UUID" >&2
+# F-K14: uuidgen 없는 플랫폼(일부 Windows git-bash) 폴백 — python3 uuid
+if command -v uuidgen >/dev/null 2>&1; then
+  MSG_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+elif command -v python3 >/dev/null 2>&1; then
+  MSG_UUID=$(python3 -c "import uuid; print(uuid.uuid4())")
+else
+  echo "uuidgen/python3 not found — required for message UUID" >&2
   exit 5
 fi
-MSG_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
 # F11: prompt 본문은 git clone block 제거됨 (sources가 자동 checkout)
 # placeholder 치환 — 본문에 변수 토큰 남아있으면 sed로 안전 치환
