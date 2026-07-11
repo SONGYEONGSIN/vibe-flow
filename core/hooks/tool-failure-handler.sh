@@ -63,10 +63,14 @@ classify_error() {
       recovery="입출력 JSON 포맷 확인. jq로 검증." ;;
     # F-I06 (audit R9): bare "build" 제거 — repo 경로(/개발/build/vibe-flow)의 부분문자열이
     # git log 등 stdout 에 섞여 build_error 오분류. "build error/failed", "next build" 문맥만 매치.
-    *"build error"*|*"build failed"*|*"webpack"*|*"vite"*|*"esbuild"*|*"rollup"*|*"next build"*)
+    # F-L12 (audit R12): bare "vite" 는 "vitest" 의 부분문자열 — 이 브랜치가 test_error 보다
+    # 앞이라 vitest 출력 전체가 build_error 로 오분류됐다. 공백/콜론 문맥만 매치.
+    *"build error"*|*"build failed"*|*"webpack"*|*"vite "*|*"vite:"*|*"esbuild"*|*"rollup"*|*"next build"*)
       error_class="build_error"; retryable="false"
       recovery="빌드 설정 확인. 의존성 설치 상태 점검." ;;
-    *"fail"*|*"vitest"*|*"jest"*|*"assert"*|*"expected"*|*"received"*)
+    # F-L06 (audit R12): bare "fail" 제거 — "tool-failure"/"failure" 산문의 부분문자열이
+    # test_error 오분류 (F-I06 과 동일 클래스가 다른 키워드로 잔존). failed/failing 문맥만 매치.
+    *"failed"*|*"failing"*|*"fail:"*|*"test fail"*|*"vitest"*|*"jest"*|*"assert"*|*"expected"*|*"received"*)
       error_class="test_error"; retryable="false"
       recovery="실패 테스트 로그 분석. 예상값과 실제값 비교." ;;
     *"eslint"*|*"lint"*|*"prettier"*|*"formatting"*)
