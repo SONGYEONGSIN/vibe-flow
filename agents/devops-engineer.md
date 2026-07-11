@@ -5,8 +5,7 @@ description: |
   <example>Context: 사용자가 "CI/CD 구성", "Docker 설정", "인프라 구축", "배포 파이프라인" 요청 시<commentary>devops-engineer에 위임하여 인프라 구축 및 자동화</commentary></example>
   <example>Context: 사용자가 "GitHub Actions 워크플로우", "컨테이너화", "클라우드 설정", "IaC 작성" 요청 시<commentary>devops-engineer에 위임</commentary></example>
 tools: Read, Edit, Write, Bash, Grep, Glob
-model: opus
-effort: xhigh
+model: sonnet
 skills:
   - deploy-safety-guard
   - superpowers:verification-before-completion

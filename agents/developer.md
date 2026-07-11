@@ -4,7 +4,7 @@ description: 코드 구현 전문 에이전트. Server Actions, React 컴포넌�
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: opus
 maxTurns: 30
-effort: xhigh
+effort: high
 memory: project
 ---
 

@@ -2,9 +2,9 @@
 name: retrospective
 description: 프로젝트 이력을 분석하여 에이전트/스킬/규칙 개선안을 도출하는 학습 에이전트. 메트릭과 세션 로그를 종합 분석한다.
 tools: Read, Grep, Glob, Bash
-model: opus
+model: sonnet
 maxTurns: 15
-effort: xhigh
+effort: high
 memory: project
 ---
 

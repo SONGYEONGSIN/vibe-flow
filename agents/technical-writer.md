@@ -5,8 +5,7 @@ description: |
   <example>Context: 사용자가 "README 작성", "API 문서화", "체인지로그 만들어줘", "문서 정리" 요청 시<commentary>technical-writer에 위임하여 기술 문서 작성</commentary></example>
   <example>Context: 사용자가 "가이드 작성", "사용 설명서", "코드 문서화", "DX 개선" 요청 시<commentary>technical-writer에 위임</commentary></example>
 tools: Read, Write, Grep, Glob
-model: opus
-effort: xhigh
+model: haiku
 skills:
   - start-docs
   - document-skills:docx

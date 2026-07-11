@@ -7,7 +7,7 @@ description: |
 tools: Read, Grep, Glob, Bash, Edit, Write, mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_click, mcp__playwright__browser_fill_form, mcp__playwright__browser_console_messages, mcp__playwright__browser_take_screenshot
 model: opus
 maxTurns: 30
-effort: xhigh
+effort: high
 memory: project
 ---
 
