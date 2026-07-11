@@ -1,5 +1,8 @@
 #!/bin/bash
 set -u
+# F-K21: stdin drain — payload 미소비 종료 시 writer(Claude Code)가 EPIPE
+# ('hook error: Failed to write to socket'). TTY(수동 실행)면 스킵.
+[ -t 0 ] || cat >/dev/null 2>&1
 # context-prune.sh — PreCompact 훅: 컨텍스트 압축 전 도구 출력 요약
 #
 # Hermes Agent context_compressor 패턴 적용.

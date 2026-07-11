@@ -1,5 +1,8 @@
 #!/bin/bash
 set -uo pipefail
+# F-K21: stdin drain — payload 미소비 종료 시 writer(Claude Code)가 EPIPE
+# ('hook error: Failed to write to socket'). TTY(수동 실행)면 스킵.
+[ -t 0 ] || cat >/dev/null 2>&1
 # session-memory-sync.sh — Stop hook
 #
 # 세션 종료 시 ~/.claude/ 메모리를 sync-memory.sh로 claude-memory orphan branch에 자동 push.

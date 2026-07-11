@@ -1,5 +1,8 @@
 #!/bin/bash
 set -u  # 미정의 변수 사용 시 즉시 에러
+# F-K21: stdin drain — payload 미소비 종료 시 writer(Claude Code)가 EPIPE
+# ('hook error: Failed to write to socket'). TTY(수동 실행)면 스킵.
+[ -t 0 ] || cat >/dev/null 2>&1
 # Stop hook: 커밋 안 한 변경사항이 있으면 경고
 # NOTE: session-review.sh에서 더 상세한 리뷰를 수행하므로,
 # 이 훅은 session-review.sh 없이 단독으로 사용할 때를 위해 유지.

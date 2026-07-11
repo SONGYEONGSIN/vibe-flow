@@ -1,5 +1,8 @@
 #!/bin/bash
 set -u  # 미정의 변수 사용 시 즉시 에러
+# F-K21: stdin drain — payload 미소비 종료 시 writer(Claude Code)가 EPIPE
+# ('hook error: Failed to write to socket'). TTY(수동 실행)면 스킵.
+[ -t 0 ] || cat >/dev/null 2>&1
 # Stop hook: 세션 종료 시 작업 기록 저장 + 메트릭 요약
 
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")

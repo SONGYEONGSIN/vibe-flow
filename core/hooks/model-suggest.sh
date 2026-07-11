@@ -1,5 +1,8 @@
 #!/bin/bash
 set -u
+# F-K21: stdin drain — payload 미소비 종료 시 writer(Claude Code)가 EPIPE
+# ('hook error: Failed to write to socket'). TTY(수동 실행)면 스킵.
+[ -t 0 ] || cat >/dev/null 2>&1
 # model-suggest.sh — Notification 훅: 스마트 모델 라우팅 제안
 #
 # Hermes Agent smart_model_routing 패턴 적용.

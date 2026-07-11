@@ -1,4 +1,7 @@
 #!/bin/bash
+# F-K21: stdin drain — payload 미소비 종료 시 writer(Claude Code)가 EPIPE
+# ('hook error: Failed to write to socket'). TTY(수동 실행)면 스킵.
+[ -t 0 ] || cat >/dev/null 2>&1
 # budget-warn.sh — Notification hook
 # 일일 한도 80%+ 사용 시 비차단 경고 (additionalContext)
 # 디바운스: 15분 (.budget-last-warn 타임스탬프)

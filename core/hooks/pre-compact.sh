@@ -1,5 +1,8 @@
 #!/bin/bash
 set -u
+# F-K21: stdin drain — payload 미소비 종료 시 writer(Claude Code)가 EPIPE
+# ('hook error: Failed to write to socket'). TTY(수동 실행)면 스킵.
+[ -t 0 ] || cat >/dev/null 2>&1
 # PreCompact hook: 컨텍스트 압축 전 중요 정보를 보존한다.
 # 압축 시 손실될 수 있는 진행 상황, 결정 사항을 additionalContext로 재주입.
 
