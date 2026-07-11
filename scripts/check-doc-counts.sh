@@ -20,7 +20,9 @@ done
 # 실측 카운트 (core/hooks의 _common.sh 헬퍼, core/agents의 README.md 제외)
 ACT_SKILLS=$(find core/skills -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
 ACT_AGENTS=$(find core/agents -maxdepth 1 -name '*.md' ! -name 'README.md' 2>/dev/null | wc -l | tr -d ' ')
-ACT_HOOKS=$(find core/hooks -maxdepth 1 -name '*.sh' ! -name '_common.sh' 2>/dev/null | wc -l | tr -d ' ')
+# F-L05 (audit R12): validate.sh taxonomy(REQUIRED_HOOKS 26 + REQUIRED_UTILITIES)와 통일 —
+# message-bus.sh 는 CLI 유틸(F-I03), git-post-commit.sh 는 git 훅이라 Claude hook 카운트에서 제외.
+ACT_HOOKS=$(find core/hooks -maxdepth 1 -name '*.sh' ! -name '_common.sh' ! -name 'message-bus.sh' ! -name 'git-post-commit.sh' 2>/dev/null | wc -l | tr -d ' ')
 ACT_RULES=$(find core/rules -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
 
 # 파일에서 regex 매치들의 숫자가 전부 expect와 같은지 (배지 ↔ 본문 divergence까지 포착)
@@ -47,6 +49,15 @@ for mf in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
   assert_all "$mf agents" "$mf" '[0-9]+ agents' "$ACT_AGENTS"
   assert_all "$mf hooks"  "$mf" '[0-9]+ hooks'  "$ACT_HOOKS"
 done
+
+# F-L04 (audit R12): 위 assert 는 설명 *문자열*만 대조해, plugin.json 로딩 배열이
+# stale(문자열 '23 agents' 정확 / .agents 배열 22)이어도 통과하는 맹점이 있었다.
+# 비표준 경로(core/)는 배열 명시 등재가 유일 로딩 경로 — 배열 길이 자체를 실측과 대조.
+# jq 실패·키 부재는 null|length=0 으로 mismatch → fail-closed. tr -d '\r': Windows jq CRLF.
+PLUGIN_SKILLS_LEN=$(jq '.skills | length' .claude-plugin/plugin.json 2>/dev/null | tr -d '\r')
+PLUGIN_AGENTS_LEN=$(jq '.agents | length' .claude-plugin/plugin.json 2>/dev/null | tr -d '\r')
+[ "$PLUGIN_SKILLS_LEN" = "$ACT_SKILLS" ] || err "plugin.json .skills 배열 ${PLUGIN_SKILLS_LEN:-?}개 (실측 $ACT_SKILLS)"
+[ "$PLUGIN_AGENTS_LEN" = "$ACT_AGENTS" ] || err "plugin.json .agents 배열 ${PLUGIN_AGENTS_LEN:-?}개 (실측 $ACT_AGENTS)"
 
 if [ "$FAIL" -gt 0 ]; then
   echo "❌ 문서 카운트 drift ${FAIL}건 (실측 skills=$ACT_SKILLS agents=$ACT_AGENTS hooks=$ACT_HOOKS rules=$ACT_RULES)"

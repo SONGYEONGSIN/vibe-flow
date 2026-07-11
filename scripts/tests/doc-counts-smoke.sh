@@ -33,7 +33,12 @@ make_fixture() {
 → 3 skills + 2 agents + 2 hooks + 1 rules are activated.
 ## enforcement (2 hooks)
 EOF
-  printf '{"description":"kit. 3 skills + 2 agents + 2 hooks."}\n' > "$d/.claude-plugin/plugin.json"
+  # F-L04: plugin.json 은 description 문자열 + 로딩 배열(skills/agents) 양쪽을 검증 대상으로 포함
+  cat > "$d/.claude-plugin/plugin.json" <<'EOF'
+{"description":"kit. 3 skills + 2 agents + 2 hooks.",
+ "skills":["./core/skills/a","./core/skills/b","./core/skills/c"],
+ "agents":["./core/agents/x.md","./core/agents/y.md"]}
+EOF
   printf '{"description":"kit — 3 skills, 2 agents, 2 hooks."}\n' > "$d/.claude-plugin/marketplace.json"
 }
 
@@ -66,6 +71,19 @@ bash "$CHK" "$TMP/newhook" >/dev/null 2>&1; assert_exit "inventory-change-exit1"
 echo "Test D6: 필수 문서 파일 없음 → exit 2"
 mkdir -p "$TMP/nofile/core/skills/a"
 bash "$CHK" "$TMP/nofile" >/dev/null 2>&1; assert_exit "missing-file-exit2" "2" "$?"
+
+echo "Test D7 (F-L04): plugin.json .agents 배열 stale(문자열 2 정확, 배열 1개) → exit 1"
+make_fixture "$TMP/stalearr"
+# 설명 문자열은 '2 agents' 그대로, 배열에서만 y.md 제거 — F-H01/F-I02 류 배열 drift 모델
+jq -c 'del(.agents[1])' "$TMP/stalearr/.claude-plugin/plugin.json" > "$TMP/stalearr/p.tmp" \
+  && mv "$TMP/stalearr/p.tmp" "$TMP/stalearr/.claude-plugin/plugin.json"
+bash "$CHK" "$TMP/stalearr" >/dev/null 2>&1; assert_exit "stale-array-exit1" "1" "$?"
+
+echo "Test D8 (F-L04): plugin.json .agents 키 자체 부재 → exit 1 (fail-closed)"
+make_fixture "$TMP/noarr"
+jq -c 'del(.agents)' "$TMP/noarr/.claude-plugin/plugin.json" > "$TMP/noarr/p.tmp" \
+  && mv "$TMP/noarr/p.tmp" "$TMP/noarr/.claude-plugin/plugin.json"
+bash "$CHK" "$TMP/noarr" >/dev/null 2>&1; assert_exit "missing-array-exit1" "1" "$?"
 
 echo ""; echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

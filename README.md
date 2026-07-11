@@ -7,7 +7,7 @@ English | [한국어](README.ko.md)
 [![CI](https://github.com/SONGYEONGSIN/vibe-flow/actions/workflows/eval-regression.yml/badge.svg)](https://github.com/SONGYEONGSIN/vibe-flow/actions)
 [![Skills](https://img.shields.io/badge/Skills-45-blue)](docs/REFERENCE.md)
 [![Extensions](https://img.shields.io/badge/Extensions-7-purple)](extensions/)
-[![Hooks](https://img.shields.io/badge/Hooks-28-orange)](docs/REFERENCE.md)
+[![Hooks](https://img.shields.io/badge/Hooks-26-orange)](docs/REFERENCE.md)
 [![Agents](https://img.shields.io/badge/Agents-23-green)](docs/REFERENCE.md)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
@@ -28,7 +28,7 @@ cd /your/project
 bash /path/to/vibe-flow/setup.sh
 ```
 
-→ 45 skills + 23 agents + 28 hooks + 8 rules are activated immediately.
+→ 45 skills + 23 agents + 26 hooks + 8 rules are activated immediately.
 
 ## 🎯 First cycle (5 minutes)
 
@@ -172,7 +172,7 @@ specialists (`@api-architect`, `@frontend-design-specialist`,
 `@project-planner`)
 + extensions: `@skill-reviewer`, `@grader`
 
-## 🛠 Automatic enforcement (28 hooks)
+## 🛠 Automatic enforcement (26 hooks)
 
 Runs without `/verify`:
 - every `Write/Edit` → prettier, eslint, typecheck, test, design-lint
