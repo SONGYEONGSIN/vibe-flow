@@ -10,3 +10,4 @@
 - [고객응대 메일함 기능](mailbox-feature.md) — ★실운영 가동(#673+#674 머지, DB·Ollama·Mail.Read·launchd cron 전부 완료). 외부고객만 필터+HTML발송+운영자별 클릭링크 서명. Phase2 위임 미착수
 - [entertest 테스트 실행 파이프라인](entertest-test-run.md) — 폴러 가동 중(6/18 5/5 통과), v2 실제 원서작성 "결제 직전까지" 진행 + 계정 순환 미결
 - [견적서 기능](quotes-feature.md) — 자료보관>견적서. Phase1 목록 + Phase2 문서양식(4유형 dev/fee/platform/labor + KOSA적산 + PDF) 전부 머지
+- [크롬 웜 화이트 디자인 리뉴얼](design-chrome-warm-white.md) — ★전부 머지 완료(#844+후속 #846 washi-raised·vermilion 선택 표준), 기각된 색 이력 포함
