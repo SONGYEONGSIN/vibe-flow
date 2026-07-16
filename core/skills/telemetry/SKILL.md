@@ -91,21 +91,20 @@ DAY_7_AGO=$(date -u -v-7d +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
 ### 3. 스킬 명단 + 별칭
 
 ```bash
-# 27 스킬 (Core 18 + Extensions 9)
-# events.jsonl type → /label 매핑
-SKILL_TYPES=(
-  brainstorm plan finish release
-  scaffold test worktree
-  verify security commit_created commit_pushed
+# F-M06 (audit R13): 스킬 유니버스 27개 하드코딩이 실측(스킬 디렉토리 수)과 drift —
+# Stale 탐지가 목록 밖 스킬을 구조적으로 못 봤다. 유니버스는 파일시스템에서 동적 유도하고,
+# 디렉토리명이 아닌 이벤트 별칭 타입(commit_created 등)만 리터럴로 유지.
+EVENT_ALIAS_TYPES=(
+  commit_created commit_pushed learn_save
   review_pr review_received
-  status learn_save onboard menu inbox budget
   eval skill_evolve design_sync design_audit
-  pair_session discuss
-  metrics retrospective
-  feedback
+  pair_session discuss metrics retrospective feedback
   # F-G04 (audit R7): PR #81 계측 이벤트 — 자동 trigger 추적 (Active/Stale 가시화)
   skill_invoked skill_invoked_auto agent_invoked
 )
+SKILL_UNIVERSE_DIR="core/skills"
+[ -d "$SKILL_UNIVERSE_DIR" ] || SKILL_UNIVERSE_DIR=".claude/skills"
+SKILL_TYPES=($(find "$SKILL_UNIVERSE_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sed 's|.*/||' | LC_ALL=C sort) "${EVENT_ALIAS_TYPES[@]}")
 
 type_to_label() {
   case "$1" in
@@ -121,6 +120,8 @@ type_to_label() {
     skill_invoked) echo "스킬(슬래시)" ;;
     skill_invoked_auto) echo "스킬(자동)" ;;
     agent_invoked) echo "에이전트" ;;
+    # F-M05 (audit R13): 재키잉된 agent 키 — "agent:runner" → "agent(runner)"
+    agent:*) echo "agent(${1#agent:})" ;;
     *) echo "/$1" ;;
   esac
 }
@@ -154,18 +155,27 @@ extension_name() {
 #   집계(Top5/Total/sparkline)에서만 제외. Active/Stale/개선후보는 SKILL_TYPES 기반이라 무관.
 NOISE_TYPES='["memory_sync_triggered","tool_failure","tool_result"]'
 
+# F-M05 (audit R13): tool-invocation-tracker 는 이벤트에 .skill/.agent 를 기록하는데
+# 소비자가 group_by(.type) 만 사용 — 45 스킬이 '스킬(자동)' 단일 버킷으로 붕괴하던
+# dead write (PR #81 이 쓰기측만 wire). skill_invoked*/agent_invoked 는 기록된 이름으로
+# 재키잉해 named 집계로 전환. 이름 부재 이벤트(phantom 가드)는 type 폴백.
+JQ_KEY='def key: (.type as $t
+  | if ($t == "skill_invoked" or $t == "skill_invoked_auto") and ((.skill // "") != "") then .skill
+    elif $t == "agent_invoked" and ((.agent // "") != "") then "agent:" + .agent
+    else $t end);'
+
 # 분석 기간 카운트 (group)
 COUNTS_PERIOD=$(jq -s --arg d "$DAY_PERIOD_AGO" --argjson noise "$NOISE_TYPES" \
-  'map(select(.ts > $d and (.type as $t | ($noise | index($t)) == null))) | group_by(.type) | map({(.[0].type): length}) | add // {}' \
+  "$JQ_KEY"'map(select(.ts > $d and (.type as $t | ($noise | index($t)) == null))) | group_by(key) | map({(.[0] | key): length}) | add // {}' \
   "$EVENTS" 2>/dev/null || echo '{}')
 
 # 7일 카운트 (서브 윈도우 — Active/추세용)
 COUNTS_7D=$(jq -s --arg d "$DAY_7_AGO" --argjson noise "$NOISE_TYPES" \
-  'map(select(.ts > $d and (.type as $t | ($noise | index($t)) == null))) | group_by(.type) | map({(.[0].type): length}) | add // {}' \
+  "$JQ_KEY"'map(select(.ts > $d and (.type as $t | ($noise | index($t)) == null))) | group_by(key) | map({(.[0] | key): length}) | add // {}' \
   "$EVENTS" 2>/dev/null || echo '{}')
 
-# last_used per type
-LAST_USED=$(jq -s 'group_by(.type) | map({(.[0].type): (max_by(.ts) | .ts)}) | add // {}' \
+# last_used per key
+LAST_USED=$(jq -s "$JQ_KEY"'group_by(key) | map({(.[0] | key): (max_by(.ts) | .ts)}) | add // {}' \
   "$EVENTS" 2>/dev/null || echo '{}')
 
 # 분석 기간 일별 totals (sparkline용)
@@ -576,6 +586,7 @@ jq -nc --arg ts "$NOW_ISO" --arg mode "$MODE" --arg src "session" \
 
 - **자체 이벤트 부재**: brainstorm spec 작성 / plan 생성 / commit 같은 의미 단위 활동은 session-logs에 raw tool call로만 기록. events 모드가 이런 의미 단위를 더 잘 잡음.
 - **권장**: `--source events` 와 `--source session` 둘 다 실행해서 격차 비교가 가장 풍부 (R3 PR 이후 기본 패턴).
+- **tool_failure error_class 비대표성 (F-M07, audit R13)**: 현 events.jsonl 의 failure 는 대부분 harness 자기 감사 세션의 Bash 산출물이고, classify_error 가 stdout 전문을 키워드 매칭하므로 감사가 분류기 소스/리포트/git log 를 출력할 때 자기오염된다. error_class 분포는 실 downstream 프로젝트 telemetry 확보 전까지 harness 건강도/감사 채점 신호로 사용하지 않는다.
 
 ## 출처
 

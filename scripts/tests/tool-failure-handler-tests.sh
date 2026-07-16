@@ -106,6 +106,19 @@ c=$(run_classify "Bash" "Tests: 1 failed, 12 passed
 vitest run exited with code 1")
 assert_class "genuine 'N failed' test output → test_error" "test_error" "$c"
 
+# 11. F-M07 — Python traceback (genuine 런타임 예외)은 하위 브랜치 오분류 전에 runtime_error
+#     실이벤트 재현: telemetry 분석 one-liner 의 TypeError 2건이 unknown 으로 유실됐다.
+c=$(run_classify "Bash" "Exit code 1
+Traceback (most recent call last):
+  File \"<stdin>\", line 3, in <module>
+TypeError: unsupported operand type(s) for +: 'int' and 'str'")
+assert_class "python traceback → runtime_error (F-M07)" "runtime_error" "$c"
+
+# 11b. F-M07 negative — traceback 없는 테스트 출력은 신설 브랜치가 탈취하지 않음 (순서 가드)
+c=$(run_classify "Bash" "Tests: 1 failed, 12 passed
+vitest run exited with code 1")
+assert_class "vitest output stays test_error (runtime 브랜치 미탈취)" "test_error" "$c"
+
 teardown
 
 echo

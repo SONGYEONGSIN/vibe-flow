@@ -3,7 +3,7 @@ set -u
 # PostToolUseFailure hook: 도구 실행 실패 시 구조화된 에러 분류 + 복구 힌트
 #
 # Hermes Agent error_classifier 패턴 적용.
-# 13개 에러 클래스로 분류하고 재시도 가능 여부 + 복구 제안을 제공한다.
+# 14개 에러 클래스로 분류하고 재시도 가능 여부 + 복구 제안을 제공한다.
 # 기존 dual-write (JSON + SQLite + JSONL) 패턴 유지.
 
 INPUT=$(cat)
@@ -46,6 +46,12 @@ classify_error() {
     *"no matches found"*|*"read-only variable"*)
       error_class="diagnostic"; retryable="false"
       recovery="진단/탐색성 비정상 종료 (실 실패 아님). 분석 제외 가능." ;;
+    # F-M07 (audit R13): genuine 런타임 예외(Python traceback)가 키워드 부재로 unknown 유실
+    # 또는 하위 브랜치에 오분류되던 것을 결정적 시그니처로 최상단 포착. bare "assertionerror"
+    # 는 vitest assertion 출력과 충돌해 test_error 를 탈취하므로 제외 (traceback 한정).
+    *"traceback (most recent call last)"*)
+      error_class="runtime_error"; retryable="false"
+      recovery="런타임 예외 — 스택 트레이스 최하단 프레임부터 원인 분석." ;;
     *"401"*|*"403"*|*"unauthorized"*|*"eauth"*|*"invalid api key"*|*"authentication"*)
       error_class="auth"; retryable="false"
       recovery="인증 토큰 확인. 환경변수 또는 .env 파일 점검." ;;
