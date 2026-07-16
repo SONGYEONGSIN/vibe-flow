@@ -69,7 +69,7 @@ Phase 2 / Phase 3.0:
 ## 다음 진입점
 
 1. **frontend-flow 잔여 백로그** (우선) — (a) `editorial-warm-combo` 에이전트 리뷰 실배선(크림배경+serif+italic+테라코타 4신호 조합 탐지, 표면 분류가 기계화 불가라 에이전트 판단 필요, 스펙은 `references/anti-slop-preflight.md` deferred에 확정) (b) `docs/ARCHITECTURE.md` Self-Improving Loop 섹션 전면 재작성(현행 AHE/audit/ledger 반영, 지금은 legacy 배너만 — 카운트·dead-ref는 #127에서 정리됨)
-2. **R13/M fix 시퀀스** — F-M01~F-M10 (10건). 권장 PR 묶음: **PR-1 게이트 사각**(M08 CI paths 2줄 / M09 플로어 실측 등가 대조 / M10 REQUIRED_HOOKS 실측 enumerate / M04 manifest 원소 실존 검사 / M02 MEMORY↔ledger 정합 assert) · **PR-2 telemetry 소비자**(M05 per-skill/agent 2차 집계 / M06 SKILL_TYPES 동적 유도 / M07 runtime_error 브랜치 + 비대표성 캡션) · **PR-3 runner 라우팅**(M03 agent-routing 분기 + delegation-patterns 표 행). M01 은 본 라운드 종결 커밋에서 fix. 머지 후 `ledger.sh mark-fixed` → R14 Phase 0 이 반증.
+2. **R14 감사 라운드** — R13/M fix 는 완료됨 (#159 M01 / #160 M02·04·08·09·10 / #161 M05·06·07 / #162 M03 머지 + #163 mark-fixed). F-M01~F-M10 전건 `fixed` 상태 — **R14 Phase 0 이 pending-verify 로 predicted_delta 실측 반증**하면 라운드가 닫힌다. 반증 커맨드는 ledger `round M` 의 predicted_delta 필드 참조. 참고: M07 fix 는 ledger 제안(assertionerror 키워드)을 그대로 쓰지 않고 traceback 한정으로 축소(vitest test_error 탈취 방지) — R14 는 이 축소분 기준으로 반증할 것.
 
 3. **`/plan` → 자기설치 (F-K03 단독)** — repo 루트 `CLAUDE.md` 부재로 `core/rules/` 미로드. F-K07(hook 배선)은 R12 에서 refuted(오진) — 로컬 배선은 setup.sh 로 이미 성립, 짝이 아니다. `/plan` 없이 착수 금지는 유지.
 
