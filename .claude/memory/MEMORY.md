@@ -12,11 +12,13 @@
 
 **내부 감사 R11/K 종결 (2026-07-09~11)** — 감사가 처음으로 **자기 계기(instrument)** 를 겨눴다. harness 를 채점하는 두 장치(ledger `append`, 머지 게이트 `eval-regression`)가 **둘 다 fail-open** 이었고 실행으로 증명됐다. fix PR #132~#153 머지. 최종: F-K01~F-K21 중 **19 verified / 1 refuted(F-K07 오진) / 1 open(F-K03)** — R12 Phase 0 실측으로 종결.
 
-**내부 감사 R12/L (2026-07-11)** — Phase 0 에서 K 라운드 pending-verify 19건 **전건 verified**(스모크 20/20 + F-K13 은 CI windows job 실측 red→green + F-K17 은 runner 첫 실사용 0→1) + F-K07 refuted(자체 반증 기준 충족 — 격리 환경 측정 아티팩트, setup.sh 설치 플로우가 의도된 설계). 4-dim 재채점 **D1 3.9 / D2 4.2 / D3 4.3 / D4 4.2 (평균 4.15, R9 4.28 대비 -0.13)**. 신규 **F-L01~F-L11** (P1 3건: L01 MEMORY 인덱스 desync / L04 check-doc-counts 배열 길이 미검증 false green / L08 eval-regression SKILL.md 부재 통과 재현).
+**내부 감사 R12/L 종결 (2026-07-11)** — Phase 0 에서 K 라운드 pending-verify 19건 **전건 verified** + F-K07 refuted(격리 환경 측정 아티팩트, setup.sh 설치 플로우가 의도된 설계). 4-dim 재채점 **D1 3.9 / D2 4.2 / D3 4.3 / D4 4.2 (평균 4.15)**. 신규 F-L01~F-L12 등록 → fix 전건 #154~#158 머지 → **R13 Phase 0 에서 12건 전건 verified (종결)**.
+
+**내부 감사 R13/M (2026-07-16)** — Phase 0: L 라운드 12건 전건 verified. 4-dim 재채점 **D1 3.8 / D2 4.3 / D3 4.2 / D4 4.3 (평균 4.15, R12 동률)** — D2/D4 상승은 L fix 홀딩 실증, D1/D3 하락은 인덱스 desync 재발 + telemetry per-skill 집계 死藏 발견. 신규 **F-M01~F-M10** (P1 1 / P2 6 / P3 3).
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round 12/L)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round 13/M)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
@@ -32,7 +34,8 @@
   - **공통 문법**: **"검사 대상 0건"을 "결함 0건"으로 렌더한다.** F-K01/K10/K11/K12 가 전부 같은 문장이고 R10 의 F-J02 도 그랬다. 결함을 발견한 자리만 고치고 **유형을 인접 진입점에 일반화하지 않은 것**이 반복 원인 — F-H08 은 `mark-fixed` 에만, `TEMPLATE_COUNT -gt 0` 가드는 templates 블록에만, 빈값 검사는 `resolve` 에만 있었다.
   - **후속 확장 (07-10~11, #141~#153)**: F-K13~K21 — windows 2-leg 머지 게이트(최초 run red 로 잔여 결함 적발 후 green, 게이트 유효성 실증) · uuidgen 폴백+LC_ALL=C(#146) · runner 저비용 agent 신설+tdd-enforce 스코프(#142) · doc-counts BSD sed(#144) · hook stdin drain 전수 계약화(#150/#152, hooks-stdin-drain-smoke 27/27).
   - **종결 (R12 Phase 0, 2026-07-11)**: 19 verified / F-K07 refuted(오진 — 원 증거가 gitignored 런타임 미상속 격리 환경 측정) / F-K03 만 open 잔존.
-- **R12/L (2026-07-11)** — F-L01~F-L11 등록 (11건: P1 3 / P2 4 / P3 4). 주제 반복 확인: **"게이트가 있으나 검증 축이 빗나감"** — L04(문자열만 대조, 배열 길이 미대조) / L08(디렉토리 수만 대조, 파일 존재 미대조) / L09(F-K10 가드가 형제 섹션 미일반화) / L10(스모크 러너 자신이 실행-건수 플로어 없음) / L11(피검 파일이 CI paths 밖). fix 는 ledger `round L` 로 조회.
+- **R12/L 종결 (2026-07-11, fix #154~#158)** — F-L01~F-L12 등록·fix·**R13 Phase 0 전건 verified**. 주제 반복 확인: **"게이트가 있으나 검증 축이 빗나감"** — L04(문자열만 대조, 배열 길이 미대조) / L08(디렉토리 수만 대조, 파일 존재 미대조) / L09(가드 형제 섹션 미일반화) / L10(스모크 러너 자신이 실행-건수 플로어 없음) / L11(피검 파일이 CI paths 밖). 상세는 ledger `round L` 조회.
+- **R13/M (2026-07-16)** — F-M01~F-M10 등록 (P1 1 / P2 6 / P3 3). 신규 주제: **"기록은 되나 소비/집행이 안 따라옴"** — M01/M02(ledger 는 갱신되나 MEMORY 산문 desync + 정합 게이트 부재) / M03(runner manifest 등재됐으나 라우팅 문서 미배선 — 비용절감 dead-letter) / M05(hook 이 `.skill`/`.agent` 기록하나 telemetry 소비자 미참조 dead write). D4 계보 지속: M08(F-L11 형제 게이트 스크립트 2개 CI paths 사각, /tmp 재현 실증) / M09(스모크 플로어 26 zero-headroom) / M10(REQUIRED_HOOKS 하드코딩 잔존). fix 는 ledger `round M` 조회.
 
 ## Brainstorm 인덱스 (최근)
 
@@ -66,7 +69,7 @@ Phase 2 / Phase 3.0:
 ## 다음 진입점
 
 1. **frontend-flow 잔여 백로그** (우선) — (a) `editorial-warm-combo` 에이전트 리뷰 실배선(크림배경+serif+italic+테라코타 4신호 조합 탐지, 표면 분류가 기계화 불가라 에이전트 판단 필요, 스펙은 `references/anti-slop-preflight.md` deferred에 확정) (b) `docs/ARCHITECTURE.md` Self-Improving Loop 섹션 전면 재작성(현행 AHE/audit/ledger 반영, 지금은 legacy 배너만 — 카운트·dead-ref는 #127에서 정리됨)
-2. **R12/L fix 시퀀스** — F-L01~F-L11 (11건). 권장 PR 묶음: **PR-1 D4 게이트**(L08 eval-regression SKILL.md 파일 플로어 / L09 vacuous 가드 형제 섹션 일반화 / L10 스모크 러너 실행-건수 assert / L11 statusline paths) · **PR-2 manifest**(L04 doc-counts 배열 길이 assertion — L03 보다 먼저 넣어 RED 실증 → L03 runner.md 등재로 GREEN / L05 hook taxonomy 통일) · **PR-3 telemetry**(L06 `*"fail"*` qualifier / L07 phantom 잔재 1회성 정리). L01/L02 는 본 라운드 종결 커밋에서 fix. 머지 후 `ledger.sh mark-fixed` → R13 Phase 0 이 반증.
+2. **R13/M fix 시퀀스** — F-M01~F-M10 (10건). 권장 PR 묶음: **PR-1 게이트 사각**(M08 CI paths 2줄 / M09 플로어 실측 등가 대조 / M10 REQUIRED_HOOKS 실측 enumerate / M04 manifest 원소 실존 검사 / M02 MEMORY↔ledger 정합 assert) · **PR-2 telemetry 소비자**(M05 per-skill/agent 2차 집계 / M06 SKILL_TYPES 동적 유도 / M07 runtime_error 브랜치 + 비대표성 캡션) · **PR-3 runner 라우팅**(M03 agent-routing 분기 + delegation-patterns 표 행). M01 은 본 라운드 종결 커밋에서 fix. 머지 후 `ledger.sh mark-fixed` → R14 Phase 0 이 반증.
 
 3. **`/plan` → 자기설치 (F-K03 단독)** — repo 루트 `CLAUDE.md` 부재로 `core/rules/` 미로드. F-K07(hook 배선)은 R12 에서 refuted(오진) — 로컬 배선은 setup.sh 로 이미 성립, 짝이 아니다. `/plan` 없이 착수 금지는 유지.
 
