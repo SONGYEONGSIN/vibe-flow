@@ -15,6 +15,8 @@
   │
   ├─ 탐색/검색? ────── YES → Explore (haiku)
   │
+  ├─ 판단 불필요 잡무? ─ YES → runner (haiku)
+  │
   ├─ 외부 리서치? ──── YES → general-purpose (sonnet) + WebSearch
   │
   ├─ UI 구현? ──────── YES → frontend-design-specialist (sonnet)
@@ -76,6 +78,21 @@
 ```
 Task(subagent_type="Explore", model="haiku", run_in_background=true,
   prompt="src/ 디렉토리에서 Supabase 클라이언트 초기화 패턴을 모두 찾아주세요")
+```
+
+### runner (잡무 실행 전용)
+
+**용도:** 명령 실행, 빌드/테스트 구동, 로그·파일 확인 — 판단 불필요 잡무
+**모델:** haiku (항상) — opus 요금의 1/5 (F-K17; F-M03 audit R13 에서 라우팅 배선)
+**도구:** Bash, Read, Grep, Glob (Edit/Write 금지)
+**특성:**
+- 실행·조회·보고만 — 분석 판단 안 함
+- Explore 와 구분: Explore 는 "찾기", runner 는 "돌리고 결과 보고"
+- 코드 수정·원인 분석이 필요해지면 developer 등 도메인 agent 로 재위임
+
+```
+Task(subagent_type="runner", model="haiku",
+  prompt="npm test 실행하고 실패한 테스트 목록만 보고해주세요")
 ```
 
 ### general-purpose (범용)
