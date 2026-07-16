@@ -59,6 +59,31 @@ PLUGIN_AGENTS_LEN=$(jq '.agents | length' .claude-plugin/plugin.json 2>/dev/null
 [ "$PLUGIN_SKILLS_LEN" = "$ACT_SKILLS" ] || err "plugin.json .skills 배열 ${PLUGIN_SKILLS_LEN:-?}개 (실측 $ACT_SKILLS)"
 [ "$PLUGIN_AGENTS_LEN" = "$ACT_AGENTS" ] || err "plugin.json .agents 배열 ${PLUGIN_AGENTS_LEN:-?}개 (실측 $ACT_AGENTS)"
 
+# F-M04 (audit R13): F-L04 는 배열 *길이*만 대조 — 카운트 보존형 오타/리네임(원소가 실파일
+# 미지향)은 length 유지로 통과하나 런타임엔 해당 항목 silent 미로딩. 원소 각각의 실존 대조.
+while IFS= read -r p; do
+  p="${p%$'\r'}"
+  [ -z "$p" ] && continue
+  [ -e "${p#./}" ] || err "plugin.json 배열 원소 실파일 없음: $p"
+done < <(jq -r '(.skills // [])[], (.agents // [])[]' .claude-plugin/plugin.json 2>/dev/null)
+
+# F-M02 (audit R13): ledger 는 갱신되나 MEMORY.md 인덱스 산문이 뒤처지는 desync 가 라운드마다
+# 재발 (R12 F-L01 은 point-fix — 클래스 미일반화). 최신 라운드의 양끝 finding ID 가 인덱스에
+# 등장해야 통과 — 전수 나열 강제는 200줄 cap 인덱스 철학과 충돌해 범위 표기('F-X01~F-Xnn')의
+# 양끝만 검사, F-L12 류 '라운드 연장 미반영'을 포착. downstream(ledger 부재)은 skip.
+LEDGER=".claude/memory/audit-ledger.jsonl"
+MEMO=".claude/memory/MEMORY.md"
+if [ -f "$LEDGER" ] && [ -f "$MEMO" ]; then
+  LATEST_ROUND=$(jq -r 'select(type=="object" and .round != null) | .round' "$LEDGER" 2>/dev/null | tr -d '\r' | tail -1)
+  if [ -n "$LATEST_ROUND" ]; then
+    ROUND_IDS=$(jq -r --arg r "$LATEST_ROUND" 'select(type=="object" and .round == $r) | .id // empty' "$LEDGER" 2>/dev/null | tr -d '\r' | LC_ALL=C sort)
+    for fid in $(echo "$ROUND_IDS" | head -1) $(echo "$ROUND_IDS" | tail -1); do
+      [ -z "$fid" ] && continue
+      grep -q "$fid" "$MEMO" || err "MEMORY.md 인덱스에 최신 라운드($LATEST_ROUND) finding $fid 미등장 — index desync"
+    done
+  fi
+fi
+
 if [ "$FAIL" -gt 0 ]; then
   echo "❌ 문서 카운트 drift ${FAIL}건 (실측 skills=$ACT_SKILLS agents=$ACT_AGENTS hooks=$ACT_HOOKS rules=$ACT_RULES)"
   exit 1

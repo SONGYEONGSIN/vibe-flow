@@ -85,5 +85,31 @@ jq -c 'del(.agents)' "$TMP/noarr/.claude-plugin/plugin.json" > "$TMP/noarr/p.tmp
   && mv "$TMP/noarr/p.tmp" "$TMP/noarr/.claude-plugin/plugin.json"
 bash "$CHK" "$TMP/noarr" >/dev/null 2>&1; assert_exit "missing-array-exit1" "1" "$?"
 
+echo "Test D9 (F-M04): 배열 원소가 실파일 미지향(카운트 보존형 리네임) → exit 1"
+make_fixture "$TMP/ghostelem"
+# 길이 3 유지 + 설명 문자열 '3 skills' 그대로 — 원소만 존재하지 않는 경로로 교체
+sed -i.bak 's|\./core/skills/c|./core/skills/zz|' "$TMP/ghostelem/.claude-plugin/plugin.json" \
+  && rm -f "$TMP/ghostelem/.claude-plugin/plugin.json.bak"
+bash "$CHK" "$TMP/ghostelem" >/dev/null 2>&1; assert_exit "ghost-element-exit1" "1" "$?"
+
+# ── F-M02 fixture: ledger 최신 라운드 양끝 ID 가 MEMORY.md 인덱스에 등장해야 통과 ──
+add_ledger() { # dir, memo_text
+  mkdir -p "$1/.claude/memory"
+  printf '%s\n' \
+    '{"round":"X","id":"F-X01","status":"open"}' \
+    '{"round":"X","id":"F-X02","status":"open"}' > "$1/.claude/memory/audit-ledger.jsonl"
+  printf '%s\n' "$2" > "$1/.claude/memory/MEMORY.md"
+}
+
+echo "Test D10 (F-M02): ledger 최신 라운드 끝 ID(F-X02) 가 MEMORY.md 미등장 → exit 1"
+make_fixture "$TMP/desync"
+add_ledger "$TMP/desync" "감사 F-X01 등록"
+bash "$CHK" "$TMP/desync" >/dev/null 2>&1; assert_exit "index-desync-exit1" "1" "$?"
+
+echo "Test D11 (F-M02): 양끝 ID 등장(범위 표기) → exit 0"
+make_fixture "$TMP/insync"
+add_ledger "$TMP/insync" "감사 F-X01~F-X02 등록"
+bash "$CHK" "$TMP/insync" >/dev/null 2>&1; assert_exit "index-insync-exit0" "0" "$?"
+
 echo ""; echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

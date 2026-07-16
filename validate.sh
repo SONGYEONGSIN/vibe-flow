@@ -105,6 +105,14 @@ if [ -d "$CLAUDE_DIR/hooks" ]; then
   # F-B8 (audit round 2): 누락 6개 hook 추가 — auto-build-safety, budget-warn,
   # security-lint, session-memory-sync, skill-tracker, tool-invocation-tracker
   REQUIRED_HOOKS="command-guard smart-guard prettier-format eslint-fix typecheck test-runner metrics-collector pattern-check design-lint debate-trigger readme-sync session-log session-review uncommitted-warn tool-failure-handler notify pre-compact tdd-enforce context-prune model-suggest auto-build-safety budget-warn security-lint session-memory-sync skill-tracker tool-invocation-tracker"
+  # F-M10 (audit R13): 위 리터럴은 core/hooks 성장 시 lag — skills(F-H04)/extensions(F-K04)는
+  # 실측 enumerate 로 전환됐는데 hooks 만 잔존했고, 아래 카운트 메시지도 리스트 자신을 셌다.
+  # vibe-flow repo(core/hooks 존재)면 실측(유틸/git훅 제외), downstream(부재)이면 리터럴 폴백.
+  _VF_ROOT_HOOKS="${VIBE_FLOW_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+  if [ -d "$_VF_ROOT_HOOKS/core/hooks" ]; then
+    _hooks_measured="$(find "$_VF_ROOT_HOOKS/core/hooks" -maxdepth 1 -name '*.sh' ! -name '_common.sh' ! -name 'message-bus.sh' ! -name 'git-post-commit.sh' 2>/dev/null | sed 's|.*/||; s|\.sh$||' | LC_ALL=C sort | tr '\n' ' ')"
+    [ -n "${_hooks_measured// /}" ] && REQUIRED_HOOKS="$_hooks_measured"
+  fi
   # F-I03 (audit R9): _common(sourced 라이브러리)·message-bus(CLI 유틸)는 이벤트 훅이 아님 — 분리
   REQUIRED_UTILITIES="_common message-bus"
   HOOK_MISSING=0

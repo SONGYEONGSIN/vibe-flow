@@ -23,6 +23,9 @@ on:
       - 'scripts/tests/**'
       - 'scripts/statusline.sh'        # F-L11 (audit R12): statusline-tests.sh 의 피검 대상인데
                                        # 트리거 경로에 없어 단독 수정 PR 의 회귀가 CI PASS 뒤에 숨었다.
+      - 'scripts/check-doc-counts.sh'  # F-M08 (audit R13): F-L11 동일 클래스 형제 — 두 게이트
+      - 'scripts/eval-regression-check.sh'  # 스크립트의 fail-closed fixture 스모크가 여기서만 도는데
+                                       # 단독 수정 PR 이 이 워크플로를 미발화했다 (/tmp 재현 실증).
       - '.github/workflows/validation-tests.yml'
   push:
     branches: [main]
@@ -73,12 +76,13 @@ jobs:
             fi
             echo "::endgroup::"
           done
-          # F-L10 (audit R12): "커버리지 0 ≠ 통과" 플로어를 집행하는 러너 자신이
-          # 실행-건수 플로어가 없어, 스모크 삭제·우발 CI-SKIP 매칭에 의한 부분 소실이
-          # 무탐지였다. 플로어 미달 시 fail — 의도된 감축이면 플로어를 같은 PR 에서 갱신.
-          echo "executed smoke tests: $executed"
-          if [ "$executed" -lt 26 ]; then
-            echo "::error::실행된 스모크 $executed < 플로어 26 — 커버리지 부분 소실"
+          # F-L10 (audit R12) + F-M09 (audit R13): 플로어 하한(-lt)은 삭제만 잡고 추가를
+          # 강제하지 않아 첫 스모크 추가에서 1-slack 으로 열화(zero-headroom 정체).
+          # 등가(-ne) 대조로 전환 — 스모크 증감 시 이 기대치를 같은 PR 에서 갱신한다.
+          EXPECTED_SMOKE=27
+          echo "executed smoke tests: $executed (expected $EXPECTED_SMOKE)"
+          if [ "$executed" -ne "$EXPECTED_SMOKE" ]; then
+            echo "::error::실행된 스모크 $executed ≠ 기대치 $EXPECTED_SMOKE — 커버리지 소실 또는 기대치 미갱신"
             failed=1
           fi
           exit $failed
