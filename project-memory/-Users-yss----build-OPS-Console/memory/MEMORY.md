@@ -1,13 +1,16 @@
 - [DB 마이그레이션 적용 방법](db-migration-apply.md) — Supabase CLI 없음; DATABASE_URL(풀러) + `pg --no-save` 인라인으로 적용 후 RLS 검증
-- [경위서 양식 뷰어 기능](incident-report-form-viewer.md) — feat 브랜치 미머지, 라우트/단일소스/로고/시행번호 등 재개 컨텍스트
+- [경위서 양식 뷰어 기능](incident-report-form-viewer.md) — ★완료로 확인(2026-07-15): incident-reports 편집기가 main 가동 중(#640·#654 A4 규격 등), 브랜치 소멸. 본문은 낡은 재개 컨텍스트
 - [SmileEDI 자동화](smileedi-automation.md) — 스크래핑+조건부메일 이식(Phase1/2 머지 완료), 운영 잔여(Vercel env·GH Secrets·cron-job.org·비번 로테이션·Q2 업로드인증)
-- [서비스 마감(closing) 자동화](closing-automation.md) — Moa 스크래핑→마감서비스 표시. Phase1(페이지·API·DB) 머지 완료, Phase2(스크래퍼+워크플로) 미착수
+- [서비스 마감(closing) 자동화](closing-automation.md) — ★실운영 가동으로 확인(2026-07-15): scrape.py+PC 폴러+평일 09:00 스케줄(#841~#843)까지 완료. 본문의 "Phase2 미착수"는 낡음
 - [버튼 호버 검정 규칙](button-hover-black-rule.md) — 기본 디자인 규칙: 버튼 호버 시 `hover:bg-ink hover:text-cream`
 - [표준 모달 셸](modal-shell-standard.md) — 모든 모달은 `components/common/ModalShell` 사용(검정 헤더+boxed ×+푸터 슬롯), 인라인 모달 마크업 금지
 - [기본 목록+인스펙터 표준 디자인](standard-list-inspector-design.md) — 신규/전환 메뉴는 ListPattern+controlsRow(px-7 pt-3)+ScopeChips+표준 Section View. 커스텀 UI 금지
-- [회의록 HTML 양식 전환](meetings-html-form-migration.md) — BlockNote→HTML양식 6단계 대공사. PR1(#646) 데이터모델 완료, 2~6 남음
-- [운영부 뉴스 기능](ops-news-feature.md) — ★실운영 가동(#680 머지+DB·토글ON·cron 평일06~18시·477건 적재). 대학뉴스 RSS 자동수집, insights-collect 복제. 키워드칩/교육부피드/제목접미사 후속
-- [고객응대 메일함 기능](mailbox-feature.md) — ★실운영 가동(#673+#674 머지, DB·Ollama·Mail.Read·launchd cron 전부 완료). 외부고객만 필터+HTML발송+운영자별 클릭링크 서명. Phase2 위임 미착수
+- [회의록 HTML 양식 전환](meetings-html-form-migration.md) — ★사실상 완료로 확인(2026-07-15): v2 양식 문서(form-model)+MeetingForm 실운영, 최근은 폴리시 단계(#855~#857). 본문의 "2~6 남음"은 낡음
+- [운영부 뉴스 기능](ops-news-feature.md) — ★실운영 가동 + 후속 3건 완료(2026-07-15 #874 키워드칩·#875 제목접미사 제거+DB 812건 정규화·#876 전문지 피드 3종). 교육부 RSS는 서비스 종료로 제외
+- [고객응대 메일함 기능](mailbox-feature.md) — ★실운영 가동 + Phase2 위임까지 완료(#673·#674·#684·#693). 외부고객만 필터+HTML발송+서명, 위임 열람/발송·MailboxOwnerSwitcher 포함
 - [entertest 테스트 실행 파이프라인](entertest-test-run.md) — 폴러 가동 중(6/18 5/5 통과), v2 실제 원서작성 "결제 직전까지" 진행 + 계정 순환 미결
 - [견적서 기능](quotes-feature.md) — 자료보관>견적서. Phase1 목록 + Phase2 문서양식(4유형 dev/fee/platform/labor + KOSA적산 + PDF) 전부 머지
-- [크롬 웜 화이트 디자인 리뉴얼](design-chrome-warm-white.md) — ★전부 머지 완료(#844+후속 #846 washi-raised·vermilion 선택 표준), 기각된 색 이력 포함
+- [크롬 웜 화이트 디자인 리뉴얼](design-chrome-warm-white.md) — #844·#846·#848 후 화이트 표준 재진화 #859 배포 완료(paper #ffffff·입력창 field-bg #fdfdfb·보더 line-soft, CLAUDE.md 문서화), 기각된 색 이력 포함
+- [개발탭 수동 분석(웹→PC 폴러)](dev-control-manual-run.md) — #873 배포 완료, 회사 PC 폴러 등록·라이브 e2e 잔여. 원서GEN은 회사망 외부에서 TCP 차단(자택 실행 금지)
+- [Claude 상태표시줄 구성](claude-statusline-setup.md) — ~/.claude/statusline.sh 6줄 레이아웃 + 이식용 원샷 프롬프트(statusline-setup-prompt.md, pbcopy)
+- [메일 CC 제외 제약](mail-cc-exclusion.md) — 이이화(llh@jinhak.com) 자동 CC 금지, operators.mail_cc_excluded 플래그(PR #852)·신규 팀메일 기능도 존중 필수

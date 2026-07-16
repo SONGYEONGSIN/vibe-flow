@@ -1,6 +1,6 @@
 ---
 name: design-chrome-warm-white
-description: 크롬 웜 화이트 디자인 리뉴얼 — #844 + 후속 #846까지 전부 머지 완료 (2026-07-12)
+description: 크롬 웜 화이트 리뉴얼(#844·#846 머지) → 2026-07-14 화이트 표준으로 재진화 (paper #ffffff, 입력창 field-bg 등 — 미커밋 작업 있음)
 metadata: 
   node_type: memory
   type: project
@@ -9,7 +9,15 @@ metadata:
 
 2026-07-12 사이드바/콘텐츠 배경 색 리뉴얼. **PR #844 squash 머지 완료** (main `78756db`).
 
-**확정된 구성**:
+> **⚠️ 2026-07-14 화이트 표준으로 재진화 (아래 "확정된 구성" 중 배경 부분 대체) — PR #859로 머지·배포 완료**:
+> - `--paper` `#fbf7f0` → `#ffffff` (콘텐츠 본문 + 데스크탑 크롬 바 + 모바일 AppBar 모두 `bg-paper`로 통일. 사이드바만 `#fffdf7` 웜 화이트 유지)
+> - 신규 토큰 `--field-bg: #fdfdfb`(운영리포트 카드 situation-bg와 동일 톤) — 기본 입력창(input/select/textarea) 배경 표준. 입력창 관용구 151라인(35파일)을 `bg-cream`→`bg-field-bg`, `border-line`→`border-line-soft`로 일괄 치환 (포커스 `border-ink bg-white` 유지)
+> - `--search-field-bg` 버밀리언 5% → 잉크 4% 틴트 `rgba(21,18,12,0.04)` (상단 SearchBox + ListSearch + 학교담당자 검색 공유)
+> - 상단 검색/알림/계정 드롭다운 `bg-sidebar`→`bg-paper`
+> - 사용자가 "웜 화이트"라 말해도 실제 의도는 **운영리포트 카드 톤(#fdfdfb)**이었음 — 두 번 재조정 끝에 확정 (#fffdf7·#f5f2ec 기각)
+> - CLAUDE.md Design System에 "표면·입력창 표준" 불릿으로 문서화됨. `design-tokens.test.ts` 가드(paper/fieldBg) 갱신 완료
+
+**#844 당시 확정 구성 (배경 부분은 위로 대체)**:
 - 상단 크롬 바(chrome-snow)·사이드바·브레드크럼/탭 밴드 = 웜 화이트 `#fffdf7` 통일
 - 콘텐츠 본문 = paper `#fbf7f0` (크롬이 가장 밝고 본문이 반 단계 눌리는 3층 레이어링)
 - 사이드바 유저카드 = `bg-situation-bg` + `border-line`(ink 검정 보더)

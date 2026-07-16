@@ -25,6 +25,11 @@ metadata:
 **목록 UX 보강 (PR #682 머지, 2026-06-23)**: 서버 페이지네이션(`listNews({page,pageSize,search,source})`→`{rows,total}`, `range`+`count`, 30/page, `ListPagination` footer) + 제목 검색(`NewsControls` ?q= 디바운스 → `title ilike`) + **출처 셀렉트 필터**(`?source`= → `.eq("source")`, 옵션은 `listNewsSources()` distinct). `NewsControls`는 thin client라 TDD 훅 예외(`CLAUDE_TDD_ENFORCE=off` 우회 작성).
 **중복 방지 (PR #682)**: 같은 기사가 키워드마다 다른 구글 뉴스 redirect link로 들어와 `link unique`로 안 잡힘(같은 title) → **dedup 키 link→title 전환**. 잡 `dedupeByTitle` + upsert `onConflict:"title"`. 마이그 `20260623c`로 DB unique 제약 `news_link_key`→`news_title_unique` 전환 + 기존 중복 정리(직접 적용 완료, 475행). **GOTCHA**: 중복행이 같은 수집 실행이면 `collected_at` 동률 → dedup DELETE에 `(collected_at, id)` 복합 비교(id tiebreaker) 필수, `collected_at` 단독 `<`는 동률 미삭제→unique 인덱스 생성 실패.
 
-**후속(미반영)**: 키워드 칩 필터(ListPattern Filter union에 키워드 등록 필요 — 1차는 빈 필터/전체표시), 교육부·전문지 직접 RSS 피드 추가(NEWS_SOURCES placeholder), fetch timeout(AbortController), news_blocklist.
+**★ 후속 3건 완료 (2026-07-15)**:
+- 키워드 칩 필터 — PR #874: `NewsKeywordChips`(?keyword, inlineFilters 슬롯) + `listNews` keyword eq + `listNewsKeywords` distinct. ListPattern Filter union은 건드리지 않고 페이지 쿼리 파라미터 방식으로 구현.
+- 제목 접미사 제거 — PR #875: `stripTitleSuffix`(끝 일치·이중 접미사 반복 제거) 수집 적용 + 기존 DB 812건 정규화(개명 767·중복 48 삭제).
+- 전문지 직접 피드 — PR #876: 한국대학신문·교수신문·유스라인 allArticle 피드, `mapFeedItemsToNews`가 운영 키워드 매칭 기사만 선별(실측 50건→1건). pubDate 무타임존 형식은 KST 해석. **교육부(moe.go.kr) RSS는 서비스 종료 확인(korea.kr 부처 피드 포함 404) → 스펙 §10대로 제외 — 재시도 불필요.**
+
+**잔여 후속(선택)**: fetch timeout(AbortController), news_blocklist.
 
 관련: [[standard-list-inspector-design]], [[db-migration-apply]].
