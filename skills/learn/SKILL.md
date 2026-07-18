@@ -1,6 +1,6 @@
 ---
 name: learn
-description: 프로젝트 메모리에 패턴/규칙을 저장하거나 조회한다. "기억해줘", "다음에도 기억", "패턴 저장", "이거 학습", "메모리에 추가" 요청 시 사용. 사용법 /learn [save|show] [pattern|error|profile]
+description: 프로젝트 메모리에 패턴/규칙을 저장·조회하고, 외부 소스를 메모리로 통합(ingest)하거나 메모리 위생을 검사(lint)한다. "기억해줘", "다음에도 기억", "패턴 저장", "이거 학습", "메모리에 추가", "이 글/문서 메모리에 정리해줘", "메모리 정합 검사" 요청 시 사용. 사용법 /learn [save|show|ingest|lint]
 effort: low
 ---
 
@@ -17,6 +17,10 @@ effort: low
 - `/learn save deny <명령>` — `smart-guard.sh`가 차단할 명령 (예: `/learn save deny "yarn install"`)
 - `/learn save check <패턴>` — `pattern-check.sh`가 위반 시 경고할 패턴 (PostToolUse)
 - `/learn save require <패턴>` — `pattern-check.sh`가 누락 시 경고할 필수 패턴
+
+통합/검사 (Karpathy llm-wiki Ingest/Lint 축 — brainstorm 20260718):
+- `/learn ingest <url|파일|"방금 읽은 내용">` — 외부 소스를 읽어 **기존 메모리 파일을 갱신** (신규 생성보다 갱신 우선)
+- `/learn lint` — 메모리 위생 기계 검사 (dead 링크/200줄 cap/hook 규칙 형식 FAIL, 고아 leaf/[[미해결]] WARN)
 
 조회:
 - `/learn show` — 메모리 전체 조회
@@ -78,6 +82,34 @@ echo "$LINE" >> .claude/memory/patterns.md
    ```bash
    echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"learn_save\",\"category\":\"$CATEGORY\",\"summary\":\"$SUMMARY\"}" >> .claude/events.jsonl
    ```
+
+### ingest 모드 (llm-wiki Ingest 축)
+
+RAG 처럼 "나중에 검색"하는 게 아니라, 소스를 **지금 읽고 기존 메모리에 통합**한다 — "the knowledge is compiled once and then kept current" (karpathy llm-wiki gist).
+
+1. 소스 확보: URL 이면 WebFetch, 파일이면 Read, 인자 없으면 현 대화에서 방금 다룬 내용
+2. 관련 기존 메모리 탐색: `grep -ril <핵심 키워드> .claude/memory/` — **갱신 우선 원칙**: 관련 파일이 있으면 그 파일을 갱신하고, 전혀 새 주제일 때만 신규 leaf 생성
+3. 통합 시 규칙:
+   - 기존 주장과 **모순**되면 삭제하지 말고 양쪽을 병기 + `⚔️ 모순[YYYY-MM-DD]:` 마커로 표시 (판정은 사람 또는 다음 audit D1 이 수행)
+   - 관련 개념은 `[[name]]` 위키링크로 연결 (미해결 링크 = 작성 후보 표시, 허용)
+   - 출처(URL/파일/커밋)를 항목에 남긴다
+4. 신규 leaf 를 만들었으면 `MEMORY.md` 인덱스에 1줄 등재 (누락 시 lint 가 고아 leaf WARN)
+5. 마무리로 lint 실행: `bash .claude/skills/learn/scripts/memory-lint.sh` — FAIL 이면 즉시 정정
+6. events.jsonl 기록: `{"type":"learn_save","category":"ingest",...}` (save 모드와 동일 형식)
+
+### lint 모드 (llm-wiki Lint 축)
+
+```bash
+# project 메모리 (기본)
+bash .claude/skills/learn/scripts/memory-lint.sh
+# user-level 메모리도 검사하려면 디렉토리 인자로
+bash .claude/skills/learn/scripts/memory-lint.sh ~/.claude/projects/<slug>/memory
+```
+
+- **FAIL (exit 1)**: MEMORY.md dead markdown 링크 / 200줄 cap 초과 / patterns.md `금지` 라인 형식 위반 (smart-guard 파싱 깨짐)
+- **WARN (exit 0)**: 고아 leaf (인덱스 미등재) / `[[name]]` 미해결 (작성 후보)
+- 모순 감지는 기계화 불가 — ingest 절차의 `⚔️ 모순` 마커와 audit D1 dimension 이 담당
+- 회귀 게이트: `scripts/tests/memory-lint-smoke.sh` (fixture 12케이스, live repo FAIL 축 포함)
 
 ### show 모드
 
