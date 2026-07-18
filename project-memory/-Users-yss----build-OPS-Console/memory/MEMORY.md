@@ -12,5 +12,6 @@
 - [견적서 기능](quotes-feature.md) — 자료보관>견적서. Phase1 목록 + Phase2 문서양식(4유형 dev/fee/platform/labor + KOSA적산 + PDF) 전부 머지
 - [크롬 웜 화이트 디자인 리뉴얼](design-chrome-warm-white.md) — #844·#846·#848 후 화이트 표준 재진화 #859 배포 완료(paper #ffffff·입력창 field-bg #fdfdfb·보더 line-soft, CLAUDE.md 문서화), 기각된 색 이력 포함
 - [개발탭 수동 분석(웹→PC 폴러)](dev-control-manual-run.md) — #873 배포 완료, 회사 PC 폴러 등록·라이브 e2e 잔여. 원서GEN은 회사망 외부에서 TCP 차단(자택 실행 금지)
+- [팀 브리핑 뉴스레터](team-briefing-newsletter.md) — #884 배포(스티비 클론+claude -p 스토리+근속코너). 잔여: 맥 launchd 등록·OPS_CONSOLE_BASE_URL·Vercel cron 제거·샘플 삭제. 사진 연동 후속
 - [Claude 상태표시줄 구성](claude-statusline-setup.md) — ~/.claude/statusline.sh 6줄 레이아웃 + 이식용 원샷 프롬프트(statusline-setup-prompt.md, pbcopy)
 - [메일 CC 제외 제약](mail-cc-exclusion.md) — 이이화(llh@jinhak.com) 자동 CC 금지, operators.mail_cc_excluded 플래그(PR #852)·신규 팀메일 기능도 존중 필수
