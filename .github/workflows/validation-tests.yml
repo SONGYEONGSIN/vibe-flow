@@ -79,7 +79,7 @@ jobs:
           # F-L10 (audit R12) + F-M09 (audit R13): 플로어 하한(-lt)은 삭제만 잡고 추가를
           # 강제하지 않아 첫 스모크 추가에서 1-slack 으로 열화(zero-headroom 정체).
           # 등가(-ne) 대조로 전환 — 스모크 증감 시 이 기대치를 같은 PR 에서 갱신한다.
-          EXPECTED_SMOKE=27
+          EXPECTED_SMOKE=28
           echo "executed smoke tests: $executed (expected $EXPECTED_SMOKE)"
           if [ "$executed" -ne "$EXPECTED_SMOKE" ]; then
             echo "::error::실행된 스모크 $executed ≠ 기대치 $EXPECTED_SMOKE — 커버리지 소실 또는 기대치 미갱신"
