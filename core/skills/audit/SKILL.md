@@ -32,6 +32,7 @@ pass/fail이 아닌 **trace**를 모은다. 병렬로:
 - `telemetry --source events` + `--source session` (사용량/계측 — 7-component 중 skills/agents 활동)
 - `git log --oneline` 직전 라운드 머지 PR (직전 fix 범위)
 - `validate.sh` + 최근 CI(validation-tests.yml) 결과 (정합/회귀)
+- `bash .claude/skills/learn/scripts/memory-lint.sh` — memory(7-component) 위생 trace (dead 링크/고아/cap; F-M02 일반화, llm-wiki Lint 축)
 - 직전 ledger의 refuted finding (반복 결함 후보)
 
 ## Phase 2. analyze — dimension agent 병렬 위임
