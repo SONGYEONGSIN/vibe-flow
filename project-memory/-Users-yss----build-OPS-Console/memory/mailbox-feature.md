@@ -10,7 +10,7 @@ metadata:
 고객응대 하위 **메일함**(slug `mailbox`). 운영자 Outlook 수신함을 DB 캐시로 준실시간 확인 + 로컬 LLM 회신 초안 + **본인(메일함 주인) 명의 발송**.
 
 **확정 아키텍처 결정**:
-- 초안 생성 = **로컬 Ollama**(상시 Mac, 한국어 모델 기본 `exaone3.5:7.8b`). 비용 0 + 고객 메일 사내 보관. Vercel(서버리스)는 LLM 못 돌리므로 **로컬 cron ingest 잡**(`scripts/mailbox-ingest.mjs`)이 Graph수신→DB→초안 전담. 웹앱은 DB만 표시·승인·발송.
+- 초안 생성 = **로컬 claude -p** (PR #887, 2026-07-18 Ollama에서 전환). `scripts/mailbox-ingest.mjs`의 `generateDraft`가 `execFileSync(CLAUDE_BIN, ["-p","--disallowedTools","Bash Edit Write NotebookEdit Task"], {input:prompt, cwd:os.tmpdir()})` — team-briefing/dev-control과 동일 안전장치. `model_used` 라벨 기본값 `claude`(env `MAILBOX_LLM_MODEL`로 오버라이드 — .env.local에 남은 옛 qwen 값 있으면 삭제). Vercel(서버리스)는 claude CLI 못 돌리므로 **로컬 cron ingest 잡**이 Graph수신→DB→초안 전담(웹앱은 표시·승인·발송만). ⚠️ 메일함용 Ollama(`brew services`)는 더 이상 불필요.
 - 인증 = Azure AD **Application 권한** `Mail.Read`(읽기)+`Mail.Send`(발송, 기존 sendMail 재사용). 운영자별 OAuth 위임 토큰 안 씀. Phase2 위임이 자연스러움.
 - 발신 명의 = 항상 **메일함 주인**(고객이 A에게 보냈으면 A 명의), `sent_by_email`=실제 처리자 감사.
 
@@ -34,5 +34,7 @@ metadata:
 - `src/features/mailbox/delegation.ts`: `canAccessMailbox(viewer,owner)`(viewer===owner OR 활성위임 — 단일 권한게이트, 열람가드+발송가드 공용) + `isOwnerOrActiveDelegate`(순수) + `listMyDelegations`/`listMailboxesDelegatedTo`.
 - `actions.ts`: `grantMailboxDelegation`/`revokeMailboxDelegation`(owner=me 고정, grant 시 operators 존재검증+B≠me, 재위임 upsert로 revoked_at 복구). `sendMailReply` 가드 `owner!==me` → `!canAccessMailbox(me,owner)`로 확장(발신 명의=주인 유지, sent_by_email=B).
 - UI: `MailboxOwnerSwitcher`(`?owner=` 전환, 권한없으면 본인 폴백), `MailboxDelegationPanel`(ModalShell, **조직 운영자 셀렉트**로 위임 대상 선택 — listOperators active 중 본인·기위임자 제외 / 해제). 위임 버튼=검정 채움 "메일 위임". owner===myEmail일 때만 관리 노출. `ensureMailboxSettings`는 본인에만.
+
+**★ 크론 머신 이전: Mac launchd → Windows 작업 스케줄러 (#893, 2026-07-22)**: claude -p 전환(#887) 후 **Mac mini launchd에서 초안 0건 실패**가 계속됨. 원인 = **claude -p 구독 OAuth는 로그인 사용자 세션에서만 유효**한데 launchd 컨텍스트엔 인증 세션이 없음(PATH 문제 아님 — PATH 넣어도 인증 실패. 인터랙티브 세션 스모크만 통과했던 착오). → **claude 인증된 회사 Windows PC로 이전**(dev-control 등 claude -p 예약작업 5종 이미 호스팅). `scripts/mailbox-ingest.cmd`(스케줄러 진입점) + `scripts/register-mailbox-ingest-task.ps1`(10분 간격, InteractiveToken). Windows에서 drafted=1·model=claude 검증됨. **이 Mac의 launchd `com.opsconsole.mailbox-ingest`는 언로드해야 함**(Windows와 이중 실행 시 last_synced_at 레이스로 메일 누락 위험). 언로드: `launchctl bootout gui/$(id -u)/com.opsconsole.mailbox-ingest` + plist 삭제/이동. → 교훈: **launchd/headless 컨텍스트는 claude -p 구독 OAuth 못 씀 = team-briefing도 동일 제약**(claude 쓰는 로컬 잡은 로그인 세션 있는 머신에서만).
 
 관련: [[standard-list-inspector-design]], [[db-migration-apply]].

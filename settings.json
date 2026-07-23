@@ -20,34 +20,6 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "claude-fable-5[1m]",
-  "statusLine": {
-    "type": "command",
-    "command": "bash /Users/yss/.claude/statusline.sh",
-    "refreshInterval": 10
-  },
-  "enabledPlugins": {
-    "skill-creator@claude-plugins-official": true,
-    "discord@claude-plugins-official": true,
-    "frontend-design@claude-plugins-official": true,
-    "context7@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true,
-    "vercel@claude-plugins-official": true,
-    "vibe-flow@vibe-flow": true
-  },
-  "extraKnownMarketplaces": {
-    "vibe-flow": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/SONGYEONGSIN/vibe-flow.git"
-      }
-    }
-  },
-  "effortLevel": "xhigh",
-  "tui": "fullscreen",
-  "skipDangerousModePermissionPrompt": true,
-  "theme": "dark-daltonized",
-  "skipAutoPermissionPrompt": true,
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -163,5 +135,32 @@
         ]
       }
     ]
-  }
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash /Users/yss/.claude/statusline.sh",
+    "refreshInterval": 10
+  },
+  "enabledPlugins": {
+    "skill-creator@claude-plugins-official": true,
+    "discord@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "vercel@claude-plugins-official": true,
+    "vibe-flow@vibe-flow": true
+  },
+  "extraKnownMarketplaces": {
+    "vibe-flow": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/SONGYEONGSIN/vibe-flow.git"
+      }
+    }
+  },
+  "effortLevel": "xhigh",
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark-daltonized",
+  "skipAutoPermissionPrompt": true
 }
