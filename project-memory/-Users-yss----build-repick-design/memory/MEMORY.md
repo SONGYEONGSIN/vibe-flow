@@ -1,2 +1,2 @@
 - [대시보드 루프 상태](repick-dash-loop-state.md) — /dash 14종·사용자 기준·그리드 크래프트 함정·미해결 질문
-- [네이티브 루프 재설계](repick-native-loop.md) — 진화 루프 멀티플랫폼화 프로그램(S0~S2·S4a~S4c·S3a 병합완료 = native run+learn+갤러리표시. S3b(falsify native 승격)/S5(카탈로그) 대기)
+- [네이티브 루프 재설계](repick-native-loop.md) — 진화 루프 멀티플랫폼화 프로그램(S0~S2·S3a·S3b·S4a~S4c 병합완료 = native 라이프사이클 완성 run→gate→judge→learn→승격/표시. **S5(카탈로그 192색·98UX)만 남음**)

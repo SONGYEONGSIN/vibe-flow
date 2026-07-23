@@ -17,7 +17,7 @@ Andrej Karpathy가 공개한 LLM 코딩의 흔한 함정 관찰에서 도출된 
 - 혼란을 숨기지 말고 표면화
 
 **vibe-flow 적용**:
-- `rules/conventions.md` "설계 선행 원칙" — 4문항 체크리스트(무엇/왜/영향/검증)
+- `rules/discipline.md` "설계 선행 원칙" — 4문항 체크리스트(무엇/왜/영향/검증)
 - `skills/brainstorm/SKILL.md` — `/brainstorm` 스킬이 4문항 강제. 모호하면 사용자에게 확인 후 진행
 - `skills/auto-build/SKILL.md` "호출 형태" — task description 4문항(무엇을/누가/왜 지금/성공) 필수, 누락 시 P1 abort
 
@@ -56,7 +56,7 @@ Andrej Karpathy가 공개한 LLM 코딩의 흔한 함정 관찰에서 도출된 
 - 본인 변경으로 인한 미사용만 제거
 
 **vibe-flow 적용** (가장 강한 매핑):
-- `rules/donts.md` "Surgical Change (작업 범위)" 섹션 — 무관한 dead code 발견 시 언급만 / 본인 변경의 orphan만 정리 / 인접 코드 "개선" 금지
+- `rules/discipline.md` "Surgical Change (작업 범위)" 섹션 — 무관한 dead code 발견 시 언급만 / 본인 변경의 orphan만 정리 / 인접 코드 "개선" 금지
 - `rules/git.md` HARD-GATE 등급 — 변경 파일 수 1~5/6~19/20+ 등급별 설계 강도. **scope creep 방지 게이트**
 - System prompt: *"NEVER modify files not mentioned in the task. NEVER change formatting or style in untouched files"*
 
@@ -99,7 +99,7 @@ Andrej Karpathy가 공개한 LLM 코딩의 흔한 함정 관찰에서 도출된 
 - `.claude/memory/` MEMORY.md index — 200줄 cap으로 컨텍스트 윈도우 손실 회피
 
 **vibe-flow 약함 / 보강 필요**:
-- 긴 명령 출력은 file로 redirect, `tee`로 stdout 동시 분기 금지 — context flood 회피 (`rules/donts.md` "컨텍스트 윈도우 보호" 참조)
+- 긴 명령 출력은 file로 redirect, `tee`로 stdout 동시 분기 금지 — context flood 회피 (`rules/discipline.md` "컨텍스트 윈도우 보호" 참조)
 - 대형 검색/조회 결과는 subagent에 위임하여 main context에 raw output 유입 차단
 
 **Anti-pattern** (Karpathy verbatim, autoresearch program.md):
@@ -112,7 +112,7 @@ Andrej Karpathy가 공개한 LLM 코딩의 흔한 함정 관찰에서 도출된 
 vibe-flow는 영상의 메시지("CLAUDE.md를 거대하게 만들지 마라")와 일치하는 디자인:
 
 - `CLAUDE.md.template` = **프로젝트 메타** (tech stack / structure / commands) 만
-- `core/rules/*.md` = **작업 원칙** (conventions / donts / git / tdd / debugging / design / **karpathy-principles**) 분리
+- `core/rules/*.md` = **작업 원칙** (discipline / conventions / donts / git / tdd / debugging / design / **karpathy-principles**) 분리
 - `core/skills/*.md` = **트리거 기반** (사용 시점에만 활성)
 - `.claude/memory/MEMORY.md` = **인덱스만** (200줄 cap, 개별 메모리 파일은 별도 leaf)
 
