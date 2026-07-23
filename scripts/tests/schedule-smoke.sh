@@ -182,7 +182,7 @@ else
   FAIL=$((FAIL + 1))
 fi
 MSG_CONTENT=$(echo "$OUT" | jq -r '.body.job_config.ccr.events[0].data.message.content // ""' 2>/dev/null || echo "")
-assert_contains "S6.1 events[0].data.message.content has '/auto-build run-cloud'" "/auto-build run-cloud" "$MSG_CONTENT"
+assert_contains "S6.1 events[0].data.message.content has 'run-cloud.sh'" "run-cloud.sh" "$MSG_CONTENT"
 
 # S6.2: REPO_URL env가 sources[0].git_repository.url에 반영 (.git suffix 제거)
 OUT=$(REPO_URL="https://github.com/test/myrepo.git" SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "0 */6 * * *" 2>/dev/null || true)

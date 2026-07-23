@@ -90,6 +90,11 @@
             "type": "command",
             "command": ".claude/hooks/auto-build-safety.sh",
             "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/evolution-guard.sh",
+            "timeout": 5000
           }
         ]
       },
@@ -101,6 +106,16 @@
             "type": "command",
             "command": ".claude/hooks/tdd-enforce.sh",
             "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/evolution-guard.sh",
+            "timeout": 5000
           }
         ]
       }
