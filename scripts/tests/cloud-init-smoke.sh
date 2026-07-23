@@ -40,6 +40,7 @@ setup_fixture() {
   git init -q
   mkdir -p core/hooks settings
   cp "$REPO_ROOT/core/hooks/auto-build-safety.sh" core/hooks/
+  cp "$REPO_ROOT/core/hooks/evolution-guard.sh" core/hooks/
   cp "$REPO_ROOT/settings/settings.template.json" settings/
 }
 
@@ -83,6 +84,13 @@ if [ -f .claude/settings.json ]; then
   PASS=$((PASS + 1))
 else
   echo "  ✗ C2.5 settings.json 파일 부재"
+  FAIL=$((FAIL + 1))
+fi
+if [ -x .claude/hooks/evolution-guard.sh ]; then
+  echo "  ✓ C2.6 evolution-guard.sh 설치됨 (executable)"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ C2.6 evolution-guard.sh 미설치"
   FAIL=$((FAIL + 1))
 fi
 teardown_fixture

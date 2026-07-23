@@ -18,6 +18,7 @@ on:
                                        # 두 워크플로 모두 미발화했다 (게이트는 있고 트리거가 없던 상태).
       - 'core/scripts/**'
       - 'core/hooks/**'
+      - 'settings/settings.template.json'  # PR-1: cloud-init-smoke 피검 대상 + evolution-guard 등록 소스
       - 'core/skills/**/scripts/**'   # F-I05 (audit R9): ledger.sh 등 skill 내부 계측 스크립트
       - 'extensions/**/scripts/**'    # F-J03 (audit R10): frontend-flow 등 extensions skill 스크립트
       - 'scripts/tests/**'
@@ -79,7 +80,7 @@ jobs:
           # F-L10 (audit R12) + F-M09 (audit R13): 플로어 하한(-lt)은 삭제만 잡고 추가를
           # 강제하지 않아 첫 스모크 추가에서 1-slack 으로 열화(zero-headroom 정체).
           # 등가(-ne) 대조로 전환 — 스모크 증감 시 이 기대치를 같은 PR 에서 갱신한다.
-          EXPECTED_SMOKE=28
+          EXPECTED_SMOKE=31
           echo "executed smoke tests: $executed (expected $EXPECTED_SMOKE)"
           if [ "$executed" -ne "$EXPECTED_SMOKE" ]; then
             echo "::error::실행된 스모크 $executed ≠ 기대치 $EXPECTED_SMOKE — 커버리지 소실 또는 기대치 미갱신"

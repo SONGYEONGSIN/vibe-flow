@@ -66,7 +66,7 @@ echo '{"round":"H","component":"skills","dimension":"D2",
 
 ## Phase 4. improve — fix PR (HARD-GATE 등급)
 
-finding을 fix PR로 전환한다. `rules/git.md` HARD-GATE 등급(1~5 인라인 / 6~19 /plan / 20+ planner) + `rules/tdd.md`(RED→GREEN) + `rules/donts.md`(surgical) 준수. 테마별 PR 묶음(R6 #108 trio / R7 #110~#113 패턴). P3는 묶거나 defer(ledger status=`deferred`).
+finding을 fix PR로 전환한다. `rules/git.md` HARD-GATE 등급(1~5 인라인 / 6~19 /plan / 20+ planner) + `rules/tdd.md`(RED→GREEN) + `rules/discipline.md`(surgical) 준수. 테마별 PR 묶음(R6 #108 trio / R7 #110~#113 패턴). P3는 묶거나 defer(ledger status=`deferred`).
 
 **자동화(cloud cycle)**: open finding을 `auto-build` 큐에 적재해 자율 fix를 위임할 수 있다 —
 ```bash

@@ -1,0 +1,23 @@
+# evolution-protected — 자율 루프(AUTO_BUILD_MODE=1)가 수정할 수 없는 안전코어.
+#
+# core/hooks/evolution-guard.sh 가 이 목록의 파일에 대한 Edit/Write/Bash-변경을 차단한다.
+# 사람(비-자율 모드)은 수정 가능 — "안전코어는 사람만 수정" (harness-evolution 설계 불변식).
+# 이 파일 자신도 목록에 포함(자기보호). denylist 부재 시 guard 는 fail-closed.
+#
+# 형식: repo-relative 경로 1줄 1개. '#' 주석·빈 줄 무시.
+#       매칭은 (a) repo-relative 정확 일치 (b) basename 일치 — core/·.claude/ 양쪽 복사본 보호.
+#
+# 미래 안전코어(T4 merge-gate / post-merge-verify)는 생성 전이라도 forward-protect.
+
+.claude/evolution-protected
+core/hooks/evolution-guard.sh
+core/hooks/auto-build-safety.sh
+core/hooks/command-guard.sh
+core/hooks/smart-guard.sh
+core/skills/audit/scripts/health-metric.sh
+core/skills/audit/scripts/merge-gate.sh
+core/skills/audit/scripts/post-merge-verify.sh
+core/skills/audit/scripts/ledger.sh
+core/scripts/sync-drift.sh
+settings/settings.template.json
+validate.sh
