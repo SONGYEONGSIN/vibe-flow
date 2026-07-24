@@ -41,6 +41,8 @@ setup_fixture() {
   mkdir -p core/hooks settings
   cp "$REPO_ROOT/core/hooks/auto-build-safety.sh" core/hooks/
   cp "$REPO_ROOT/core/hooks/evolution-guard.sh" core/hooks/
+  cp "$REPO_ROOT/core/hooks/skill-tracker.sh" core/hooks/
+  cp "$REPO_ROOT/core/hooks/tool-invocation-tracker.sh" core/hooks/
   cp "$REPO_ROOT/settings/settings.template.json" settings/
 }
 
@@ -91,6 +93,14 @@ if [ -x .claude/hooks/evolution-guard.sh ]; then
   PASS=$((PASS + 1))
 else
   echo "  ✗ C2.6 evolution-guard.sh 미설치"
+  FAIL=$((FAIL + 1))
+fi
+# F-P03: 폐루프 관찰성 telemetry hook 도 cloud 에 배포돼야 (settings.json 참조)
+if [ -x .claude/hooks/skill-tracker.sh ] && [ -x .claude/hooks/tool-invocation-tracker.sh ]; then
+  echo "  ✓ C2.7 telemetry hook(skill-tracker/tool-invocation-tracker) 설치됨"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ C2.7 telemetry hook 미설치"
   FAIL=$((FAIL + 1))
 fi
 teardown_fixture

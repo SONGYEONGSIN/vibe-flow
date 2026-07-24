@@ -38,6 +38,14 @@ idG=$(mkfinding G skills D1 | L append)
 n=$(L next-num H)
 [ "$n" = "04" ] && ok "next-num H = 04 (H 3건 뒤)" || ng "next-num H=$n (want 04)"
 
+# F-P05 (audit round P): round 커맨드(Phase5 라운드 리포트, 헤더에 공개 API 로 문서화)가
+# 테스트 커버리지 0 이었음 — 라운드 필터 + tab-필드 포맷 회귀를 게이트.
+rout=$(L round H)
+h_lines=$(printf '%s\n' "$rout" | grep -cE '^F-H0[123]')
+[ "$h_lines" = "3" ] && ok "round H = F-H01~03 3줄" || ng "round H 출력 이상: $rout"
+printf '%s\n' "$rout" | grep -qE '^F-G' && ng "round H 에 G 라운드 누출(필터 실패)" || ok "round H 라운드 필터 정확(G 미포함)"
+printf '%s\n' "$rout" | head -1 | grep -qE '^F-H0[123].*open' && ok "round H tab-필드(id+status) 포맷" || ng "round H 포맷 이상: $(printf '%s' "$rout" | head -1)"
+
 echo "=== open 목록 + resolve(actual_delta 반증) ==="
 opencount=$(L open | wc -l | tr -d ' ')
 [ "$opencount" = "4" ] && ok "open 4건" || ng "open=$opencount (want 4)"
