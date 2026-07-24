@@ -223,7 +223,11 @@ remove_extension() {
   fi
 
   echo "Extension: $ext 제거..."
-  jq -r ".extensions[\"$ext\"].files[]" "$state_file" | while read -r f; do
+  # F-N01 (audit R14): Windows jq.exe 는 매 라인에 \r 을 붙인다. `$(...)` 캡처는 마지막 줄의
+  # \r\n 이 통째로 떨어지지만 `파이프 | while read` 는 마지막 줄까지 \r 이 남아, 원소 수와
+  # 무관하게 경로가 'x\r' 로 깨져 if/elif 를 둘 다 미스한다. else 가 없어 무증상 통과했고
+  # 뒤이은 del(.extensions) 는 성공해 "state 는 지웠는데 파일은 남는" orphan 이 조용히 생겼다.
+  jq -r ".extensions[\"$ext\"].files[]" "$state_file" | tr -d '\r' | while read -r f; do
     full="$PROJECT_DIR/$f"
     if [ -d "$full" ]; then
       rm -rf "$full"
@@ -231,6 +235,8 @@ remove_extension() {
     elif [ -f "$full" ]; then
       rm "$full"
       echo "  [-] $f"
+    else
+      echo "  [!] $f — 목록에 있으나 없음 (건너뜀)" >&2
     fi
   done
 
