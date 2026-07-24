@@ -126,11 +126,20 @@ TODAY=$(date -u +%Y-%m-%d)
 WEEK_AGO=$(date -u -v-7d +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
        || date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)
 
+# F-O05 (audit round O): budget 은 .limits keys(스킬명 포함)로 count 하는데 flat
+# `.type==$t` 는 skill_invoked 이벤트를 스킬명으로 못 잡는다(F-M05 telemetry 와 동일 dead).
+# telemetry/SKILL.md 의 JQ_KEY idiom 재사용 — skill_invoked→.skill, agent_invoked→agent:.agent,
+# 그 외→.type 폴백. `(key)==$t` 는 superset-safe(비-skill 은 type 매칭 유지, skill 은 name 추가).
+JQ_KEY='def key: (.type as $t
+  | if ($t == "skill_invoked" or $t == "skill_invoked_auto") and ((.skill // "") != "") then .skill
+    elif $t == "agent_invoked" and ((.agent // "") != "") then "agent:" + .agent
+    else $t end);'
+
 count_today() {
   local type="$1"
   [ -f "$EVENTS" ] || { echo 0; return; }
   jq -r --arg t "$type" --arg today "$TODAY" \
-    'select(.type==$t and (.ts | startswith($today))) | .type' \
+    "$JQ_KEY"'select((key)==$t and (.ts | startswith($today))) | key' \
     "$EVENTS" 2>/dev/null | wc -l | tr -d ' '
 }
 
@@ -138,7 +147,7 @@ count_weekly() {
   local type="$1"
   [ -f "$EVENTS" ] || { echo 0; return; }
   jq -r --arg t "$type" --arg w "$WEEK_AGO" \
-    'select(.type==$t and .ts > $w) | .type' \
+    "$JQ_KEY"'select((key)==$t and .ts > $w) | key' \
     "$EVENTS" 2>/dev/null | wc -l | tr -d ' '
 }
 ```
@@ -167,7 +176,7 @@ sparkline_7d() {
         || date -u -d "$i days ago" +%Y-%m-%d)
     local c
     c=$(jq -r --arg t "$type" --arg d "$d" \
-      'select(.type==$t and (.ts | startswith($d))) | .type' \
+      "$JQ_KEY"'select((key)==$t and (.ts | startswith($d))) | key' \
       "$EVENTS" 2>/dev/null | wc -l | tr -d ' ')
     counts="$counts $c"
   done
@@ -195,7 +204,7 @@ trend_label() {
     d=$(date -u -v-${i}d +%Y-%m-%d 2>/dev/null \
         || date -u -d "$i days ago" +%Y-%m-%d)
     c=$(jq -r --arg t "$type" --arg d "$d" \
-      'select(.type==$t and (.ts | startswith($d))) | .type' \
+      "$JQ_KEY"'select((key)==$t and (.ts | startswith($d))) | key' \
       "$EVENTS" 2>/dev/null | wc -l | tr -d ' ')
     sum_first=$((sum_first + c))
   done
@@ -204,7 +213,7 @@ trend_label() {
     d=$(date -u -v-${i}d +%Y-%m-%d 2>/dev/null \
         || date -u -d "$i days ago" +%Y-%m-%d)
     c=$(jq -r --arg t "$type" --arg d "$d" \
-      'select(.type==$t and (.ts | startswith($d))) | .type' \
+      "$JQ_KEY"'select((key)==$t and (.ts | startswith($d))) | key' \
       "$EVENTS" 2>/dev/null | wc -l | tr -d ' ')
     sum_last=$((sum_last + c))
   done

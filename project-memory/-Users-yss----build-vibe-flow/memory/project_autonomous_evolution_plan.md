@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 7575770d-0608-4f74-a9a4-6cef9cc38f2f
-  modified: 2026-07-23T22:54:04.784Z
+  modified: 2026-07-24T12:00:30.577Z
 ---
 
 사용자 목표: 현 vibe-flow 하네스를 **완전 무인 자기진화**(자동 학습·문제수정·자기진화·자가업데이트 + **필요 스킬 자가 생성**)로. 2026-07-24 brainstorm→plan 완료.
@@ -22,6 +22,14 @@ metadata:
 - plan: `repo .claude/plans/20260724-063748-autonomous-self-evolution-closedloop.md` (7 step T1~T7 = PR-0~PR-6, HARD-GATE 전체)
 
 **진행 상태 (2026-07-24)**: T1(discipline 분리)·T2(불변 안전코어 evolution-guard+denylist+health-metric)·T3(폐루프 프롬프트 5-phase) 구현 완료 → **PR #166 squash-merged to main (c707596)**. CI 2-leg(ubuntu+windows) green. 신규 smoke 3종(evolution-guard 11/health-metric 3/cloud-loop-prompt) + schedule-smoke S6.1 픽스. hooks 26→27, rules 8→9.
+
+**폐루프 실 가동 확인 (2026-07-24)**: PR #166 머지 후 nightly routine `trig_01FZz2Na6WULE2ZSUU1cjKt4`(cron `0 21 * * *`, sonnet-5)이 실제로 firing — VERIFY 13건 반증→PR #170 머지, AUDIT round O/P 10건 발굴(F-O01~O05/F-P01~P05). **실 병목 발견**: Phase 4 IMPROVE가 cloud 런타임 gh CLI 부재로 abort.
+
+**round O/P 10건 전건 fix·머지 완료 (2026-07-24, open=0)** — 3 PR:
+- **PR #172 (a52f04d)** F-P02+F-O01: run-cloud.sh gh 조기 게이트 제거+P5 gh∥mcp 이연 / ledger append component·dimension 강제 + MEMORY round P 인덱스
+- **PR #173 (1561d86)** 문서정합 5건 F-O02/O03/O04/P01/P04: MEMORY discipline·F-K03·R14 stale 정리 / orchestrator run-log 경로 / audit validate.sh baseline caveat
+- **PR #174 (e9a45c1)** 코드+테스트 3건 F-O05/P03/P05: budget jq JQ_KEY idiom((key)==$t, audit 0→5) / cloud-init telemetry hook 배포 / ledger round 테스트 커버리지
+전건 `fixed` — 다음 firing Phase1 VERIFY가 actual_delta 실측 반증 예정(폐루프 폐합). **caveat 유지**: F-P02의 mcp 대체는 cloud routine allowed_tools에 mcp__github 그랜트 필요할 수 있음(다음 firing 검증). 다음 진입점 = **T4(auto-merge 게이트)** 또는 다음 nightly firing 산출 finding.
 
 **다음 세션 진입점 (2가지)**:
 1. **런타임 활성화 (T3 firing-DoD)**: R12 routine 재등록(`schedule-register.sh`) → 새 폐루프 프롬프트 주입. **주의: 라이브 cloud 변경 + 다음 firing부터 야간 자율 audit→PR 시작(PR-only, 머지는 X). 사용자 명시 승인 필요** — 켜면 cloud 토큰 소비 + PR 자동 생성. T4(auto-merge) 아직 없음.
