@@ -38,6 +38,16 @@ if [ ! -f "$EVOLUTION_HOOK_SRC" ]; then
   exit 1
 fi
 
+# F-P03: 폐루프 관찰성 telemetry hook — settings.json 이 참조하나 미배포면
+# skill_invoked/tool 계측이 death → Phase 2 AUDIT 의 telemetry evaluate 입력 소실.
+TELEMETRY_HOOKS="skill-tracker tool-invocation-tracker"
+for _h in $TELEMETRY_HOOKS; do
+  [ -f "$PROJECT_ROOT/core/hooks/$_h.sh" ] || {
+    echo "[cloud-init] ERROR — source hook not found: $PROJECT_ROOT/core/hooks/$_h.sh" >&2
+    exit 1
+  }
+done
+
 if [ ! -f "$SETTINGS_SRC" ]; then
   echo "[cloud-init] ERROR — source settings not found: $SETTINGS_SRC" >&2
   exit 1
@@ -52,6 +62,9 @@ SETTINGS_DST="$PROJECT_ROOT/.claude/settings.json"
 if [ "$DRYRUN" = "1" ]; then
   echo "[cloud-init] would install: $SAFETY_HOOK_SRC → $SAFETY_HOOK_DST" >&2
   echo "[cloud-init] would install: $EVOLUTION_HOOK_SRC → $EVOLUTION_HOOK_DST" >&2
+  for _h in $TELEMETRY_HOOKS; do
+    echo "[cloud-init] would install: $PROJECT_ROOT/core/hooks/$_h.sh → $HOOKS_DIR/$_h.sh" >&2
+  done
   echo "[cloud-init] would install: $SETTINGS_SRC → $SETTINGS_DST" >&2
   exit 0
 fi
@@ -76,6 +89,18 @@ else
   chmod +x "$EVOLUTION_HOOK_DST"
   echo "[cloud-init] PreToolUse hook installed: .claude/hooks/evolution-guard.sh" >&2
 fi
+
+# F-P03: 폐루프 관찰성 telemetry hook 배포 (skill-tracker / tool-invocation-tracker)
+for _h in $TELEMETRY_HOOKS; do
+  _dst="$HOOKS_DIR/$_h.sh"
+  if [ -f "$_dst" ] && [ "$FORCE" != "1" ]; then
+    echo "[cloud-init] skip — hook already exists: .claude/hooks/$_h.sh (CLOUD_INIT_FORCE=1 to overwrite)" >&2
+  else
+    cp "$PROJECT_ROOT/core/hooks/$_h.sh" "$_dst"
+    chmod +x "$_dst"
+    echo "[cloud-init] telemetry hook installed: .claude/hooks/$_h.sh" >&2
+  fi
+done
 
 # F-A12 (audit round 4): local dev 환경(setup.sh로 settings.local.json install된 머신)
 # 에서 본 script 직접 실행 시 settings.json + settings.local.json hook 중복 등록
