@@ -50,7 +50,9 @@ open finding을 auto-build 큐(`auto-build-queue.jsonl`) task로 전환한다 (i
 ```bash
 AUTO_BUILD_QUEUE_CRON_FIRING=1 bash core/skills/auto-build/scripts/run-cloud.sh
 ```
-큐 첫 task pop → orchestrator P0~P5 (brainstorm → plan → TDD → verify → commit) → `gh pr create` → PR URL stdout. queue.sh status-update done/aborted.
+큐 첫 task pop → orchestrator P0~P5 (brainstorm → plan → TDD → verify → commit) → PR 생성 → PR URL stdout. queue.sh status-update done/aborted.
+
+**PR 생성 수단 (F-P02)**: `gh` 있으면 `gh pr create`, 없으면 `mcp__github__create_pull_request` (GitHub MCP). 둘 다 없을 때만 abort — gh 부재만으로 P0~P4를 무산출 소모하지 않는다.
 
 **PR 생성까지만 — `gh pr merge` 절대 호출 금지.** 큐가 비면 stderr "queue empty" + exit 0.
 

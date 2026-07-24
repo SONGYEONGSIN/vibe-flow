@@ -55,11 +55,10 @@ fi
 
 # ── 실 cycle (DRYRUN=0) ────────────────────────────────────
 
-if ! command -v gh >/dev/null 2>&1; then
-  bash "$QUEUE_SH" status-update "$ID" "aborted" >/dev/null
-  echo "run-cloud: gh CLI not found in cloud env — entry $ID aborted" >&2
-  exit 2
-fi
+# F-P02 (audit round P): gh 조기 게이트 제거. run-cloud.sh 책임은 entry 선택 + hand-off
+# 까지이며, PR 생성 수단(gh vs mcp__github) 판단은 P5(agent) 관심사다. gh 부재만으로
+# gh 와 무관한 P0~P4(브랜치/brainstorm/plan/TDD/verify)까지 무산출 abort 되던 회귀 차단.
+# gh/mcp 둘 다 없을 때의 abort 는 agent 가 P5 에서 판단한다(orchestrator.md P5).
 
 # F-D7 (audit round 4, 2026-06-06): PR-C2 stub 제거.
 # PR-C3 R8 dogfooding (2026-05-23 PR #71) + R9~R11 functional PASS 로 실 cycle 활성.
@@ -70,7 +69,7 @@ cat >&2 <<EOM
 run-cloud: entry $ID handed off to cloud agent (status=running).
   Agent must now execute:
     1. core/skills/auto-build/orchestrator.md P0~P5 (brainstorm → plan → TDD → verify → commit)
-    2. gh pr create — PR 자동 생성
+    2. PR 생성 — gh 있으면 'gh pr create', 없으면 'mcp__github__create_pull_request' (GitHub MCP); 둘 다 없을 때만 abort
     3. bash $QUEUE_SH status-update $ID done    (성공 시)
        bash $QUEUE_SH status-update $ID aborted (실패 시)
 EOM
