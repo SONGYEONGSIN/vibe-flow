@@ -77,14 +77,14 @@ vibe-flow의 AHE 루프(evaluate→analyze→improve→verify)를 **사람 개�
 - **노트**: cloud-loop-prompt smoke ALL PASS(5-phase 배선+참조 실존+PR-only 검증), drift/doc-counts/validate green. **firing-DoD 종결(2026-07-24T06:57Z)**: nightly routine `trig_01FZz2Na6WULE2ZSUU1cjKt4`(cron `0 21 * * *`, sonnet-5, env_01Lzz…) 등록 후 `RemoteTrigger run` 으로 1회 test-fire. cloud agent 가 origin/main checkout → Phase 1 VERIFY 로 pending-verify 13건(F-M01~M10 + F-N01~N03) **전건 실측 반증(F-H07 준수, 배포상태 문자열 0건)** → **PR #170** 생성(ledger 단일 파일, auto-merge 안 함, 안전코어 미접촉) → 머지(e2e4828). DoD 3기준 전건 충족: exit0 / PR≥0(=1) / resolve≥1(=13). 사전 발굴 [[F-N02]](tool grant Agent/Task 누락 → Phase 2 AUDIT 사망)를 firing 전에 fix 하지 않았으면 Phase 2 가 죽었을 것. routine prompt 는 full-injection 대신 bootstrap-delegation(repo 템플릿 read-execute) — schedule-register.sh 설계와 다름, 재등록 시 주의.
 
 ### T4: PR-3 — auto-merge + auto-revert
-- **상태**: pending
-- **파일**: `+merge-gate.sh`, `+post-merge-verify.sh`, `~routine`
-- **변경**: CI-green+tier+안전코어-untouched 통과 시 `gh pr merge --auto`; 실패 시 post-merge fresh-CI → 자동 `git revert`
+- **상태**: done (기본 OFF — graduation T6이 tier 개방)
+- **파일**: `+core/skills/audit/scripts/merge-gate.sh`, `+post-merge-verify.sh`, `+merge-gate-smoke.sh`, `+post-merge-verify-smoke.sh`, `~cloud-prompt-template.md`(Phase 5), `~cloud-loop-prompt-smoke.sh`(L4), `~validation-tests.yml`(EXPECTED_SMOKE 32→34)
+- **변경**: merge-gate(safety-core-untouched > tier graduation > CI-green 순 판정, `AUTO_MERGE_TIER` 기본 off) 통과 시에만 `gh pr merge --squash`; post-merge-verify가 fresh health(sync-drift+doc-counts, F-P04 반영해 validate full 제외) 실패 시 자동 `git revert`. routine Phase 5 배선
 - **DoD**: 안전코어 touch PR → merge-gate reject; bad merge 주입 → 같은 밤 revert 커밋 생성
 - **의존**: T3 · **HARD-GATE**: 전체
 - **리스크**: 노출창(revert 전 bad merge가 main에 존재) → post-merge fresh-CI 즉시 + breaker freeze; 구조/안전-인접 변경은 canary 경유 하이브리드
-- **완료일**:
-- **노트**:
+- **완료일**: 2026-07-25
+- **노트**: TDD — merge-gate smoke 14/14(safety-core REJECT/default-off HOLD/tier graduation/CI gate/exit code), post-merge-verify 8/8(health실패→revert+base복원/통과→no-op/dryrun). **default-safe 불변식**: `AUTO_MERGE_TIER=off` → merge-gate 항상 HOLD_TIER → **T4 머지해도 라이브 자율머지 안 켜짐(PR-only 유지)**. tier 개방은 T6 graduation이 M밤 클린 후 `AUTO_MERGE_TIER` 설정 시에만. 안전코어 denylist(merge-gate/post-merge-verify는 T2에서 forward-protect됨)는 tier·CI 무관 REJECT. 전 34 smoke green.
 
 ### T5: PR-4 — self-update
 - **상태**: pending
