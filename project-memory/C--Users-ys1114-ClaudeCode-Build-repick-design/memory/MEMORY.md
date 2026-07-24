@@ -1,1 +1,1 @@
-- [wiki-lint Windows 경로 버그](wiki-lint-windows-path-bug.md) — vault 검증은 unindexed 무시하고 broken/orphans로 판단
+- [wiki-lint Windows 경로 버그](wiki-lint-windows-path-bug.md) — PR #12에서 수정됨. 이제 Windows에서도 broken/orphans/unindexed 정확, npm test 45개 정상 실행
