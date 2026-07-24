@@ -1,0 +1,1 @@
+- [Check branches, not just main](check-branches-not-just-main.md) — 상태 파악 시 worktree/feature 브랜치까지 확인 (main + plan status만 보면 오진)

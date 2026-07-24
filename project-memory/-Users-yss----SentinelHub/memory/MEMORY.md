@@ -1,2 +1,0 @@
-- [프로젝트 셋업](project_setup.md) — Next.js 14 + TW4 스택, 빌드 이슈 해결 내역
-- [사용자 컨텍스트](user_context.md) — 교육/진학 도메인, Stitch 디자인 워크플로우

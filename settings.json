@@ -1,32 +1,229 @@
 {
+  "cleanupPeriodDays": 14,
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "ENABLE_TOOL_SEARCH": "auto:5"
+  },
   "permissions": {
     "allow": [
-      "Bash(ls:*)",
-      "Bash(cat:*)",
-      "Bash(find:*)",
-      "Bash(git:*)",
-      "Bash(node:*)",
-      "Bash(npm:*)",
-      "Bash(npx:*)",
-      "Bash(pnpm:*)",
-      "Bash(bun:*)",
-      "Bash(bunx:*)",
-      "Bash(mkdir:*)",
-      "Read",
-      "Edit",
-      "Write",
-      "Glob",
-      "Grep"
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Task(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "Search(*)",
+      "Skill(*)",
+      "ToolSearch(*)",
+      "NotebookEdit(*)",
+      "WebSearch",
+      "WebSearch(*)",
+      "SendMessage(*)",
+      "TeamCreate(*)",
+      "TeamDelete(*)",
+      "TaskCreate(*)",
+      "TaskUpdate(*)",
+      "TaskGet(*)",
+      "TaskList(*)",
+      "TaskOutput(*)",
+      "TaskStop(*)",
+      "EnterPlanMode(*)",
+      "AskUserQuestion(*)",
+      "ListMcpResourcesTool(*)",
+      "ReadMcpResourceTool(*)",
+      "mcp__context7__*",
+      "mcp__exa__*",
+      "mcp__memory__*",
+      "mcp__github__*",
+      "mcp__fetch__*",
+      "mcp__jina-reader__*"
     ],
-    "defaultMode": "auto"
+    "deny": [
+      "WebFetch",
+      "WebFetch(*)",
+      "Bash(rm -rf /)*",
+      "Bash(rm -rf ~)*",
+      "Bash(rm -rf .)*",
+      "Bash(rm -r .)*",
+      "Bash(rm -r ./)*",
+      "Bash(rm -rf *)*",
+      "Bash(sudo:*)",
+      "Bash(chmod 777:*)",
+      "Bash(>/dev/*)",
+      "Bash(curl*|*sh)*",
+      "Bash(wget*|*sh)*",
+      "Bash(*>~/.ssh/*)",
+      "Bash(*>~/.zshrc)*",
+      "Bash(*>~/.bashrc)*",
+      "Bash(*>~/.profile)*",
+      "Bash(*>~/.zprofile)*",
+      "Bash(git push --force*main)*",
+      "Bash(git push -f*main)*",
+      "Bash(git push --force*master)*",
+      "Bash(git push -f*master)*",
+      "Bash(git push --force-with-lease*main)*",
+      "Bash(git push --force-with-lease*master)*",
+      "Bash(git push origin +main)*",
+      "Bash(git push origin +master)*",
+      "Bash(git reset --hard origin/*)*",
+      "Bash(git clean -f*)*",
+      "Bash(git checkout -- .)*",
+      "Bash(git restore .)*",
+      "Bash(npm publish)*",
+      "Bash(pnpm publish)*",
+      "Bash(yarn publish)*",
+      "Bash(docker system prune)*",
+      "Bash(mkfs*)*",
+      "Bash(dd if=*)*",
+      "Bash(eval *)*",
+      "Bash(bash -c *)*",
+      "Bash(/bin/bash -c *)*",
+      "Bash(sh -c *)*",
+      "Bash(/bin/sh -c *)*",
+      "Bash(osascript*)*",
+      "Bash(/usr/bin/osascript*)*",
+      "Bash(crontab*)*",
+      "Bash(launchctl*)*",
+      "Bash(python3 -c *import os*)*",
+      "Bash(python3 -c *import subprocess*)*",
+      "Bash(python3 -c *import importlib*)*",
+      "Bash(python3 -c *__import__*)*",
+      "Bash(node -e *)*",
+      "Bash(/usr/local/bin/node -e *)*",
+      "Bash(perl -e *)*",
+      "Bash(/usr/bin/perl -e *)*",
+      "Bash(xargs *)*",
+      "Bash(open http*)*",
+      "Bash(source /dev/*)*"
+    ]
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/remote-command-guard.sh",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/rate-limiter.sh",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/mcp-usage-tracker.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/context-sync-suggest.sh"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/forge-update-check.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/yss/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yss/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "~/.claude/hooks/work-tracker-prompt.sh"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/work-tracker-tool.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/output-secret-filter.sh",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/skills/continuous-learning-v2/hooks/observe.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/code-quality-reminder.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/code-quality-reminder.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/security-auto-trigger.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
         ]
@@ -37,8 +234,36 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/yss/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yss/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "~/.claude/hooks/work-tracker-stop.sh"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/session-wrap-suggest.sh"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/task-completed.sh",
+            "timeout": 10000
           }
         ]
       }
@@ -48,7 +273,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/yss/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yss/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "if [ -f 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
         ]
@@ -59,7 +284,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/yss/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yss/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "if [ -f 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
         ]
@@ -70,7 +295,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/yss/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yss/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "if [ -f 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
         ]
@@ -81,31 +306,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/yss/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yss/.orca/agent-hooks/claude-hook.sh'; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -x '/Users/yss/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yss/.orca/agent-hooks/claude-hook.sh'; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -x '/Users/yss/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yss/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "if [ -f 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
         ]
@@ -117,7 +318,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/yss/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yss/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "if [ -f 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
         ]
@@ -129,7 +330,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/yss/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yss/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "if [ -f 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/ys1114/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
         ]
@@ -138,29 +339,44 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash /Users/yss/.claude/statusline.sh",
-    "refreshInterval": 10
+    "command": "pwsh -NoProfile -NonInteractive -File C:/Users/ys1114/.claude/statusline.ps1"
   },
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true,
-    "discord@claude-plugins-official": true,
-    "frontend-design@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
-    "vercel@claude-plugins-official": true,
-    "vibe-flow@vibe-flow": true
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true,
+    "vibe-flow@vibe-flow": true,
+    "reprompt@repick-prompt": true
   },
   "extraKnownMarketplaces": {
+    "claude-plugins-official": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/anthropics/claude-plugins-official.git"
+      },
+      "autoUpdate": true
+    },
+    "ui-ux-pro-max-skill": {
+      "source": {
+        "source": "github",
+        "repo": "nextlevelbuilder/ui-ux-pro-max-skill"
+      }
+    },
     "vibe-flow": {
       "source": {
         "source": "git",
         "url": "https://github.com/SONGYEONGSIN/vibe-flow.git"
       }
+    },
+    "repick-prompt": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/SONGYEONGSIN/repick-prompt.git"
+      }
     }
   },
   "effortLevel": "xhigh",
-  "tui": "fullscreen",
-  "skipDangerousModePermissionPrompt": true,
-  "theme": "dark-daltonized",
-  "skipAutoPermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true
 }

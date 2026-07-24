@@ -1,0 +1,1 @@
+- [wiki-lint Windows 경로 버그](wiki-lint-windows-path-bug.md) — vault 검증은 unindexed 무시하고 broken/orphans로 판단
