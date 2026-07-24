@@ -35,14 +35,17 @@ exe "L3.3 ledger.sh"        "core/skills/audit/scripts/ledger.sh"
 exe "L3.4 run-cloud.sh"     "core/skills/auto-build/scripts/run-cloud.sh"
 exe "L3.5 evolution-guard.sh" "core/hooks/evolution-guard.sh"
 
-echo "Test L4: PR-only (auto-merge 금지 명시 + 실 merge 커맨드 부재)"
-have "L4.1 auto-merge 금지 명시" "auto-merge 절대 금지"
+echo "Test L4: merge-gate 배선(T4) + default-safe + guard"
+have "L4.1 Phase5 merge-gate.sh 배선" "merge-gate.sh"
+have "L4.2 post-merge-verify.sh(auto-revert) 배선" "post-merge-verify.sh"
+have "L4.3 default-safe AUTO_MERGE_TIER off 불변식" "AUTO_MERGE_TIER"
+# 무조건(gate 미경유) merge 방지 — gh pr merge 가 라인 시작으로 있으면 안 됨
 if grep -qE '^\s*gh pr merge' "$PROMPT"; then
-  echo "  ✗ L4.2 실 'gh pr merge' 커맨드 유출"; FAIL=$((FAIL+1))
+  echo "  ✗ L4.4 무조건 'gh pr merge' 유출(gate 미경유)"; FAIL=$((FAIL+1))
 else
-  echo "  ✓ L4.2 실 merge 커맨드 없음"; PASS=$((PASS+1))
+  echo "  ✓ L4.4 무조건 merge 없음(반드시 merge-gate 경유)"; PASS=$((PASS+1))
 fi
-have "L4.3 AUTO_BUILD_MODE=1 (guard 활성)" "AUTO_BUILD_MODE=1"
+have "L4.5 AUTO_BUILD_MODE=1 (guard 활성)" "AUTO_BUILD_MODE=1"
 
 echo "Test L5: 툴 grant 가 템플릿 phase 요구 충족 (F-N02)"
 # Phase 2 는 /audit 를 호출하고(L2.5 짝), /audit(audit/SKILL.md: allowed-tools ... Agent)은

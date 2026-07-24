@@ -54,11 +54,22 @@ AUTO_BUILD_QUEUE_CRON_FIRING=1 bash core/skills/auto-build/scripts/run-cloud.sh
 
 **PR 생성 수단 (F-P02)**: `gh` 있으면 `gh pr create`, 없으면 `mcp__github__create_pull_request` (GitHub MCP). 둘 다 없을 때만 abort — gh 부재만으로 P0~P4를 무산출 소모하지 않는다.
 
-**PR 생성까지만 — `gh pr merge` 절대 호출 금지.** 큐가 비면 stderr "queue empty" + exit 0.
+**PR 생성 후 — 직접 `gh pr merge` 금지. 머지 판단은 Phase 5(merge-gate)에 위임.** 큐가 비면 stderr "queue empty" + exit 0.
+
+### Phase 5 — MERGE-GATE (조건부 auto-merge, 기본 OFF)
+
+Phase 4가 PR을 생성했으면 auto-merge 적격을 merge-gate가 판정한다:
+```bash
+bash core/skills/audit/scripts/merge-gate.sh <PR번호>   # DECISION=... 출력, exit 0=AUTO_MERGE
+```
+- **DECISION=AUTO_MERGE (exit 0) 일 때만**: `gh pr merge <PR> --squash` → 머지 직후 즉시 `bash core/skills/audit/scripts/post-merge-verify.sh <merge-commit-sha>` (fresh health 실패 시 자동 `git revert` — 노출창 최소화).
+- **그 외**(`HOLD_*` / `REJECT_SAFETY_CORE`): 머지하지 말고 PR을 사람에게 남긴다.
+
+> **default-safe 불변식**: `AUTO_MERGE_TIER` 기본 `off` → merge-gate 는 항상 `HOLD_TIER` → 실질 **PR-only** 유지. tier 개방(graduation)은 운영자가 T6 후 `AUTO_MERGE_TIER` 를 명시 설정할 때만. **안전코어(`.claude/evolution-protected`) touch PR 은 tier·CI 무관 REJECT** — 사람만 머지.
 
 ### 안전 정책 (cloud session 고유)
 
-- **auto-merge 절대 금지** — 이 단계는 PR-only baseline. `gh pr merge`/`--auto` 호출 X (auto-merge는 PR-3에서 게이트와 함께 도입).
+- **auto-merge 는 merge-gate 판정에만 따름** — 직접 `gh pr merge`/`--auto` 호출 금지, 반드시 `merge-gate.sh` 경유(Phase 5). 기본 `AUTO_MERGE_TIER=off` → 실질 PR-only. 안전코어 touch PR 은 항상 REJECT.
 - **안전코어 불변** — evolution-guard.sh(AUTO_BUILD_MODE=1)가 denylist(`.claude/evolution-protected`) 파일 수정을 차단한다. 안전장치·게이트·denylist 결함 발견 시 fix하지 말고 finding으로 surface (사람 review).
 - 1 firing = 1 cycle = 1 PR. `AUTO_BUILD_QUEUE_MAX_CYCLES` 무시.
 - vote confidence < 0.7 → 즉시 abort (사용자 부재 보수 모드).
