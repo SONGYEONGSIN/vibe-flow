@@ -44,6 +44,25 @@ else
 fi
 have "L4.3 AUTO_BUILD_MODE=1 (guard 활성)" "AUTO_BUILD_MODE=1"
 
+echo "Test L5: 툴 grant 가 템플릿 phase 요구 충족 (F-N02)"
+# Phase 2 는 /audit 를 호출하고(L2.5 짝), /audit(audit/SKILL.md: allowed-tools ... Agent)은
+# dimension agent 를 병렬 dispatch 한다. 따라서 routine 의 allowed_tools 는 Agent 를 포함해야
+# firing 시 Phase 2 가 산다. 배선(prompt)과 권한(payload)이 다른 파일이라 한쪽만 갱신되는
+# 회귀를 차단 — DRYRUN payload 의 실제 grant 를 뽑아 L2.5 와 대조한다.
+REGISTER="$REPO_ROOT/core/skills/auto-build/scripts/schedule-register.sh"
+# tr -d '\r': Windows jq.exe CRLF (F-N01 계열). grep -qx 매칭이 'Agent\r' 로 빗나가지 않게.
+GRANT=$(SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "0 21 * * *" 2>/dev/null \
+  | jq -r '.body.job_config.ccr.session_context.allowed_tools[]' 2>/dev/null | tr -d '\r')
+if grep -qF "/audit" "$PROMPT"; then
+  if printf '%s\n' "$GRANT" | grep -qx "Agent"; then
+    echo "  ✓ L5.1 allowed_tools 에 Agent (Phase 2 /audit dispatch 가능)"; PASS=$((PASS+1))
+  else
+    echo "  ✗ L5.1 allowed_tools 에 Agent 부재 — Phase 2 /audit 가 firing 시 툴 부재로 죽음"; FAIL=$((FAIL+1))
+  fi
+else
+  echo "  - L5.1 skip (템플릿에 /audit 배선 없음 — 전제 불성립)"
+fi
+
 echo ""
 echo "─────────────────────────────────────────"
 echo "PASS: $PASS   FAIL: $FAIL"
