@@ -315,7 +315,8 @@ print_tokens() {
   since=$(date -u -v-${PERIOD_DAYS}d +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
        || date -u -d "${PERIOD_DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)
 
-  # 현재 프로젝트 cwd — macOS NFD/NFC 정규화 (Claude Code log는 NFC 저장)
+  # 현재 프로젝트 cwd — macOS NFD/NFC 정규화 (Claude Code log는 NFC 저장).
+  # F-N03: Windows 경로구분자는 아래 jq 에서 정규화 (git rev-parse 슬래시 vs 로그 백슬래시).
   local project_cwd_raw project_cwd
   project_cwd_raw=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
   if command -v python3 &>/dev/null; then
@@ -329,7 +330,7 @@ print_tokens() {
   agg=$(cat "$home_projects"/*/*.jsonl 2>/dev/null | jq -n --arg cwd "$project_cwd" --arg since "$since" '
     [inputs | select(
         .type == "assistant"
-        and .cwd == $cwd
+        and (.cwd | gsub("\\\\"; "/")) == $cwd
         and (.timestamp // .ts // "") > $since
         and ((.message.usage.input_tokens // 0) + (.message.usage.output_tokens // 0)) > 0
         and (.message.model // "") != "<synthetic>"
