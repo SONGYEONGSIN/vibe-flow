@@ -127,8 +127,12 @@ fi
 # placeholder 치환 — 본문에 변수 토큰 남아있으면 sed로 안전 치환
 TEMPLATE_BODY=$(sed -e "s#{{REPO_URL}}#${REPO_URL_VALUE//\#/\\#}#g" "$TEMPLATE_PATH")
 
-# session_context.allowed_tools — orchestrator P0~P5에 필요한 최소 도구
-ALLOWED_TOOLS_JSON='["Bash","Read","Write","Edit","Glob","Grep"]'
+# session_context.allowed_tools — 폐루프 5-phase에 필요한 최소 도구.
+# F-N02 (audit R14): Phase 2 AUDIT 는 /audit 스킬을 호출하고 dimension agent 를 병렬
+# dispatch 한다(audit/SKILL.md: allowed-tools ... Agent). Agent/Task 없이는 firing 시
+# Phase 2 가 툴 부재로 죽어 폐루프 analyze 가 단락된다. 검증된 활성 routine(prompt-evolve)
+# 셋과 정합. cloud-loop-prompt-smoke.sh L5 가 이 grant 를 템플릿 /audit 배선에 묶어 고정.
+ALLOWED_TOOLS_JSON='["Bash","Read","Write","Edit","Glob","Grep","Agent","Task"]'
 
 # payload body 빌드 — schedule 필드는 MODE에 따라 최상위 run_once_at 또는 cron_expression
 if [ "$MODE" = "once" ]; then
