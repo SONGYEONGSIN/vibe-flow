@@ -1,1 +1,2 @@
 - [wiki-lint Windows 경로 버그](wiki-lint-windows-path-bug.md) — PR #12에서 수정됨. 이제 Windows에서도 broken/orphans/unindexed 정확, npm test 45개 정상 실행
+- [native validate Windows gotcha](native-validate-windows.md) — validate.sh는 npx serve 프롬프트로 Windows에서 멈춤. 게이트 개별 실행 + 툴체인 사전설치
