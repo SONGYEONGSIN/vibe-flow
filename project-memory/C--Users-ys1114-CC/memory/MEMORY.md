@@ -1,2 +1,0 @@
-- [ref_claude_builds.md](ref_claude_builds.md) — Claude Code 도구 리포 (에이전트/스킬/훅), 프로젝트에 setup.sh로 적용
-- [ref_adminops.md](ref_adminops.md) — AdminOps 프로젝트 리포, claude-builds 적용 현황

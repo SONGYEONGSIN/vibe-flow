@@ -1,2 +1,0 @@
-- [OPS console project state](project_ops_console.md) — Linear-style internal admin SaaS, P1 done, Stitch-based design workflow in progress
-- [vibe-design skill](project_vibe_design.md) — completed v0.1.0 thin orchestrator skill (extract-design-system + ui-ux-pro-max)

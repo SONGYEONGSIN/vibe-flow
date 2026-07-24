@@ -1,1 +1,0 @@
-- [claude-builds roadmap](claude_builds_roadmap.md) — 커뮤니티 패턴 도입 로드맵 (2순위 Pair Mode / 3순위 Observability / 4순위 TDD / P2 Budget) 미완료 큐

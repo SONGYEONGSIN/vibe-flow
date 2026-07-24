@@ -1,1 +1,0 @@
-- [KOSA 교육 작업 경로](project_kosa_workdir.md) — 실습 작업은 C:\kosa20260429, 교육 자료 PDF는 Education\웹보안 폴더

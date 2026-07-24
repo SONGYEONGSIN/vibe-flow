@@ -1,0 +1,46 @@
+{
+  "_comment": "Anthropic Claude API 가격 (USD per million tokens, 2026 기준). 가격 변동 시 이 파일만 갱신. 모델 prefix 매칭 (예: claude-opus-4-7 → opus-4-7 family).",
+  "_source": "https://www.anthropic.com/pricing",
+  "_updated": "2026-05-01",
+  "currency": "USD",
+  "unit": "per_million_tokens",
+  "models": {
+    "claude-opus-4-7": {
+      "input": 15.00,
+      "output": 75.00,
+      "cache_read": 1.50,
+      "cache_creation": 18.75
+    },
+    "claude-opus-4-6": {
+      "input": 15.00,
+      "output": 75.00,
+      "cache_read": 1.50,
+      "cache_creation": 18.75
+    },
+    "claude-sonnet-4-6": {
+      "input": 3.00,
+      "output": 15.00,
+      "cache_read": 0.30,
+      "cache_creation": 3.75
+    },
+    "claude-sonnet-4-5": {
+      "input": 3.00,
+      "output": 15.00,
+      "cache_read": 0.30,
+      "cache_creation": 3.75
+    },
+    "claude-haiku-4-5": {
+      "input": 1.00,
+      "output": 5.00,
+      "cache_read": 0.10,
+      "cache_creation": 1.25
+    },
+    "_default": {
+      "_comment": "알려지지 않은 모델 — Sonnet 4.6 가격 가정 (overestimate 가능)",
+      "input": 3.00,
+      "output": 15.00,
+      "cache_read": 0.30,
+      "cache_creation": 3.75
+    }
+  }
+}
