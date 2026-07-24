@@ -64,6 +64,43 @@ bad=$(printf '%s' "$out" | tr -cd '\r' | wc -c | tr -d ' ')
 printf '%s' "$out" | grep -qE '^AGENT_DISPATCH:designer:' \
   && ok "첫 persona(designer) dispatch 라인 정상" || ng "designer dispatch 라인 깨짐"
 
+# ── 3. setup.sh remove_extension: `파이프 | while read` 소비처 (F-N01) ──
+# 위 두 케이스와 형태가 다르다. `$(...)` 캡처는 마지막 줄의 \r\n 이 통째로 떨어져
+# 원소가 1개면 안전하지만, 파이프-while 은 *마지막 줄까지* CR 이 남아 원소 수와 무관하게
+# 깨진다. 그래서 :24-28 의 제외 근거("단일 값 캡처는 안전")가 이 형태를 덮지 못했다.
+# 플랫폼 무관 RED 를 위해 매 라인에 \r 을 붙이는 jq shim 을 PATH 앞에 둔다 (ubuntu 에서도 RED).
+echo "=== setup.sh remove_extension: CRLF 하에서도 실파일 삭제 ==="
+SHIM="$TMP/shim"; mkdir -p "$SHIM"
+REAL_JQ="$(command -v jq)"
+cat > "$SHIM/jq" <<SHIMEOF
+#!/bin/bash
+"$REAL_JQ" "\$@" | sed 's/\$/\r/'
+exit "\${PIPESTATUS[0]}"
+SHIMEOF
+chmod +x "$SHIM/jq"
+
+mkproj() {  # $1 = 프로젝트 경로, $2.. = manifest 에 올릴 상대 경로
+  local p="$1"; shift
+  mkdir -p "$p/.claude" "$p/skills/demo"
+  jq -nc --args '{extensions:{demo:{files:$ARGS.positional}}}' "$@" > "$p/.claude/.vibe-flow.json"
+}
+
+# 3-1. manifest 의 파일이 실제로 지워지는가
+PROJ="$TMP/proj"
+mkproj "$PROJ" "skills/demo/SKILL.md" "skills/demo/extra.md"
+: > "$PROJ/skills/demo/SKILL.md"; : > "$PROJ/skills/demo/extra.md"
+(cd "$PROJ" && PATH="$SHIM:$PATH" bash "$REPO_ROOT/setup.sh" --remove-extension demo) >/dev/null 2>&1
+left=$(ls "$PROJ/skills/demo/" 2>/dev/null | wc -l | tr -d ' ')
+[ "$left" -eq 0 ] && ok "manifest 2건 전건 삭제 (CRLF 주입 하)" \
+                  || ng "${left}건 잔존 — state 만 삭제되고 파일은 남는 orphan"
+
+# 3-2. 목록에 있으나 없는 파일은 조용히 통과하지 않는다 (무증상 orphan 재발 방지)
+PROJ2="$TMP/proj2"
+mkproj "$PROJ2" "skills/demo/ghost.md"
+warn=$( (cd "$PROJ2" && PATH="$SHIM:$PATH" bash "$REPO_ROOT/setup.sh" --remove-extension demo) 2>&1 >/dev/null )
+printf '%s' "$warn" | grep -q '\[!\]' \
+  && ok "미삭제 파일 stderr 경고 노출" || ng "미삭제가 무증상 통과 — 삭제 실패가 관측 불가"
+
 echo ""
 echo "=== 결과 ==="
 echo "  통과: $PASS / 실패: $FAIL"
