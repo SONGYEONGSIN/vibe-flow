@@ -73,6 +73,16 @@ case "$cmd" in
         exit 1
       fi
     done
+    # F-O01 (audit round P): component/dimension 귀속도 강제. SKILL.md Phase2 는 finding
+    # 을 7-component 중 하나 + dimension 에 귀속시키라 요구하나 F-K01 은 4-field 만 굳혔다.
+    # enqueue(:하단)가 큐 task 를 "[audit \(.id)/\(.dimension)/\(.component)]" 로 만들므로
+    # 미제공 시 "[audit F-X/null/null]" 이 자율 fix 큐에 그대로 적재된다.
+    for field in component dimension; do
+      if [ -z "$(echo "$IN" | jq -r --arg f "$field" '.[$f] // empty')" ]; then
+        echo "error: .$field required (귀속: 7-component 중 하나 + dimension)" >&2
+        exit 1
+      fi
+    done
     # F-H02(R8)+F-I04(R9): append 를 원자 락으로 직렬화 (병렬 append 동일 id race 차단).
     acquire_lock
     num=$(next_num "$round")

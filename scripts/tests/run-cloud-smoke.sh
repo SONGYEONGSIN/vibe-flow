@@ -86,25 +86,28 @@ else
 fi
 teardown
 
-# ── Test C3: gh CLI 부재 (DRYRUN=0) → graceful abort ───────
-echo "Test C3: gh CLI 부재 fallback"
+# ── Test C3: gh CLI 부재 (DRYRUN=0) → hand-off (F-P02) ───────
+# F-P02: gh 조기 게이트 제거 — run-cloud.sh 책임은 entry 선택+hand-off 까지.
+# gh 판단은 P5(PR 생성)로 이연(agent 가 gh 또는 mcp__github 로 생성). gh 무관한
+# P0~P4(브랜치/brainstorm/plan/TDD/verify)가 gh 부재로 무산출 소모되던 회귀 차단.
+echo "Test C3: gh CLI 부재 → hand-off (게이트 제거)"
 setup_fixture
 bash "$QUEUE" add "gh missing test" >/dev/null
-# PATH 제한으로 gh 가림 (/bin + /usr/bin에 gh 없음 가정 — brew/.local 경로만 gh 존재)
-# 단일 invocation에서 EC + OUT 동시 capture (두 번 호출 시 queue 상태 변경으로 분기 달라짐)
+# PATH 제한으로 gh 가림 (/bin + /usr/bin에 gh 없음 — brew/.local 경로만 gh 존재)
 OUT=$(PATH="/bin:/usr/bin" AUTO_BUILD_QUEUE_DRYRUN=0 \
   QUEUE_STORE="$QUEUE_STORE" QUEUE_LOCK_DIR="$QUEUE_LOCK_DIR" \
   bash "$RUN_CLOUD" 2>&1)
 EC=$?
-assert_exit "C3.1 gh missing exit 2" 2 "$EC"
-assert_contains "C3.1 stderr 'gh CLI not found'" "gh CLI not found" "$OUT"
-# entry aborted (소실 회피 아닌 의도적 abort — gh 없으면 실 PR 불가)
+assert_exit "C3.1 gh missing → hand-off exit 0 (조기 abort 아님)" 0 "$EC"
+assert_contains "C3.2 stderr 'handed off to cloud agent'" "handed off to cloud agent" "$OUT"
+assert_contains "C3.3 stderr mcp__github 대체 경로 언급" "mcp__github__create_pull_request" "$OUT"
+# entry running 유지 (agent 가 P5 후 status-update) — 조기 abort 아님
 ALL=$(bash "$QUEUE" list --all)
-if echo "$ALL" | grep -q "aborted.*gh missing test"; then
-  echo "  ✓ C3.2 entry aborted"
+if echo "$ALL" | grep -q "running.*gh missing test"; then
+  echo "  ✓ C3.4 entry running 유지 (조기 abort 아님)"
   PASS=$((PASS + 1))
 else
-  echo "  ✗ C3.2 entry not aborted"
+  echo "  ✗ C3.4 entry not running (조기 abort 회귀?)"
   echo "    list --all: $ALL"
   FAIL=$((FAIL + 1))
 fi

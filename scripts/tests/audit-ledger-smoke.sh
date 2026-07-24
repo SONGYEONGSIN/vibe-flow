@@ -67,6 +67,14 @@ done
 echo '{"round":"ZZ","evidence":"","root_cause":"r","fix":"f","predicted_delta":"p"}' \
   | L append >/dev/null 2>&1 && ng "빈 evidence 통과됨" || ok "빈 evidence 거부 (exit≠0)"
 
+# F-O01 (audit round P): component/dimension 귀속도 강제 (SKILL.md Phase2 요구 축).
+# null/null 이 enqueue 큐 task 문자열 "[audit id/null/null]" 로 꽂히던 오염 차단.
+for miss in component dimension; do
+  jq -nc --arg m "$miss" '{round:"ZZ",component:"skills",dimension:"D2",evidence:"e",root_cause:"r",fix:"f",predicted_delta:"p"}
+    | del(.[$m])' | L append >/dev/null 2>&1 \
+    && ng "$miss 누락 통과됨" || ok "$miss 누락 거부 (exit≠0)"
+done
+
 echo "=== refuted 경로 (fix 가 지표 못 움직임) ==="
 L resolve F-H02 "0.0 no movement" refuted >/dev/null
 rst=$(jq -r 'select(.id=="F-H02") | .status' "$LEDGER")
