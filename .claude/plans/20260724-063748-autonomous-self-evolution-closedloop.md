@@ -1,6 +1,6 @@
 ---
 plan_id: 20260724-063748-autonomous-self-evolution-closedloop
-status: in_progress
+status: completed
 created: 2026-07-23T21:37:48Z
 hard_gate: full
 source: .claude/memory/brainstorms/20260723-212449-autonomous-self-evolution-closedloop.md
@@ -107,14 +107,14 @@ vibe-flow의 AHE 루프(evaluate→analyze→improve→verify)를 **사람 개�
 - **노트**: graduation.sh 상태기계(off→docs→structural→generative, 각 M=3밤 클린 후 개방) + circuit breaker(regressed→trip→off freeze, reset은 사람만). **default-safe: disarmed 기본 → merge-gate/self-update가 tier=off 읽음, 운영자 `arm` 명시 전엔 auto-merge OFF**. merge-gate/self-update가 graduation-state를 tier 소스로 읽음(env override 우선). breaker runbook + routine Phase 7 tick 배선. graduation.sh는 denylist forward-protect. TDD graduation-smoke 13/13 + merge-gate M6 + $M밤 unbound 버그 fix. 전 36 smoke green.
 
 ### T7: PR-6 — 생성 트랙 (최상위 tier, 마지막 개방)
-- **상태**: pending
+- **상태**: done (pre-gen 3중 + eval 런타임 + self-prune)
 - **파일**: `+capability-gap finding형`, `+skill-creator 배선`, `+eval/dedup/budget 게이트 3종`, `+self-pruning`
 - **변경**: telemetry 반복 N회 실측 → skill-creator 스캐폴드 → auto-build 로직 → 4중게이트(eval/dedup/budget) → 배선; 저사용 스킬 은퇴 제안
 - **DoD**: N회 미만 → 생성 abort; eval 통과만 머지; budget 초과 → abort; speculative 생성 0건
 - **의존**: T6 · **HARD-GATE**: 전체
 - **리스크**: sprawl → skill-budget cap + prune 대칭으로 완화
-- **완료일**:
-- **노트**: Simplicity-First 긴장 — evidence bar가 speculative 생성 차단
+- **완료일**: 2026-07-25
+- **노트**: capability-gate.sh(evidence/dedup/budget 3중 pre-gen, 7/7) + self-prune.sh(생성스킬 저사용 은퇴, 4/4) + skill-creator eval(런타임 4번째) + generated-skills registry + Phase 8(graduation=generative 시만). speculative/중복/과잉/mis-trigger 4중 차단 + grow/prune 대칭. 두 스크립트 denylist forward-protect. EXPECTED_SMOKE 36→38, 전 38 green. **plan 전체 완료(T1-T7).** Simplicity-First 긴장 — evidence bar가 speculative 생성 차단
 
 ## 리스크
 
