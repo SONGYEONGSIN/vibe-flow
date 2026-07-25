@@ -4,13 +4,13 @@
 
 `session_context.sources[0].git_repository.url`이 자동으로 checkout + `cd`를 수행하므로 prompt 본문은 별도의 `git clone` 단계를 포함하지 않는다 (F11).
 
-> **PR-2 변경**: 종전 프롬프트는 큐 1개 pop → auto-build → PR 만 수행했다. 본 버전은 그 앞에 AHE 폐루프 단계(VERIFY→HEALTH→AUDIT→ENQUEUE)를 배선해 야간 1라운드가 evaluate→analyze→improve를 스스로 완주하게 한다. **PR-only 모드** — auto-merge 는 PR-3 scope, 이 단계는 baseline 수집.
+> **PR-2 변경**: 종전 프롬프트는 큐 1개 pop → auto-build → PR 만 수행했다. 본 버전은 그 앞에 AHE 폐루프 단계(VERIFY→HEALTH→AUDIT→ENQUEUE)를 배선해 야간 1라운드가 evaluate→analyze→improve를 스스로 완주하게 한다. auto-merge 는 **Phase 5 merge-gate 판정에만** 따른다 (`AUTO_MERGE_TIER` 기본 `off` → 실질 PR-only).
 
 ---
 
 ## Prompt 본문
 
-당신은 cron firing으로 spawn된 vibe-flow cloud auto-build cycle agent다. **AHE 폐루프 1라운드**를 PR-only 모드로 완주한다 (**auto-merge 절대 금지** — baseline 수집 단계).
+당신은 cron firing으로 spawn된 vibe-flow cloud auto-build cycle agent다. **AHE 폐루프 1라운드**를 완주한다 (auto-merge 는 Phase 5 merge-gate 판정에만 따름 — 직접 머지 금지).
 
 working dir은 이미 vibe-flow git repo다. 먼저 bootstrap:
 
@@ -19,7 +19,7 @@ bash core/skills/auto-build/scripts/cloud-init.sh   # PreToolUse hook(safety+evo
 export AUTO_BUILD_MODE=1                              # 안전코어 guard(evolution-guard) 활성
 ```
 
-아래 5단계를 **순서대로** 실행한다. 각 단계는 앞 단계 완료 후 진입한다. 한 단계가 abort 되면 그 사유를 stderr에 남기고 종료한다 (다음 firing이 이어받는다).
+아래 9단계(Phase 0~8)를 **순서대로** 실행한다. 각 단계는 앞 단계 완료 후 진입한다. 한 단계가 abort 되면 그 사유를 stderr에 남기고 종료한다 (다음 firing이 이어받는다).
 
 ### Phase 0 — HEALTH baseline
 ```bash
@@ -85,6 +85,14 @@ bash core/skills/audit/scripts/self-update.sh   # DECISION=.. BUMP=.. NEXT_VERSI
 ```bash
 # health = auto-revert 0 + CI green + health-metric regression 없음 → clean, 아니면 regressed
 bash core/skills/audit/scripts/graduation.sh tick <clean|regressed>
+```
+
+tick 결과를 **반드시 커밋**한다 — cloud checkout 은 ephemeral 이라 커밋하지 않으면 `clean_nights` 가 매 밤 0 으로 리셋돼 M 에 영원히 도달하지 못한다(dead 상태기계):
+```bash
+git add .claude/graduation-state.json    # state 파일만 add (drive-by 회피, queue-commit.sh 정책과 동일)
+git diff --cached --quiet .claude/graduation-state.json || {
+  git commit -m "chore(graduation): tick $(date -u +%Y-%m-%dT%H:%M:%SZ)" && git push
+}
 ```
 - **disarmed(기본)면 no-op** — 운영자가 `graduation.sh arm` 하기 전엔 tier 개방 안 됨(auto-merge OFF 유지).
 - `tick regressed` → **circuit breaker trip**(tier=off freeze, 이후 자율머지 정지). 운영자가 원인 조사 후 `graduation.sh reset` 해야 재개. runbook: `core/skills/audit/references/breaker-runbook.md`.

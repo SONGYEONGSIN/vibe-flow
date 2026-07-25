@@ -30,6 +30,7 @@ coverage/
 .claude/messages/archive/
 .claude/messages/broadcast/
 .claude/messages/.last-debate-trigger
+.claude/messages/.last-model-suggest
 .claude/events.jsonl
 .claude/store.db
 # 다음은 추적 대상 (의도적으로 ignore하지 않음):

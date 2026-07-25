@@ -18,7 +18,7 @@
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round 13/M)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round 16/Q)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
@@ -42,6 +42,10 @@
 
 - **R15/O 개시 (2026-07-24, cloud 폐루프 Phase 2 산출)** — 첫 nightly firing 의 AUDIT 단계가 신규 5건(**F-O01~O05**, 전건 open) 발굴 — 폐루프 generative 트랙의 첫 자율 산출. F-O01(ledger.sh append 가 component/dimension 미강제 → enqueue null/null 오염, F-K01 4-필드 계약의 사각) / F-O02(MEMORY "Surgical Change" 참조가 T1 후 donts.md→discipline.md 미갱신) / F-O03(MEMORY 의 F-K03 자기설치 오도 지시 잔존) / F-O04(orchestrator run-log.sh 경로) / F-O05(budget per-skill count, F-M05/N03 인접). 다음 라운드(또는 후속 firing)의 enqueue→improve 대상. 상세·반증커맨드는 ledger `round O`.
 - **R15/P (2026-07-24, 후속 firing Phase 2)** — 신규 5건(**F-P01~P05**, open): **F-P01**(memory/D1 — 라운드 닫는 2커밋의 ledger-resolve↔MEMORY-종결 원자성 부재, desync 창) / **F-P02**(skills/D2 — run-cloud.sh 의 gh 조기 게이트가 P0 전 cycle 死 → gh 무관 P0~P4 무산출; **fixed 2026-07-24**: 게이트 제거 + P5 를 gh∥mcp__github 대체로 이연) / **F-P03**(hooks/D3 — cloud-init 이 settings.json 27-hook wiring 전량 복사하나 참조 hook 미배포 가능) / **F-P04**(impl/D4 — validate.sh self-hosted↔소비자 설치 분기 미구분) / **F-P05**(impl/D4 — ledger mutating 커맨드 원자성). **F-O01 도 fixed 2026-07-24**(component/dimension append 강제). 상세·반증커맨드는 ledger `round P`/`round O`.
+
+- **자율진화 T1~T7 전체 완료 (2026-07-25, PR #166~#178)** — 안전코어(T2) / 폐루프 배선(T3) / auto-merge 게이트+auto-revert(T4) / self-update(T5) / graduation 상태기계+circuit breaker(T6) / 스킬 자가생성 트랙(T7). **전부 default-safe**: `.claude/graduation-state.json` = `{"armed":false,"current_tier":"off"}`, `AUTO_RELEASE` unset(report-only), `.claude/generated-skills.json` = `{"skills":[]}`. 즉 **배선 완료·실행 0회** 상태다. arm 커맨드는 `graduation.sh arm`(→ M=3 clean night 후 docs tier).
+- **R16/Q (2026-07-25)** — Phase 0: O/P 10건 중 **9 verified / 1 refuted(F-P05)**. F-P05 반증은 변이 주입으로 실증 — smoke 가 `ledger.sh round` 출력의 **4컬럼 계약 중 id/status 2컬럼만** 검사(`.id`/`.status` 주입 → exit 1, `.predicted_delta`/`.actual_delta` 주입 → exit 0). 즉 *반증 메커니즘의 두 컬럼을 지키는 테스트가 그 컬럼을 미보호* → **F-Q09 로 재등록**. 4-dim 재채점 **D1 3.7 / D2 4.0 / D3 3.8 / D4 4.0 (평균 3.875, R13 대비 −0.275)** — 4 dimension 전건 하락은 R1 이후 처음. 신규 **F-Q01~F-Q19** (P1 9 / P2 6 / P3 4). 라운드 주제: **"배선은 늘었으나 유일한 호출자와 계약이 어긋남"** — T4~T7 이 스크립트 6종·스모크 6종을 늘렸으나 (a) 유일 실행자인 cloud 프롬프트와 계약 불일치(Q01 state 미커밋 → `clean_nights` 영구 0 = dead 상태기계 / Q02 "5단계" 캡이 Phase 5~8 절단 / Q03 "auto-merge 절대 금지"가 Phase 5 와 정면 충돌), (b) 신규 스모크가 전부 happy-path+env override 라 **변이 주입 5/5 false PASS**(Q13/Q15/Q19), (c) tier 사다리 최상단 `generative` 가 write-only 라 structural 개방만으로 T7 3중 방어 우회(Q04, D2·D4 독립 교차확증). D4 계보 지속: **Q05 = F-L11/F-M08 의 3회차 재발**(`.claude/evolution-protected` 가 CI paths 밖). D1/D3 는 "기록↔집행 desync" 재발(Q06 MEMORY 미반영 / Q08 cloud 스킬 telemetry 사각). 상세·반증커맨드는 ledger `round Q`.
+  - **arm 선행조건**: Q01·Q02·Q03 미해결 상태에서 `graduation.sh arm` 은 무의미하다 — 상태가 커밋되지 않고 프롬프트가 Phase 5~8 에 도달하지 못해 승급이 구조적으로 불가능.
 
 ## Brainstorm 인덱스 (최근)
 

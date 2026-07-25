@@ -72,6 +72,40 @@ else
   echo "  - L5.1 skip (템플릿에 /audit 배선 없음 — 전제 불성립)"
 fi
 
+echo "Test L6: 프롬프트 산문 ↔ 구조 정합 (F-Q01/Q02/Q03)"
+# 프롬프트는 자연어라 "Phase 를 추가했는데 상위 카운트 문장/역할 선언은 안 고침" 류 회귀를
+# 어떤 게이트도 못 잡았다(F-Q02/Q03). 산문의 주장과 실제 구조를 기계 대조해 차단한다.
+
+# L6.1 (F-Q02) 선언된 단계 수 == 실제 Phase 헤더 수
+DECL=$(grep -oE '아래 [0-9]+단계' "$PROMPT" | head -1 | grep -oE '[0-9]+')
+PHASES=$(grep -cE '^### Phase ' "$PROMPT")
+if [ -n "$DECL" ] && [ "$DECL" = "$PHASES" ]; then
+  echo "  ✓ L6.1 선언 단계수($DECL) == Phase 헤더수($PHASES)"; PASS=$((PASS+1))
+else
+  echo "  ✗ L6.1 선언 단계수($DECL) ≠ Phase 헤더수($PHASES) — 뒤쪽 Phase 가 실행에서 절단됨"; FAIL=$((FAIL+1))
+fi
+
+# L6.2 (F-Q03) 서두 역할 선언이 Phase 5 조건부 머지와 모순되지 않을 것
+if grep -qF "auto-merge 절대 금지" "$PROMPT"; then
+  echo "  ✗ L6.2 'auto-merge 절대 금지' 잔존 — Phase 5(merge-gate 조건부 머지)와 정면 충돌"; FAIL=$((FAIL+1))
+else
+  echo "  ✓ L6.2 서두에 무조건 auto-merge 금지 선언 없음"; PASS=$((PASS+1))
+fi
+if grep -qF "PR-3 scope" "$PROMPT"; then
+  echo "  ✗ L6.3 'auto-merge 는 PR-3 scope' 잔존 — T4 머지 후 stale"; FAIL=$((FAIL+1))
+else
+  echo "  ✓ L6.3 auto-merge 를 미래 scope 로 미루는 문장 없음"; PASS=$((PASS+1))
+fi
+
+# L6.4 (F-Q01) Phase 7 이 graduation state 를 커밋할 것 — cloud checkout 은 ephemeral 이라
+# 커밋 없으면 clean_nights 가 매 밤 0 으로 리셋돼 M 에 영원히 도달 못 한다(dead 상태기계).
+P7=$(awk '/^### Phase 7 /,/^### Phase 8 /' "$PROMPT")
+if printf '%s' "$P7" | grep -qF "graduation-state.json" && printf '%s' "$P7" | grep -qE 'git (commit|push)'; then
+  echo "  ✓ L6.4 Phase 7 이 graduation-state.json 을 커밋(영속)"; PASS=$((PASS+1))
+else
+  echo "  ✗ L6.4 Phase 7 에 state 커밋 없음 — ephemeral checkout 에서 clean_nights 영구 0"; FAIL=$((FAIL+1))
+fi
+
 echo ""
 echo "─────────────────────────────────────────"
 echo "PASS: $PASS   FAIL: $FAIL"
