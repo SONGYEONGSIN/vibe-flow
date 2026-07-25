@@ -63,9 +63,18 @@ if ! eval "$DRIFT_CMD" >/dev/null 2>&1; then
 fi
 
 # ── default-safe: AUTO_RELEASE off → report-only ──
-if [ "${AUTO_RELEASE:-off}" != "on" ]; then
+# release 개방 소스: AUTO_RELEASE env(테스트/수동) 우선, 없으면 graduation tier(structural 이상, T6).
+AR="${AUTO_RELEASE:-}"
+if [ -z "$AR" ]; then
+  GRADSH="$ROOT/core/skills/audit/scripts/graduation.sh"
+  if [ -f "$GRADSH" ]; then
+    case "$(bash "$GRADSH" tier 2>/dev/null)" in structural|generative) AR="on" ;; *) AR="off" ;; esac
+  fi
+  AR="${AR:-off}"
+fi
+if [ "$AR" != "on" ]; then
   emit "HOLD_DISABLED" "$BUMP" "$NEXT"
-  echo "[self-update] report-only(AUTO_RELEASE=off) — 릴리즈 준비됨: $CUR → $NEXT ($BUMP). 적용은 AUTO_RELEASE=on." >&2
+  echo "[self-update] report-only(release 미개방) — 준비됨: $CUR → $NEXT ($BUMP). 개방은 AUTO_RELEASE=on 또는 graduation structural+." >&2
   exit 0
 fi
 

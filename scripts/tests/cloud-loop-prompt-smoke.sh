@@ -48,6 +48,8 @@ fi
 have "L4.5 AUTO_BUILD_MODE=1 (guard 활성)" "AUTO_BUILD_MODE=1"
 have "L4.6 Phase6 self-update.sh 배선(T5)" "self-update.sh"
 have "L4.7 self-update default-safe AUTO_RELEASE" "AUTO_RELEASE"
+have "L4.8 Phase7 graduation tick 배선(T6)" "graduation.sh tick"
+have "L4.9 breaker runbook 참조" "breaker-runbook"
 
 echo "Test L5: 툴 grant 가 템플릿 phase 요구 충족 (F-N02)"
 # Phase 2 는 /audit 를 호출하고(L2.5 짝), /audit(audit/SKILL.md: allowed-tools ... Agent)은

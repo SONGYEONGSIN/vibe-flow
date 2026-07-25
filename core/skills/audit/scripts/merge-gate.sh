@@ -68,7 +68,13 @@ for f in $FILES; do
   if [ "$lvl" -gt "$PR_LEVEL" ]; then PR_LEVEL=$lvl; PR_TIER="$t"; fi
 done
 
-GRAD="${AUTO_MERGE_TIER:-off}"
+# tier 소스: AUTO_MERGE_TIER env(테스트/수동 override) 우선, 없으면 graduation-state(T6).
+GRAD="${AUTO_MERGE_TIER:-}"
+if [ -z "$GRAD" ]; then
+  GRADSH="$ROOT/core/skills/audit/scripts/graduation.sh"
+  [ -f "$GRADSH" ] && GRAD=$(bash "$GRADSH" tier 2>/dev/null)
+  GRAD="${GRAD:-off}"
+fi
 GRAD_LEVEL=$(tier_level "$GRAD")
 if [ "$GRAD_LEVEL" -eq 0 ] || [ "$PR_LEVEL" -gt "$GRAD_LEVEL" ]; then
   emit "HOLD_TIER" "PR tier=$PR_TIER(레벨 $PR_LEVEL) > graduated=$GRAD(레벨 $GRAD_LEVEL) — 사람 대기"

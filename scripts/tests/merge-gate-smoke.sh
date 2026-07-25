@@ -9,6 +9,9 @@
 set -u
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 GATE="$REPO_ROOT/core/skills/audit/scripts/merge-gate.sh"
+# graduation-state 격리 — 실 .claude/graduation-state.json 오염 방지
+export GRADUATION_STATE="$(mktemp)"
+echo '{"armed":false,"current_tier":"off","clean_nights":0,"tripped":false,"tripped_reason":""}' > "$GRADUATION_STATE"
 
 PASS=0; FAIL=0
 # $1 name $2 expected-decision $3 files $4 ci $5 tier
@@ -51,6 +54,15 @@ echo "Test M5: exit code (AUTO_MERGE=0, 그 외=1)"
 chk_exit "M5.1 AUTO_MERGE → exit 0" "README.md" "green" "docs" 0
 chk_exit "M5.2 HOLD → exit 1" "README.md" "green" "off" 1
 chk_exit "M5.3 REJECT → exit 1" "validate.sh" "green" "generative" 1
+
+echo "Test M6: graduation-state 가 tier 소스 (T6, AUTO_MERGE_TIER 미설정)"
+echo '{"armed":true,"current_tier":"docs","clean_nights":0,"tripped":false,"tripped_reason":""}' > "$GRADUATION_STATE"
+d=$(MERGE_GATE_FILES="README.md" MERGE_GATE_CI="green" AUTO_MERGE_TIER="" bash "$GATE" 2>/dev/null | sed -n 's/^DECISION=//p')
+[ "$d" = "AUTO_MERGE" ] && { echo "  ✓ M6.1 graduation=docs → docs PR AUTO_MERGE"; PASS=$((PASS+1)); } || { echo "  ✗ M6.1 (got $d)"; FAIL=$((FAIL+1)); }
+echo '{"armed":true,"current_tier":"docs","clean_nights":0,"tripped":true,"tripped_reason":"x"}' > "$GRADUATION_STATE"
+d2=$(MERGE_GATE_FILES="README.md" MERGE_GATE_CI="green" AUTO_MERGE_TIER="" bash "$GATE" 2>/dev/null | sed -n 's/^DECISION=//p')
+[ "$d2" = "HOLD_TIER" ] && { echo "  ✓ M6.2 tripped(breaker) → HOLD(off)"; PASS=$((PASS+1)); } || { echo "  ✗ M6.2 (got $d2)"; FAIL=$((FAIL+1)); }
+rm -f "$GRADUATION_STATE"
 
 echo ""
 echo "─────────────────────────────────────────"

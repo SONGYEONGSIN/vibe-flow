@@ -97,14 +97,14 @@ vibe-flow의 AHE 루프(evaluate→analyze→improve→verify)를 **사람 개�
 - **노트**: TDD self-update-smoke 12/12(feat→minor/fix→patch/no-changes/drift-fail exit≠0/AUTO_RELEASE=on 적용). default-safe: off→report-only. **한계(honest)**: cloud ephemeral이라 사용자 **로컬 설치 플러그인 재동기는 불가** — `claude plugin update`(마켓플레이스) 몫. 본 단계는 released 버전(plugin.json+태그)이 main 반영하도록만 보장. self-update.sh는 denylist에 forward-protect. 전 35 smoke green.
 
 ### T6: PR-5 — graduation
-- **상태**: pending
+- **상태**: done (disarmed 기본 — 운영자 arm 필요, M=3)
 - **파일**: `+tier-config`, `+breaker-runbook(docs)`, `~merge-gate`
 - **변경**: 승급순서(corrective저위험→corrective구조적→self-update→generative) + circuit-breaker 발화/리셋 runbook. 각 tier는 M밤 클린 후 다음 개방
 - **DoD**: tier N 미승급 시 N+1 fix 머지 거부; breaker 발화 후 human-gate 복귀 재현
 - **의존**: T4, T5 · **HARD-GATE**: 전체
 - **리스크**: tier 오분류 → ledger component 매핑표로 완화
-- **완료일**:
-- **노트**:
+- **완료일**: 2026-07-25
+- **노트**: graduation.sh 상태기계(off→docs→structural→generative, 각 M=3밤 클린 후 개방) + circuit breaker(regressed→trip→off freeze, reset은 사람만). **default-safe: disarmed 기본 → merge-gate/self-update가 tier=off 읽음, 운영자 `arm` 명시 전엔 auto-merge OFF**. merge-gate/self-update가 graduation-state를 tier 소스로 읽음(env override 우선). breaker runbook + routine Phase 7 tick 배선. graduation.sh는 denylist forward-protect. TDD graduation-smoke 13/13 + merge-gate M6 + $M밤 unbound 버그 fix. 전 36 smoke green.
 
 ### T7: PR-6 — 생성 트랙 (최상위 tier, 마지막 개방)
 - **상태**: pending
