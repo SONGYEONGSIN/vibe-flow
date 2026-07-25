@@ -1,3 +1,3 @@
 - [대시보드 루프 상태](repick-dash-loop-state.md) — /dash 14종·사용자 기준·그리드 크래프트 함정·미해결 질문
 - [네이티브 루프 재설계](repick-native-loop.md) — 진화 루프 멀티플랫폼화 프로그램(S0~S2·S3a·S3b·S4a~S4c 구현병합 = native 라이프사이클 완성. S5(카탈로그+native 차원) 스펙만 병합·구현 미착수 = 다음 재개점)
-- [Specimen 갤러리 개편](specimen-gallery-redesign.md) — /gallery를 'Specimen'(AI 에이전트용 디자인 시스템 갤러리, refero 느낌)으로 재정체화. G1(그리드+i18n) 병합, G2(상세페이지 /gallery/[id]+하이브리드 추출+15스펙) 병합(c48141d), G3(랜딩) 대기
+- [Specimen 갤러리 개편](specimen-gallery-redesign.md) — /gallery를 'Specimen'(AI 에이전트용 디자인 시스템 갤러리, refero 느낌)으로 재정체화. G1(그리드+i18n) 병합, G2(상세페이지+15스펙) 병합(c48141d), G2.5(정리 60→15·도메인 카테고리 7종·S 브랜드마크) 병합(d56cb62), G3(랜딩) 대기
