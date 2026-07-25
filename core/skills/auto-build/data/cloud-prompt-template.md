@@ -89,6 +89,16 @@ bash core/skills/audit/scripts/graduation.sh tick <clean|regressed>
 - **disarmed(기본)면 no-op** — 운영자가 `graduation.sh arm` 하기 전엔 tier 개방 안 됨(auto-merge OFF 유지).
 - `tick regressed` → **circuit breaker trip**(tier=off freeze, 이후 자율머지 정지). 운영자가 원인 조사 후 `graduation.sh reset` 해야 재개. runbook: `core/skills/audit/references/breaker-runbook.md`.
 
+### Phase 8 — GENERATIVE (스킬 자가생성, 최상위 tier)
+
+**graduation tier 가 `generative` 일 때만 진입**(사다리 최후 개방, 기본 미개방). corrective(결함수정)와 달리 **없는 능력을 만드는** 트랙이라 리스크가 크다 — 4중 방어:
+1. telemetry 가 동일 수동 패턴을 **≥N회 미커버로 실증**한 capability-gap 만 후보 (speculative 금지).
+2. `bash core/skills/audit/scripts/capability-gate.sh <name> <desc>` — **evidence/dedup/budget** 3중 pre-gen 방어. `DECISION=PASS` 만 진행.
+3. skill-creator 스캐폴드 → auto-build 로직(TDD) → **skill-creator eval**(트리거 정확도·동작 실증) — 4번째 방어. 통과만 PR(merge-gate generative tier).
+4. `bash core/skills/audit/scripts/self-prune.sh` — 저사용 생성 스킬 **은퇴 후보** 보고(grow/prune 대칭). 실 은퇴는 사람 검토.
+
+> generative 는 graduation 최상위 — docs→structural 안정 후 마지막 개방. 안전코어 REJECT + evidence + dedup + budget + eval 로 sprawl·mis-trigger 차단. speculative 생성 0.
+
 ### 안전 정책 (cloud session 고유)
 
 - **auto-merge 는 merge-gate 판정에만 따름** — 직접 `gh pr merge`/`--auto` 호출 금지, 반드시 `merge-gate.sh` 경유(Phase 5). 기본 `AUTO_MERGE_TIER=off` → 실질 PR-only. 안전코어 touch PR 은 항상 REJECT.
