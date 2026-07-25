@@ -87,14 +87,14 @@ vibe-flow의 AHE 루프(evaluate→analyze→improve→verify)를 **사람 개�
 - **노트**: TDD — merge-gate smoke 14/14(safety-core REJECT/default-off HOLD/tier graduation/CI gate/exit code), post-merge-verify 8/8(health실패→revert+base복원/통과→no-op/dryrun). **default-safe 불변식**: `AUTO_MERGE_TIER=off` → merge-gate 항상 HOLD_TIER → **T4 머지해도 라이브 자율머지 안 켜짐(PR-only 유지)**. tier 개방은 T6 graduation이 M밤 클린 후 `AUTO_MERGE_TIER` 설정 시에만. 안전코어 denylist(merge-gate/post-merge-verify는 T2에서 forward-protect됨)는 tier·CI 무관 REJECT. 전 34 smoke green.
 
 ### T5: PR-4 — self-update
-- **상태**: pending
-- **파일**: `~routine`, `~core/skills/release/SKILL.md`
-- **변경**: 머지 후 `/release` 버전 bump + 플러그인 재동기 + drift 검증
+- **상태**: done (기본 report-only — AUTO_RELEASE off)
+- **파일**: `+core/skills/audit/scripts/self-update.sh`, `+self-update-smoke.sh`, `~.claude/evolution-protected`(denylist), `~cloud-prompt-template.md`(Phase 6), `~cloud-loop-prompt-smoke.sh`, `~validation-tests.yml`(EXPECTED_SMOKE 34→35)
+- **변경**: `/release`는 사용자 확인 필수(interactive)라 자율 불가 → `self-update.sh`가 비대화 semver 판정(feat→minor/fix→patch, 마지막 태그 기준) + drift 검증. **AUTO_RELEASE 기본 off → HOLD_DISABLED(report-only, 태그 X)**. on 시 plugin.json/marketplace.json 버전 bump + CHANGELOG + 로컬 태그(push X). routine Phase 6 배선
 - **DoD**: 설치 플러그인 버전 == main + `sync-drift.sh --check` exit0
 - **의존**: T4 · **HARD-GATE**: 간략
 - **리스크**: 부분 재동기 drift → `--check` 게이트로 완화
-- **완료일**:
-- **노트**:
+- **완료일**: 2026-07-25
+- **노트**: TDD self-update-smoke 12/12(feat→minor/fix→patch/no-changes/drift-fail exit≠0/AUTO_RELEASE=on 적용). default-safe: off→report-only. **한계(honest)**: cloud ephemeral이라 사용자 **로컬 설치 플러그인 재동기는 불가** — `claude plugin update`(마켓플레이스) 몫. 본 단계는 released 버전(plugin.json+태그)이 main 반영하도록만 보장. self-update.sh는 denylist에 forward-protect. 전 35 smoke green.
 
 ### T6: PR-5 — graduation
 - **상태**: pending
