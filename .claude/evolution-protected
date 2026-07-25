@@ -18,6 +18,7 @@ core/skills/audit/scripts/health-metric.sh
 core/skills/audit/scripts/merge-gate.sh
 core/skills/audit/scripts/post-merge-verify.sh
 core/skills/audit/scripts/self-update.sh
+core/skills/audit/scripts/graduation.sh
 core/skills/audit/scripts/ledger.sh
 core/scripts/sync-drift.sh
 settings/settings.template.json

@@ -79,6 +79,16 @@ bash core/skills/audit/scripts/self-update.sh   # DECISION=.. BUMP=.. NEXT_VERSI
 
 > **한계**: cloud 루프는 ephemeral checkout 이라 사용자 **로컬 설치 플러그인**을 재동기 못 한다. 로컬 재동기는 `claude plugin update vibe-flow`(마켓플레이스 pull) 몫. 본 단계는 released 버전(plugin.json+태그)이 main 을 반영하도록만 보장한다.
 
+### Phase 7 — GRADUATION tick (야간 클린-밤 기록)
+
+라운드 종료 시 이 밤의 health 를 graduation 상태기계에 기록한다:
+```bash
+# health = auto-revert 0 + CI green + health-metric regression 없음 → clean, 아니면 regressed
+bash core/skills/audit/scripts/graduation.sh tick <clean|regressed>
+```
+- **disarmed(기본)면 no-op** — 운영자가 `graduation.sh arm` 하기 전엔 tier 개방 안 됨(auto-merge OFF 유지).
+- `tick regressed` → **circuit breaker trip**(tier=off freeze, 이후 자율머지 정지). 운영자가 원인 조사 후 `graduation.sh reset` 해야 재개. runbook: `core/skills/audit/references/breaker-runbook.md`.
+
 ### 안전 정책 (cloud session 고유)
 
 - **auto-merge 는 merge-gate 판정에만 따름** — 직접 `gh pr merge`/`--auto` 호출 금지, 반드시 `merge-gate.sh` 경유(Phase 5). 기본 `AUTO_MERGE_TIER=off` → 실질 PR-only. 안전코어 touch PR 은 항상 REJECT.
