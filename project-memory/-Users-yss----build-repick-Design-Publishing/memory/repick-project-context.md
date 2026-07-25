@@ -5,6 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: d53e5702-a78a-49f4-a377-4ab53ba2f8a0
+  modified: 2026-07-25T10:24:56.031Z
 ---
 
 repick-Design Publishing = 운영자(사용자)의 본부에서 타 본부 퍼블 의뢰를 없애기 위한 내부 도구.
@@ -16,17 +17,22 @@ repick-Design Publishing = 운영자(사용자)의 본부에서 타 본부 퍼�
 - 표준의 근거는 `reference/dev-output/ApplyModify/` (진학어플라이 계열 실물) — 추출 명세는 `docs/PUB-STANDARDS.md`.
   snake_case + `_com{N}` 컴포넌트, :root 토큰 ~60종, `@include medium`(1023px), PC/모바일 이중 마크업, jQuery 1.12.4.
 - `reference/` 3종: dev-output(정답)/designer-output(입력 샘플, kebab-case라 표준과 멂)/operator-output(반려 사례).
-- 변환 엔진: `lib/standards.ts`(사전) + `lib/convert.ts`(css-tree 필터링 + hex→토큰 + sass 컴파일).
-  표준 컴포넌트 재정의는 제거해 _common.scss에 위임, 사전에 없는 클래스는 "신규 컴포넌트"로 리포트 분리.
 - 주의: devDependency typescript는 **5.x 고정** (7.0.2 네이티브 프리뷰는 Next 16 빌드를 깨뜨림 — 실제 발생).
+- 이 저장소엔 **ESLint 설정도 lint 스크립트도 없다**. 검증 3종은 `npx tsc --noEmit` / `npm test` / `npm run build`.
+- `vitest.config.ts`에 `environment` 미설정 → **node 환경, DOM 없음**. 그래서 `app/page.tsx` 같은 UI는
+  컴포넌트 테스트가 아니라 빌드+정독으로 검증하는 것이 이 저장소의 확립된 관례다(jsdom 도입은 검토 후 범위 밖으로 배제).
 
-고도화 1차 완료 (2026-07-19, 브랜치 feat/learning-conversion-engine, 14커밋, 37/37 테스트):
-= "완결적 변환 엔진(학습형)". 설계 docs/superpowers/specs/2026-07-19-*, 계획 docs/superpowers/plans/2026-07-19-*.
-- 학습 매핑 루프: 미지 kebab클래스/이모지/골격을 제안→사용자 확정→standards/mappings.json 저장→다음부터 자동.
-  lib/propose.ts(제안)+lib/mappings.ts(저장)+lib/convert.ts 2단계(applyMappings 자동적용→proposeUnknowns).
-- 표준 사전 자동 도출: lib/standards.ts가 standards/scss/*를 파싱(토큰=regex, 컴포넌트=full∖base 컴파일 set-diff). "동기화=scss 교체".
-- 미리보기(lib/preview.ts, iframe srcDoc), 이력(lib/history.ts, output/history.json), API /api/convert·confirm·history.
-- vitest는 vitest.config.ts로 @/ alias 해석. api-flow 테스트는 mappings.json snapshot/restore로 self-heal.
-- 승인된 후속(미구현): ①이력 재다운로드+output/<Feature>/ 디스크저장(MVP는 list-only) ②loadMappings plain-object 가드(다중사용자 B에서 필요) ③iconMap 치환 HTML 재파싱 견고화. 상세 .superpowers/sdd/progress.md.
-- **아직 main 미머지, 개발자 수용 검증(1건) 미완** — 그게 최종 MVP 성공 기준.
-- 다음 마일스톤: docs/PUB-STANDARDS.md 개발자 검수 → 실제 수정 건 1건을 시스템 경유로 처리(수용 판정이 성공 기준). 성공 시 B(역할 워크플로 공간) 착수.
+진행 (2026-07-25 기준):
+- 고도화 1차(학습형 변환 엔진) main 머지 완료. 이후 Figma MCP 연동으로 넘어갔다.
+- 상위 설계 `docs/FIGMA-MCP-연동-설계.md` — 조각 1(업로드에 figma-output 소스, PR #10) 완료,
+  조각 2(00 디자인작업 단계 + `claude -p` headless) PR #11. 수정 모드와 조각 3 나머지는 미착수.
+- **개발자 수용 검증(실제 수정 건 1건을 시스템 경유로 처리)은 여전히 미완** — 그게 최종 MVP 성공 기준.
+
+환경 함정 (저장소에 안 남는 사실, 보안 추론 시 반드시 고려):
+- 이 저장소의 `.claude/settings.local.json`에 `"defaultMode": "bypassPermissions"`가 있다.
+  전역 gitignore(`~/.config/git/ignore`)에 걸려 **커밋에 안 실리는 머신 로컬 설정**이다.
+- 서버가 `cwd=리포루트`로 띄우는 헤드리스 `claude -p`가 이걸 **상속**한다 → Bash 포함 전체 도구가 열린다.
+  `--allowedTools`로 좁혀도 이미 열린 권한을 빼지 못한다(이 환경 조합에서 실측 확인).
+- 결과: 스펙의 "Bash 없음 / bypassPermissions 미사용" 보장은 **이 머신에서 사실이 아니다**.
+  코드는 의도대로 짜여 있고 브랜치도 이 파일을 싣지 않으므로, 남이 받으면 의도대로 동작한다.
+  헤드리스 실행의 권한을 논할 때 이 상속을 빼먹으면 잘못된 결론이 난다.
