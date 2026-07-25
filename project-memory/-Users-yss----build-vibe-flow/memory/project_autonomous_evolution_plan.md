@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 7575770d-0608-4f74-a9a4-6cef9cc38f2f
-  modified: 2026-07-24T22:42:54.457Z
+  modified: 2026-07-25T04:23:52.781Z
 ---
 
 사용자 목표: 현 vibe-flow 하네스를 **완전 무인 자기진화**(자동 학습·문제수정·자기진화·자가업데이트 + **필요 스킬 자가 생성**)로. 2026-07-24 brainstorm→plan 완료.
@@ -31,7 +31,14 @@ metadata:
 - **PR #174 (e9a45c1)** 코드+테스트 3건 F-O05/P03/P05: budget jq JQ_KEY idiom((key)==$t, audit 0→5) / cloud-init telemetry hook 배포 / ledger round 테스트 커버리지
 전건 `fixed` — 다음 firing Phase1 VERIFY가 actual_delta 실측 반증 예정(폐루프 폐합). **caveat 유지**: F-P02의 mcp 대체는 cloud routine allowed_tools에 mcp__github 그랜트 필요할 수 있음(다음 firing 검증).
 
-**T4 완료 (2026-07-25, PR #175 `0e388f2`)**: auto-merge 게이트 + auto-revert. `merge-gate.sh`(safety-core-untouched>tier>CI 순, TDD 14/14) + `post-merge-verify.sh`(fresh health 실패 시 auto git revert, F-P04 반영해 validate full 제외, TDD 8/8) + routine Phase 5 배선. **핵심: `AUTO_MERGE_TIER` 기본 `off` → 머지 확인상 `DECISION=HOLD_TIER`, 라이브 자율머지 미가동(실질 PR-only 유지)**. tier 개방은 T6 graduation 몫. 이번 세션 요약: brainstorm→plan→T1-T3(#166)→F-P02/O01(#172)→round O/P 8건(#173/#174)→T4(#175). 남은 진입점 = **T5(self-update)** / **T6(graduation — 실제 auto-merge ON)** / **T7(생성 트랙)** / 다음 nightly firing finding.
+**T4-T6 완료 (2026-07-25) — 자율 머신 전체 구축, default-safe OFF**:
+- **T4 (#175 `0e388f2`)**: `merge-gate.sh`(safety-core>tier>CI, 14/14) + `post-merge-verify.sh`(health 실패→auto git revert, 8/8) + Phase 5.
+- **T5 (#176 `4f4e718`)**: `self-update.sh`(비대화 semver, 12/12) + Phase 6. AUTO_RELEASE off 기본. 한계: 로컬 설치 재동기는 `claude plugin update` 몫.
+- **T6 (#177 `32af06f`)**: `graduation.sh` 상태기계(off→docs→structural→generative, M=3밤 클린/tier) + circuit breaker(regressed→trip→off freeze, reset 사람만) + breaker runbook + Phase 7. merge-gate/self-update가 graduation-state 읽음. 13/13.
+
+**★ 자율을 실제로 켜는 법**: main 상태는 **disarmed(off)** — auto-merge OFF. 운영자가 `bash core/skills/audit/scripts/graduation.sh arm` 명시 실행 → docs tier부터 3밤 클린마다 개방(docs→structural→generative). health regression 시 breaker가 off로 freeze. **arm 전엔 무조건 PR-only.**
+
+**남은 것**: **T7(생성 트랙 — 스킬 자가생성, 최상위 tier)** 만. plan T1-T6 done. 이번 세션 8 PR 머지(#166/#172/#173/#174/#175/#176/#177 + F-P02/O01). 다음 진입점 = T7 또는 nightly firing finding 또는 graduation arm(운영 결정).
 
 **다음 세션 진입점 (2가지)**:
 1. **런타임 활성화 (T3 firing-DoD)**: R12 routine 재등록(`schedule-register.sh`) → 새 폐루프 프롬프트 주입. **주의: 라이브 cloud 변경 + 다음 firing부터 야간 자율 audit→PR 시작(PR-only, 머지는 X). 사용자 명시 승인 필요** — 켜면 cloud 토큰 소비 + PR 자동 생성. T4(auto-merge) 아직 없음.
