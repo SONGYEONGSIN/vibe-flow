@@ -67,6 +67,18 @@ bash core/skills/audit/scripts/merge-gate.sh <PR번호>   # DECISION=... 출력,
 
 > **default-safe 불변식**: `AUTO_MERGE_TIER` 기본 `off` → merge-gate 는 항상 `HOLD_TIER` → 실질 **PR-only** 유지. tier 개방(graduation)은 운영자가 T6 후 `AUTO_MERGE_TIER` 를 명시 설정할 때만. **안전코어(`.claude/evolution-protected`) touch PR 은 tier·CI 무관 REJECT** — 사람만 머지.
 
+### Phase 6 — SELF-UPDATE (버전 판정, 기본 report-only)
+
+머지가 발생했으면(Phase 5 AUTO_MERGE) 릴리즈 필요 여부를 판정한다:
+```bash
+bash core/skills/audit/scripts/self-update.sh   # DECISION=.. BUMP=.. NEXT_VERSION=..
+```
+- `HOLD_DISABLED`(기본): NEXT_VERSION 보고만 — 실제 릴리즈(태그)는 `AUTO_RELEASE=on`(운영자 graduation) 시에만.
+- `DRIFT_FAIL`: core↔.claude drift 해소 전까지 릴리즈 보류.
+- `NO_CHANGES`: 태그 이후 커밋 없음 — skip.
+
+> **한계**: cloud 루프는 ephemeral checkout 이라 사용자 **로컬 설치 플러그인**을 재동기 못 한다. 로컬 재동기는 `claude plugin update vibe-flow`(마켓플레이스 pull) 몫. 본 단계는 released 버전(plugin.json+태그)이 main 을 반영하도록만 보장한다.
+
 ### 안전 정책 (cloud session 고유)
 
 - **auto-merge 는 merge-gate 판정에만 따름** — 직접 `gh pr merge`/`--auto` 호출 금지, 반드시 `merge-gate.sh` 경유(Phase 5). 기본 `AUTO_MERGE_TIER=off` → 실질 PR-only. 안전코어 touch PR 은 항상 REJECT.

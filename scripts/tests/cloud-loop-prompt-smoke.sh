@@ -46,6 +46,8 @@ else
   echo "  ✓ L4.4 무조건 merge 없음(반드시 merge-gate 경유)"; PASS=$((PASS+1))
 fi
 have "L4.5 AUTO_BUILD_MODE=1 (guard 활성)" "AUTO_BUILD_MODE=1"
+have "L4.6 Phase6 self-update.sh 배선(T5)" "self-update.sh"
+have "L4.7 self-update default-safe AUTO_RELEASE" "AUTO_RELEASE"
 
 echo "Test L5: 툴 grant 가 템플릿 phase 요구 충족 (F-N02)"
 # Phase 2 는 /audit 를 호출하고(L2.5 짝), /audit(audit/SKILL.md: allowed-tools ... Agent)은
