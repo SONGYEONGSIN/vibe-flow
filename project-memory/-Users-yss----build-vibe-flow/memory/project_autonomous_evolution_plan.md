@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 7575770d-0608-4f74-a9a4-6cef9cc38f2f
-  modified: 2026-07-25T04:23:52.781Z
+  modified: 2026-07-25T04:47:55.383Z
 ---
 
 사용자 목표: 현 vibe-flow 하네스를 **완전 무인 자기진화**(자동 학습·문제수정·자기진화·자가업데이트 + **필요 스킬 자가 생성**)로. 2026-07-24 brainstorm→plan 완료.
@@ -38,7 +38,9 @@ metadata:
 
 **★ 자율을 실제로 켜는 법**: main 상태는 **disarmed(off)** — auto-merge OFF. 운영자가 `bash core/skills/audit/scripts/graduation.sh arm` 명시 실행 → docs tier부터 3밤 클린마다 개방(docs→structural→generative). health regression 시 breaker가 off로 freeze. **arm 전엔 무조건 PR-only.**
 
-**남은 것**: **T7(생성 트랙 — 스킬 자가생성, 최상위 tier)** 만. plan T1-T6 done. 이번 세션 8 PR 머지(#166/#172/#173/#174/#175/#176/#177 + F-P02/O01). 다음 진입점 = T7 또는 nightly firing finding 또는 graduation arm(운영 결정).
+**T7 완료 (2026-07-25, PR #178 `4d1ee64`) — plan status=completed, T1-T7 전건 done**: 생성 트랙 — `capability-gate.sh`(evidence/dedup/budget 3중 pre-gen, 7/7) + `self-prune.sh`(생성스킬 저사용 은퇴, 4/4) + eval(skill-creator 런타임 4번째) + Phase 8(graduation=generative 최상위 시만) + generated-skills registry.
+
+**★★ plan 전체 완료 — 자율 자기진화 머신 전체 구축 (default-safe OFF)**. 7 자율 스크립트(core/skills/audit/scripts/): health-metric·merge-gate·post-merge-verify·self-update·graduation·capability-gate·self-prune. 전 파이프라인: HEALTH→VERIFY→AUDIT→ENQUEUE→IMPROVE→merge-gate→post-merge-verify→self-update→graduation-tick→generative. **켜는 법**: `graduation.sh arm`(운영자 명시) → docs→structural→generative 3밤 클린마다 개방, breaker 보호. **arm 전엔 PR-only.** 이번 세션 9 PR(#166/#172~#178 + F-P02/O01). 다음 진입점 = graduation arm(운영 결정) / nightly firing finding / 신규 요구.
 
 **다음 세션 진입점 (2가지)**:
 1. **런타임 활성화 (T3 firing-DoD)**: R12 routine 재등록(`schedule-register.sh`) → 새 폐루프 프롬프트 주입. **주의: 라이브 cloud 변경 + 다음 firing부터 야간 자율 audit→PR 시작(PR-only, 머지는 X). 사용자 명시 승인 필요** — 켜면 cloud 토큰 소비 + PR 자동 생성. T4(auto-merge) 아직 없음.
