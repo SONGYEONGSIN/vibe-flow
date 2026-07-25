@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: d53e5702-a78a-49f4-a377-4ab53ba2f8a0
-  modified: 2026-07-25T10:24:56.031Z
+  modified: 2026-07-25T18:13:31.528Z
 ---
 
 repick-Design Publishing = 운영자(사용자)의 본부에서 타 본부 퍼블 의뢰를 없애기 위한 내부 도구.
@@ -20,7 +20,12 @@ repick-Design Publishing = 운영자(사용자)의 본부에서 타 본부 퍼�
 - 주의: devDependency typescript는 **5.x 고정** (7.0.2 네이티브 프리뷰는 Next 16 빌드를 깨뜨림 — 실제 발생).
 - 이 저장소엔 **ESLint 설정도 lint 스크립트도 없다**. 검증 3종은 `npx tsc --noEmit` / `npm test` / `npm run build`.
 - `vitest.config.ts`에 `environment` 미설정 → **node 환경, DOM 없음**. 그래서 `app/page.tsx` 같은 UI는
-  컴포넌트 테스트가 아니라 빌드+정독으로 검증하는 것이 이 저장소의 확립된 관례다(jsdom 도입은 검토 후 범위 밖으로 배제).
+  컴포넌트 테스트가 아니라 빌드+정독으로 검증하는 것이 이 저장소의 확립된 관례다.
+  jsdom+testing-library 도입은 **두 차례 검토 후 범위 밖으로 배제**(2026-07-25/26) — 다시 묻지 말 것.
+  대신 UI 결함은 최종 전체 리뷰와 사람의 실물 확인이 잡는다. 실제로 이 갭으로 새어나간 결함이
+  두 번 다 최종 리뷰에서 나왔다(도구 모드가 파이프라인 상태를 무음 파괴, 폴링 무한 재시도).
+- `readFileSync`로 런타임에 읽는 자산(`standards/**`, `prompts/**`)은 `next.config.ts`의
+  `outputFileTracingIncludes`에 **라우트별로** 등록해야 한다. 빠뜨려도 로컬 dev는 멀쩡하고 배포에서만 터진다.
 
 진행 (2026-07-25 기준):
 - 고도화 1차(학습형 변환 엔진) main 머지 완료. 이후 Figma MCP 연동으로 넘어갔다.

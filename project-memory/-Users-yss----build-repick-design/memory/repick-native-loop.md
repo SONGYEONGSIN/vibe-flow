@@ -22,4 +22,6 @@ repick-design 진화 루프를 웹 전용 → **멀티플랫폼(네이티브 포
 
 **미해결 상류 결정**: 카탈로그 부분 흡수(colors 12/192·ux web-only)를 "모두 수용"하자는 요청 → 사용자가 "플랫폼 범위 확장"으로 방향 잡음 → S5(카탈로그)와 이 프로그램 전체가 그 답. ui-ux-pro-max 미흡수 축(Product Types 192·Motion 16·Font 74·Styles 84·Icons 104)도 S5 후보.
 
+**갤러리 라이브 승격 (2026-07-26, PR#25 병합 7e5d0e0 — [[specimen-gallery-redesign]] ①)**: S3a "네이티브=스크린샷(PNG)" 설계를 **라이브 Expo web 렌더(iframe)**로 대체. native 3화면(watchlist/match/detail) 영문화 + `App.tsx` 런타임 `?screen=` URL쿼리 선택 + `app.config.js` env 조건부 baseUrl(`EXPO_PUBLIC_BASE_URL`) + `native/scripts/build-gallery-web.sh`→`app/public/native-app/` 정적번들 커밋(서빙 `/native-app/index.html?screen=<slug>`). **게이트 회귀 함정(최종리뷰 Critical)**: App.tsx의 화면선택이 `?screen=` 쿼리만 보고 `EXPO_PUBLIC_SCREEN`을 무시하면 **native gate(validate.sh/gate.mjs --target native)가 항상 DEFAULT_SCREEN만 렌더**(게이트는 root export+env로 화면지정, 쿼리 없음) → match/detail 검사 실패. 필수 패턴: `const q=...get("screen"); if(q) return q; return process.env.EXPO_PUBLIC_SCREEN;`(쿼리 우선, 없으면 env 폴백). App.tsx 건드릴 때 게이트 3/3(`gate.mjs --target native --screens watchlist match detail`) 재확인 필수. 드리프트 가드: `scripts/native-bundle.test.mjs`(커밋 번들 stale 감지).
+
 재현: `native/README.md`(S0 4단계 재현·S1 인계). Expo Web은 포트 8091(Next 3100 회피).

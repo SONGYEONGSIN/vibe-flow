@@ -5,6 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: ee15f3be-28d2-4532-8760-4ef7258e28a5
+  modified: 2026-07-25T18:38:22.229Z
 ---
 
 2026-06-01 vibe-flow 자체 점검. 3 agent 병렬 위임으로 D1/D2/D3 dimension 분석 + 통합 보고. 4 finding은 PR #80(commit 8456c58)로 즉시 해소, 13건은 별 PR 분할 예정.
@@ -393,6 +394,18 @@ R7 직후 "harness 자기진화" 1순위 goal 실행. 감사를 **실행 가능�
 **dimension agent 기각 사례 (false-positive 방어 작동)**: D2 가 git-post-commit 비대칭을 3중 skip-list 확인으로 기각(F-K07 교훈 적용), D4 가 resolve-from-open 을 스모크 기대 동작 확인으로 기각, D3 가 memory_sync 34건을 rate-limit 실측으로 기각.
 
 **fix 완료 (동일 세션, 2026-07-16)**: #159(라운드 등록 + M01 MEMORY 현행화) / **#160**(M02·04·08·09·10 게이트 사각 — CI paths 2줄, 플로어 `-lt 26`→`-ne 27` 등가, REQUIRED_HOOKS 실측 enumerate + validate-hooks-manifest-smoke 신설, manifest 원소 실존 루프, MEMORY↔ledger 양끝 ID assert) / **#161**(M05·06·07 telemetry — JQ_KEY 재키잉으로 named 집계(실측 audit 5/agent:general-purpose 18 노출), SKILL_TYPES 동적 유도 universe 62, traceback→runtime_error) / **#162**(M03 runner 라우팅 — 트리 분기+티어 표+특성 섹션, 반증 grep 0→2) / **#163** mark-fixed / **#164** 진입점 R14 교체. 전 PR CI 2-leg green. ★**M07 스코프 축소 판단**: ledger 제안의 bare `assertionerror` 는 vitest assertion 출력의 test_error 를 탈취(11b 순서 가드로 실증) → traceback 시그니처 한정 채택. R11 교훈("finding 을 그대로 실행하지 않는다") 적용 사례. **다음 진입점 = R14 Phase 0 이 F-M01~M10 pending-verify 실측 반증** (M07 은 축소분 기준).
+
+## Round 14~16 (2026-07-24~25) — 라벨 N/O/P/Q, 폐루프가 라운드를 스스로 열기 시작
+
+**R14/N**: 세션 발굴 3건(F-N01~N03) fix 후, nightly routine 첫 firing 이 Phase 1 VERIFY 로 F-M01~M10 + N01~N03 **13건 전건 verified**(PR #170). **R15/O·P**: 클라우드가 자율로 발굴한 첫 finding 10건(F-O01~O05 / F-P01~P05) — fix 3 PR(#172~#174) 머지.
+
+**R16/Q (2026-07-25, 4회차 풀 라운드 + 첫 4-dim 전건 하락)**
+- Phase 0: O/P 10건 중 **9 verified / 1 refuted**. **F-P05 refuted** — 변이 주입으로 실증: smoke 가 `ledger.sh round` 출력의 4컬럼 계약 중 **id/status 2컬럼만** 검사(`.id`/`.status` 주입 → exit 1, `.predicted_delta`/`.actual_delta` 주입 → exit 0, 44P/0F 유지). *반증 메커니즘의 두 컬럼을 지키는 테스트가 정작 그 컬럼을 미보호* → F-Q09 로 재등록. **fix 가 자기 계약보다 덜 구현됐는데 아무도 못 잡은 첫 사례** — R11 "finding 을 그대로 실행하지 않는다"의 역방향 실패(계약보다 *덜* 실행).
+- 4-dim: **D1 3.7 / D2 4.0 / D3 3.8 / D4 4.0 = 3.875** (R13 4.15 대비 −0.275). **4 dimension 전건 하락은 R1 이후 처음.**
+- 신규 **F-Q01~F-Q20** (P1 10 / P2 6 / P3 4). 주제: **"배선은 늘었으나 유일한 호출자와 계약이 어긋남"** — T4~T7 이 스크립트 6종·스모크 6종을 늘렸지만 (a) 유일 실행자인 cloud 프롬프트와 계약 불일치 3건(Q01~Q03, [[project_autonomous_evolution_plan]] 상세) (b) 신규 스모크가 전부 happy-path+env override 라 **D4 의 변이 주입 5/5 false PASS** (c) tier 사다리 최상단 `generative` 가 write-only(Q04, D2·D4 독립 교차확증).
+- **D4 계보 3~4회차 재발**: F-L11 → F-M08 → **F-Q05**(`.claude/evolution-protected` 가 CI paths 밖) → **F-Q20**(`audit-ledger.jsonl` 자신이 CI 무게이트 — PR #180 을 올리는 행위가 증거를 만든 케이스: ledger 전용 PR 은 `gh pr checks` = "no checks reported", 실 ledger 검증 테스트도 0건). 앞 3건은 게이트 *입력* 스크립트, Q20 은 야간 루프가 매 밤 스스로 쓰는 *출력* 데이터.
+- fix: **PR #179**(Q01~Q03 + smoke L6 4건 RED 25P/4F→GREEN 29P/0F, CI 3-leg green) / **PR #180**(mark-fixed 3 + Q20 등록). **다음 진입점 = 07-26 발화 관측 → arm 판단, 그리고 PR-2(Q04 + Q05·Q20 동일 워크플로 파일)**.
+- ledger: verified 95 / fixed 3 / refuted 5 / deferred 2 / **open 17** (122 라인).
 
 ## Linked memories
 

@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 8e423dd7-140d-4ae8-9f12-bb5e8fb09af7
-  modified: 2026-07-25T13:51:24.631Z
+  modified: 2026-07-25T18:29:55.613Z
 ---
 
 repick-prompt는 2026-07-15부터 자동 자기진화 체제로 전환됨.
@@ -23,7 +23,7 @@ repick-prompt는 2026-07-15부터 자동 자기진화 체제로 전환됨.
 S1(볼트를 라이브러리 원본으로 전환) 작업 중 무인 라운드가 구 경로로 `app/src/data/templates.ts`를 고쳐 머지 충돌을 내는 것을 막기 위해 `enabled: false`로 정지시켰다. R20(타깃 "SNS 광고 카피 작성")은 아직 안 돌았다.
 
 **재개 조건 3단계** — 하나라도 건너뛰면 안 된다:
-1. S1 머지
+1. S1 머지 — PR #8 (https://github.com/SONGYEONGSIN/repick-prompt/pull/8), 2026-07-26 생성, 브랜치 `feat/vault-as-library-source`
 2. R20을 사람이 지켜보며 **수동 1회** 실행 — 새 승격 경로(`vault/50-library/`)가 무인으로 도는지 확인
 3. 확인되면 `RemoteTrigger update trig_01C7e66nxxHq8ELBMj5syCty {"enabled": true}`
 
