@@ -1,20 +1,11 @@
 name: eval-regression
 
 on:
+  # F-R02 (audit R17): paths 필터 제거 — 상세 근거는 validation-tests.yml 동일 블록 참조.
+  # 이 워크플로는 `.claude/memory/audit-ledger.jsonl`·MEMORY.md 정합도 검사하는데
+  # 그 경로가 열거에 없어 PR #180 이 "no checks reported" 로 통과했고, 머지 직후
+  # push leg 가 RED 로 울렸으나 10일간 아무도 읽지 않았다(F-Q20 / F-R03).
   pull_request:
-    paths:
-      - 'core/skills/**'
-      - 'core/agents/**'
-      - 'core/hooks/**'
-      - 'core/rules/**'
-      - 'extensions/**'
-      - 'core/agents.json'
-      - 'README.md'
-      - '.claude-plugin/**'
-      - 'templates/.github/workflows/**'
-      - 'scripts/eval-regression-check.sh'
-      - 'scripts/check-doc-counts.sh'
-      - '.github/workflows/eval-regression.yml'
   push:
     branches: [main]
 
@@ -27,3 +18,30 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq && sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && sudo chmod +x /usr/local/bin/yq
       - name: Run eval regression check
         run: bash scripts/eval-regression-check.sh
+
+  # F-R03 (audit R17): validation-tests.yml 동일 블록 참조. #180 의 RED 를 만든 것이
+  # 바로 이 워크플로였고(MEMORY 인덱스 desync), 그 신호를 받는 쪽이 없었다.
+  notify-red:
+    needs: check
+    if: failure() && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: main RED → issue 승격
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -u
+          gh label create ci-red --color B60205 --description "main CI RED" --repo "$REPO" 2>/dev/null || true
+          open=$(gh issue list --repo "$REPO" --label ci-red --state open --json number --jq 'length')
+          if [ "$open" != "0" ]; then
+            echo "이미 열린 ci-red 이슈 $open 건 — 중복 생성 생략"
+            exit 0
+          fi
+          gh issue create --repo "$REPO" --label ci-red \
+            --title "main RED: eval-regression ($(echo "$SHA" | cut -c1-7))" \
+            --body "$(printf 'main 의 eval-regression 이 실패했다.\n\n- commit: %s\n- run: %s\n\n복구 전까지 머지를 멈춘다. 원인 재현: `bash scripts/eval-regression-check.sh`\n\n> 이 이슈는 워크플로가 자동 생성했다(F-R03). 복구 후 닫으면 다음 RED 에서 다시 열린다.' "$SHA" "$RUN_URL")"

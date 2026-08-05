@@ -176,6 +176,46 @@ vc=$(jq -r 'select(.status=="verified")|.id' "$LED4" 2>/dev/null | wc -l | tr -d
 [ "$vc" = "6" ] && ok "6-way 병렬 resolve → 6건 전부 verified (lost-update 없음)" || ng "verified=$vc (want 6, lost-update)"
 [ ! -d "$LED4.lock" ] && ok "정상 op 후 .lock 잔존 없음 (release_lock)" || ng ".lock 누수"
 
+echo "=== F-Q20: 실 repo ledger 자신을 검증 (정본 파일이 무게이트였음) ==="
+# 종전 스모크는 전부 fixture 위에서만 돌아, 정본 .claude/memory/audit-ledger.jsonl 이
+# 손상돼도(수기 편집·부분 write) 어떤 테스트도 울지 않았다. 아래 validator 를
+# (a) 실 ledger 와 (b) 변이 사본 양쪽에 적용해, 검사가 공허하지 않음을 함께 보인다.
+REAL_LEDGER="$REPO_ROOT/.claude/memory/audit-ledger.jsonl"
+# 필수 키: rules/harness-evolution.md §4 의 ledger entry 계약 중 반증 루프가 소비하는 축
+validate_ledger() {  # <file> → 위반 사유를 stdout 으로, 위반 0 이면 무출력
+  local f="$1" n=0
+  while IFS= read -r line; do
+    n=$((n+1))
+    [ -z "$line" ] && continue
+    if ! echo "$line" | jq -e . >/dev/null 2>&1; then echo "line $n: JSON 파싱 실패"; continue; fi
+    for k in round id status predicted_delta; do
+      echo "$line" | jq -e --arg k "$k" 'has($k)' >/dev/null 2>&1 || echo "line $n: .$k 부재"
+    done
+  done < "$f"
+}
+
+if [ ! -f "$REAL_LEDGER" ]; then
+  ng "실 ledger 부재 — $REAL_LEDGER"
+else
+  violations=$(validate_ledger "$REAL_LEDGER")
+  if [ -z "$violations" ]; then
+    ok "실 ledger 전 라인 유효 JSON + round/id/status/predicted_delta 보유 ($(grep -c . "$REAL_LEDGER")건)"
+  else
+    ng "실 ledger 계약 위반: $(echo "$violations" | head -3 | tr '\n' ';')"
+  fi
+
+  # 비공허 대조 — 변이를 실제로 잡는지 확인 (잡지 못하면 위 통과는 무의미)
+  MUT="$TMP/mutated.jsonl"
+  head -1 "$REAL_LEDGER" | jq -c 'del(.predicted_delta)' > "$MUT"
+  echo '{"round":"X","id":"F-X01",' >> "$MUT"   # 손상 라인(불완전 JSON)
+  mv=$(validate_ledger "$MUT")
+  if echo "$mv" | grep -q 'predicted_delta 부재' && echo "$mv" | grep -q 'JSON 파싱 실패'; then
+    ok "변이 주입(키 삭제 + 손상 라인) 양쪽 검출 — 검사 비공허"
+  else
+    ng "변이 미검출 — 실 ledger 통과가 공허함: $mv"
+  fi
+fi
+
 echo
 echo "=== 결과 ==="
 echo "  통과: $PASS / 실패: $FAIL"
