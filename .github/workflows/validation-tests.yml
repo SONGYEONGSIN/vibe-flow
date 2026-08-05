@@ -10,24 +10,15 @@ name: validation-tests
 # 게이트한다 (F-G01 같은 비대칭 결함이 재발하면 즉시 fail).
 
 on:
+  # F-R02 (audit R17): pull_request 의 paths 필터를 제거한다. 두 가지 이유다.
+  #  (1) required status check 을 걸려면 필수 — paths 로 걸러진 워크플로는 무관 PR 에서
+  #      아예 발화하지 않고, GitHub 는 보고되지 않은 required check 을 영구 대기한다.
+  #  (2) "게이트는 있고 트리거가 없다" 계보 종결 — F-K06(setup.sh) / F-L11(statusline.sh) /
+  #      F-M08(check-doc-counts.sh) / F-Q05(.claude/evolution-protected) / F-Q20(ledger) 이
+  #      전부 "경로를 하나 더 추가하는" fix 였고 5회 재발했다. 열거를 유지하는 한 6회차가
+  #      예약된다. 전량 실행이 유지 비용 0 이고, 러너 시간(ubuntu 41s / windows 5m30s)은
+  #      이 repo 의 PR 빈도에서 감당 가능하다.
   pull_request:
-    paths:
-      - 'validate.sh'
-      - 'setup.sh'                     # F-K06 (audit R11): cloud-init-smoke.sh 가 setup.sh 를
-                                       # 실행·검증하는데 트리거 경로에 없어, setup.sh 단독 수정 PR 은
-                                       # 두 워크플로 모두 미발화했다 (게이트는 있고 트리거가 없던 상태).
-      - 'core/scripts/**'
-      - 'core/hooks/**'
-      - 'settings/settings.template.json'  # PR-1: cloud-init-smoke 피검 대상 + evolution-guard 등록 소스
-      - 'core/skills/**/scripts/**'   # F-I05 (audit R9): ledger.sh 등 skill 내부 계측 스크립트
-      - 'extensions/**/scripts/**'    # F-J03 (audit R10): frontend-flow 등 extensions skill 스크립트
-      - 'scripts/tests/**'
-      - 'scripts/statusline.sh'        # F-L11 (audit R12): statusline-tests.sh 의 피검 대상인데
-                                       # 트리거 경로에 없어 단독 수정 PR 의 회귀가 CI PASS 뒤에 숨었다.
-      - 'scripts/check-doc-counts.sh'  # F-M08 (audit R13): F-L11 동일 클래스 형제 — 두 게이트
-      - 'scripts/eval-regression-check.sh'  # 스크립트의 fail-closed fixture 스모크가 여기서만 도는데
-                                       # 단독 수정 PR 이 이 워크플로를 미발화했다 (/tmp 재현 실증).
-      - '.github/workflows/validation-tests.yml'
   push:
     branches: [main]
 
@@ -80,10 +71,39 @@ jobs:
           # F-L10 (audit R12) + F-M09 (audit R13): 플로어 하한(-lt)은 삭제만 잡고 추가를
           # 강제하지 않아 첫 스모크 추가에서 1-slack 으로 열화(zero-headroom 정체).
           # 등가(-ne) 대조로 전환 — 스모크 증감 시 이 기대치를 같은 PR 에서 갱신한다.
-          EXPECTED_SMOKE=38
+          EXPECTED_SMOKE=39
           echo "executed smoke tests: $executed (expected $EXPECTED_SMOKE)"
           if [ "$executed" -ne "$EXPECTED_SMOKE" ]; then
             echo "::error::실행된 스모크 $executed ≠ 기대치 $EXPECTED_SMOKE — 커버리지 소실 또는 기대치 미갱신"
             failed=1
           fi
           exit $failed
+
+  # F-R03 (audit R17): push→main 실패의 harness 소비자가 0 이라, #180 이 만든 RED 가
+  # 10일간 아무에게도 도달하지 않았다. 실패를 사람·자율루프 양쪽이 읽는 자료구조(issue)로
+  # 승격한다. PR leg 에는 걸지 않는다 — PR 은 체크 UI 가 이미 소비자다.
+  notify-red:
+    needs: smoke
+    if: failure() && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: main RED → issue 승격
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -u
+          gh label create ci-red --color B60205 --description "main CI RED" --repo "$REPO" 2>/dev/null || true
+          # 중복 폭주 방지 — 열린 ci-red 이슈가 있으면 코멘트도 새 이슈도 만들지 않는다
+          open=$(gh issue list --repo "$REPO" --label ci-red --state open --json number --jq 'length')
+          if [ "$open" != "0" ]; then
+            echo "이미 열린 ci-red 이슈 $open 건 — 중복 생성 생략"
+            exit 0
+          fi
+          gh issue create --repo "$REPO" --label ci-red \
+            --title "main RED: validation-tests ($(echo "$SHA" | cut -c1-7))" \
+            --body "$(printf 'main 의 validation-tests 가 실패했다.\n\n- commit: %s\n- run: %s\n\n복구 전까지 머지를 멈춘다. 원인 재현: `for t in scripts/tests/*.sh; do bash "$t"; done`\n\n> 이 이슈는 워크플로가 자동 생성했다(F-R03). 복구 후 닫으면 다음 RED 에서 다시 열린다.' "$SHA" "$RUN_URL")"

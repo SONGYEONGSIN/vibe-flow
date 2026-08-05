@@ -16,6 +16,12 @@ allowed-tools: Bash, Read, Grep, Glob, Agent
 ## Phase 0. 라운드 라벨 + 직전 finding 반증 (decision-observability)
 
 ```bash
+# F-R10 (audit R17): 라운드 개시 전 main 건강도 확인. R17 은 main 이 10일째 RED 인 상태로
+# 개시됐고, RED 는 감사 트레이스가 아니라 우발적 조회로 발견됐다. failure 가 있으면
+# 라운드를 진행하기 전에 복구를 선행한다 — red 위에서 수집한 trace 는 오염된다
+# (실제로 두 스모크의 양성 대조군이 repo 상태를 상속해 검출력을 잃었다, F-R04).
+gh run list --branch main --limit 2 --json name,conclusion,headSha
+
 LEDGER_SH="core/skills/audit/scripts/ledger.sh"   # (.claude/ 런타임은 .claude/skills/audit/scripts/ledger.sh)
 # fix 가 머지된 finding 은 mark-fixed 로 open→fixed 전이 (PR 머지 시점)
 # reconcile 워크리스트 = status=fixed 이고 actual_delta 미기록인 것:
