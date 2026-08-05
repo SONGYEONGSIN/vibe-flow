@@ -1,3 +1,5 @@
 - [대시보드 루프 상태](repick-dash-loop-state.md) — /dash 14종·사용자 기준·그리드 크래프트 함정·미해결 질문
 - [네이티브 루프 재설계](repick-native-loop.md) — 진화 루프 멀티플랫폼화 프로그램(S0~S2·S3a·S3b·S4a~S4c 구현병합 = native 라이프사이클 완성. S5(카탈로그+native 차원) 스펙만 병합·구현 미착수 = 다음 재개점)
+- [gh pr edit 조용한 실패](gh-pr-edit-silent-failure.md) — Projects-classic GraphQL 에러로 no-op → REST PATCH 우회 + private 저장소 링크 검증법
 - [Specimen 갤러리 개편](specimen-gallery-redesign.md) — /gallery를 'Specimen'(AI 에이전트용 디자인 시스템 갤러리, refero/tasteskill 느낌)으로 재정체화. **전 아크 완결(2026-07-26)**: G1(그리드+i18n)·G2(상세+15스펙)·G2.5(정리·카테고리·S마크)·상세폴리시·②전사이트영문화·①네이티브라이브(Expo iframe)·G3(tasteskill식 메인랜딩 히어로+라이브마퀴, f201dd8) 전부 병합·배포. 후속(비차단): n1소스복구·개별작품 de-brand·lint cleanup
+- [야간 라운드 검증 함정](nightly-round-verification-trap.md) — evolve/dash 공백·원장 날짜로 오판 금지, reflog fast-forward가 증거

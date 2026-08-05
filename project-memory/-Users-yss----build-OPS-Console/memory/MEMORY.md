@@ -15,3 +15,4 @@
 - [팀 브리핑 뉴스레터](team-briefing-newsletter.md) — #884 배포(스티비 클론+claude -p 스토리+근속코너). 잔여: 맥 launchd 등록·OPS_CONSOLE_BASE_URL·Vercel cron 제거·샘플 삭제. 사진 연동 후속
 - [Claude 상태표시줄 구성](claude-statusline-setup.md) — ~/.claude/statusline.sh 6줄 레이아웃 + 이식용 원샷 프롬프트(statusline-setup-prompt.md, pbcopy)
 - [메일 CC 제외 제약](mail-cc-exclusion.md) — 이이화(llh@jinhak.com) 자동 CC 금지, operators.mail_cc_excluded 플래그(PR #852)·신규 팀메일 기능도 존중 필수
+- [경쟁률 점검 자동화(세팅+페이지)](ratio-setting-audit.md) — #926~#936 머지 + 마이그·예외·폴러 셋업 전부 완료 확인(8/4). 잔여는 fix 이후 성공 실행 검증 1회뿐
