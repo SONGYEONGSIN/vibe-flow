@@ -24,3 +24,15 @@
 {"id":"20260724T075745Z-dfcf","task":"[audit F-P05/D4/impl] scripts/tests/audit-ledger-smoke.sh 에 `L round H` 출력을 append된 F-H01~F-H03 id/status/predicted_delta/actual_delta 3줄과 tab-필드 매칭으로 검증하는 assertion 블록 1개 추가(기존 next-num 검증부 인근).. 근거: core/skills/audit/scripts/ledger.sh:121-124 `round)` 커맨드(Phase5 라운드별 리포트 테이블 생성용, 헤더 주석에 공개 API로 문서화)가 scripts/tests/audit-ledger-smoke.sh 어디에도 호출되지 않음(grep 결과 'round' 매치는 전부 append payload 필드명이고 `L round <r>` 호출은 0건). 실측: `round)` case의 jq 필드명을 `.id`→`.idX`로 오타내 저장소 ledger.sh를 in-place 교체 후 `bash scripts/tests/audit-ledger-smoke.sh` 재실행 → '통과: 39 / 실패: 0'(전량 GREEN, round 회귀 무탐지). validation-tests.yml 게이트는 EXPECTED_SMOKE=32(테스트 *파일* 수 등가검사)일 뿐 파일 내부 커맨드 브랜치 커버리지는 보지 않아 이 회귀는 CI를 그대로 통과.. 원인: ledger.sh의 mutating 커맨드(append/resolve/enqueue/mark-fixed/pending-verify)는 여러 라운드(F-H02/F-I04/F-K01/F-K02/F-K11)에 걸쳐 하드닝되고 그때마다 smoke assertion이 추가됐지만, 조회 전용 `round` 커맨드는 'mutating 아님'이라는 이유로 같은 하드닝 사이클에서 누락된 채 방치됐다 — 그 결과 이 스크립트의 유일한 CI 게이트(audit-ledger-smoke.sh)가 실제로는 6/7 커맨드만 검증하면서도 validation-tests.yml 상에서는 완전성을 주장하는 거짓 PASS 경로가 생겼다.. 예상효과: RED(현재, 실증됨): round case의 jq 필드 오타를 넣어도 `bash scripts/tests/audit-ledger-smoke.sh` exit=0 유지(39/0 PASS). GREEN(수정후): 동일 오타 주입 시 신규 assertion이 실패해 스크립트 exit≠0(반증: 동일 sed 주입 재실행 후 종료코드 1)..","created_ts":"2026-07-24T07:57:45Z","status":"queued"}
 {"op":"status_update","id":"20260724T073513Z-c08d","new_status":"running","ts":"2026-07-24T07:58:35Z"}
 {"op":"status_update","id":"20260724T073513Z-c08d","new_status":"aborted","ts":"2026-07-24T07:58:35Z"}
+{"op":"status_update","id":"Q-1","new_status":"aborted","ts":"2026-08-06T11:55:56Z"}
+{"op":"status_update","id":"Q-1","new_status":"aborted","ts":"2026-08-06T11:56:00Z"}
+{"op":"status_update","id":"Q-1","new_status":"aborted","ts":"2026-08-06T11:56:05Z"}
+{"op":"status_update","id":"20260724T073513Z-ffe0","new_status":"aborted","ts":"2026-08-06T11:56:25Z"}
+{"op":"status_update","id":"20260724T073513Z-d2b8","new_status":"aborted","ts":"2026-08-06T11:56:25Z"}
+{"op":"status_update","id":"20260724T073513Z-6ed5","new_status":"aborted","ts":"2026-08-06T11:56:25Z"}
+{"op":"status_update","id":"20260724T075745Z-7248","new_status":"aborted","ts":"2026-08-06T11:56:25Z"}
+{"op":"status_update","id":"20260724T075745Z-e3fe","new_status":"aborted","ts":"2026-08-06T11:56:25Z"}
+{"op":"status_update","id":"20260724T075745Z-f2ea","new_status":"aborted","ts":"2026-08-06T11:56:25Z"}
+{"op":"status_update","id":"20260724T075745Z-7b66","new_status":"aborted","ts":"2026-08-06T11:56:25Z"}
+{"op":"status_update","id":"20260724T075745Z-dfcf","new_status":"aborted","ts":"2026-08-06T11:56:25Z"}
+{"op":"status_update","id":"Q-1","new_status":"aborted","ts":"2026-08-06T11:56:33Z"}

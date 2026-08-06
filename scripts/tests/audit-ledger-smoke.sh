@@ -176,6 +176,32 @@ vc=$(jq -r 'select(.status=="verified")|.id' "$LED4" 2>/dev/null | wc -l | tr -d
 [ "$vc" = "6" ] && ok "6-way 병렬 resolve → 6건 전부 verified (lost-update 없음)" || ng "verified=$vc (want 6, lost-update)"
 [ ! -d "$LED4.lock" ] && ok "정상 op 후 .lock 잔존 없음 (release_lock)" || ng ".lock 누수"
 
+echo "=== F-R06: resolve 가 enqueue 된 큐 entry 도 닫는다 (이중장부 분기 차단) ==="
+# ledger 는 resolve 로 닫히는데 queue 엔트리를 닫는 주체가 없어, 이미 verified 된
+# finding 이 queued 좀비로 남아 첫 firing 이 끝난 일을 pop 한다(R17/R 실측 8건).
+QSTORE="$TMP/queue.jsonl"; : > "$QSTORE"
+QSH="$REPO_ROOT/core/skills/auto-build/scripts/queue.sh"
+rid=$(mkfinding R6 skills D2 | L append)
+QUEUE_STORE="$QSTORE" LEDGER="$LEDGER" bash "$SCRIPT" enqueue R6 >/dev/null 2>&1
+qid=$(jq -r 'select(.op!="status_update")|.id' "$QSTORE" 2>/dev/null | head -1)
+if [ -z "$qid" ]; then
+  ng "enqueue 가 큐 entry 를 만들지 못함 — 전제 실패"
+else
+  L mark-fixed "$rid" >/dev/null
+  QUEUE_STORE="$QSTORE" LEDGER="$LEDGER" bash "$SCRIPT" resolve "$rid" "+0.1 측정" verified >/dev/null
+  qst=$(QUEUE_STORE="$QSTORE" bash "$QSH" list --all 2>/dev/null | awk -v i="$qid" '$1==i{print $2}')
+  [ "$qst" = "aborted" ] && ok "resolve → 큐 entry $qid 가 aborted 로 전이" \
+    || ng "resolve 후에도 큐 entry $qid status=$qst (좀비 잔존, want aborted)"
+  # enqueued_task 가 없는 finding 은 큐 조작 없이 정상 resolve 되어야 한다(회귀 가드)
+  rid2=$(mkfinding R6 memory D1 | L append)
+  L mark-fixed "$rid2" >/dev/null
+  if QUEUE_STORE="$QSTORE" LEDGER="$LEDGER" bash "$SCRIPT" resolve "$rid2" "+0.1" verified >/dev/null 2>&1; then
+    ok "enqueued_task 없는 finding 도 resolve 정상 (부작용 없음)"
+  else
+    ng "enqueued_task 없는 finding 의 resolve 가 깨짐"
+  fi
+fi
+
 echo "=== F-Q20: 실 repo ledger 자신을 검증 (정본 파일이 무게이트였음) ==="
 # 종전 스모크는 전부 fixture 위에서만 돌아, 정본 .claude/memory/audit-ledger.jsonl 이
 # 손상돼도(수기 편집·부분 write) 어떤 테스트도 울지 않았다. 아래 validator 를
