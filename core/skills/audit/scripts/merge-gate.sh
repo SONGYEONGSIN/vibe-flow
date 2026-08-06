@@ -63,6 +63,7 @@ PR_TIER="docs"; PR_LEVEL=1
 for f in $FILES; do
   case "$f" in
     .claude/memory/*|docs/*|README.md|CHANGELOG.md) lvl=1; t="docs" ;;
+    core/skills/*/SKILL.md|extensions/*/skills/*/SKILL.md) lvl=3; t="generative" ;;
     *) lvl=2; t="structural" ;;   # 기본 보수: rules/hooks/scripts/settings 등
   esac
   if [ "$lvl" -gt "$PR_LEVEL" ]; then PR_LEVEL=$lvl; PR_TIER="$t"; fi

@@ -45,6 +45,9 @@ chk "M3.1 docs + green + tier=docs → AUTO_MERGE" "AUTO_MERGE" ".claude/memory/
 chk "M3.2 structural(rule) + green + tier=docs → HOLD (tier 초과)" "HOLD_TIER" "core/rules/git.md" "green" "docs"
 chk "M3.3 structural + green + tier=structural → AUTO_MERGE" "AUTO_MERGE" "core/rules/git.md" "green" "structural"
 chk "M3.4 docs + green + tier=structural → AUTO_MERGE (하위 포함)" "AUTO_MERGE" "README.md" "green" "structural"
+chk "M3.5 신규 skill SKILL.md + green + tier=structural → HOLD (F-Q04: lvl3 generative, structural 로 부족)" "HOLD_TIER" "core/skills/brandnewcap/SKILL.md" "green" "structural"
+chk "M3.6 신규 skill SKILL.md + green + tier=generative → AUTO_MERGE" "AUTO_MERGE" "core/skills/brandnewcap/SKILL.md" "green" "generative"
+chk "M3.7 extensions skill SKILL.md + green + tier=structural → HOLD (F-Q04)" "HOLD_TIER" "extensions/foo/skills/bar/SKILL.md" "green" "structural"
 
 echo "Test M4: CI gate"
 chk "M4.1 docs + CI failed + tier=docs → HOLD_CI" "HOLD_CI_FAILED" "README.md" "failed" "docs"
