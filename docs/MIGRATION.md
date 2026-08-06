@@ -180,3 +180,5 @@ git reset --hard pre-vibe-flow-phase-1   # 사전 태그
 # 또는 사용자 측 단순 복구
 cp .claude/.bak.* .claude/    # safe_copy로 백업된 사용자 수정본 복구
 ```
+
+<!-- ci trigger probe 1786052168 -->
