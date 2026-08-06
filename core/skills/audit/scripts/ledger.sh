@@ -123,6 +123,18 @@ case "$cmd" in
     jq -c --arg i "$id" --arg a "$actual" --arg s "$status" \
       'if .id==$i then .actual_delta=$a | .status=$s else . end' "$LEDGER" > "$tmp" && mv "$tmp" "$LEDGER"
     release_lock
+    # F-R06 (audit R17): enqueue 는 ledger→queue 단방향이라, 사람 PR 트랙으로 fix 가
+    # 흘러 ledger 가 닫혀도 큐 entry 는 queued 로 남았다(R17 실측 8건 좀비). Phase 4 는
+    # created_ts 최선두를 pop 하므로 첫 firing 이 이미 verified 된 finding 을 집는다.
+    # 종결 시 역참조 키(enqueued_task)로 큐도 함께 닫아 이중장부 분기를 막는다.
+    qtask=$(jq -r --arg i "$id" 'select(.id==$i) | .enqueued_task // ""' "$LEDGER" 2>/dev/null)
+    if [ -n "$qtask" ]; then
+      QUEUE_SH="${QUEUE_SH:-$PROJECT_ROOT/core/skills/auto-build/scripts/queue.sh}"
+      if [ -f "$QUEUE_SH" ]; then
+        bash "$QUEUE_SH" status-update "$qtask" aborted >/dev/null 2>&1 \
+          || echo "warn: 큐 entry $qtask 전이 실패 — queue.sh status-update 수동 확인 필요" >&2
+      fi
+    fi
     echo "resolved $id → $status"
     ;;
   open)
