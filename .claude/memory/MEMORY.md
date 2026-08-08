@@ -52,6 +52,8 @@
   - **routine 실태 확정 + 재등록·활성화 (2026-08-06)**: RemoteTrigger 직접 조회로 `trig_01FZz2Na6WULE2ZSUU1cjKt4` 가 **`enabled:false`, `last_fired_at` 2026-07-24T07:48Z(수동 run 1회), `next_run_at` 이 07-24 에서 정지** 임을 실측. 즉 **야간 폐루프는 죽은 게 아니라 cron 으로 켜진 적이 없다** — R14/N 항의 "매일 21:00 UTC 발화" 는 처음부터 사실이 아니었다(F-R11 실증). 동시에 **F-R05 실증**: 라이브 트리거의 프롬프트가 등록 시점 스냅샷이라 5단계 열거 + "auto-merge **절대 금지**" 를 그대로 들고 있었다 — #179 가 파일에서 고친 F-Q02(9단계)·F-Q03(merge-gate 위임)이 라이브에 **미도달**. 즉 F-Q02/Q03 의 verified 는 *파일 계약* 한정이고 라이브 도달은 별건이다. 조치: 프롬프트에서 단계 복제를 제거해 템플릿을 정본으로 따르게 + F-R01 미해결 경고(hook 비활성 전제로 자제) + 브랜치 보호 사실 명시, 이름을 `vibe-flow closed-loop nightly@f97528b`(템플릿 sha 접미 — 세대 대조) 로 바꾸고 **`enabled:true`**. 첫 예정 발화 `2026-08-06T21:00Z`(KST 08-07 06:00). **arm(auto-merge)은 여전히 F-R01 이후** — PR-only 로만 관찰한다.
   - **주의(stale 정정)**: 위 R14/N 항의 "라이브 routine 이 매일 21:00 UTC 폐루프 1라운드" 는 **거짓**이다(위 항 실측). 다음 세션은 이 문장을 현재 사실로 상속하지 말 것.
 
+- **R18/S (2026-08-08, cloud cron 첫 실 발화)** — Phase 0: R 라운드 pending-verify 7건(F-Q01/Q05/Q20/R02/R03/R06/R10) **전건 verified**(실측 기반 — branch protection `protected:true`+PR#186 check_runs 3종 success, ledger-smoke 48/48 등). 신규 **F-S01~F-S10** (D1 2 / D2 3 / D3 2 / D4 3). 주요: **F-S04**(cloud-prompt-template Phase3 ENQUEUE~Phase4 IMPROVE 사이 커밋 단계 부재 → orchestrator P0.2 clean-tree 게이트가 루프 자신의 ledger/queue 산출물에 상시 걸림, 이번 cycle 은 Phase7 패턴 재사용해 수동 커밋으로 회피) / **F-S10**(cloud 세션 git 자격증명이 main 의 required-PR+required-status-checks 규칙을 **bypass** — `git push` 가 "Bypassed rule violations" 문구와 함께 그대로 성공함을 실측, 고치지 않고 finding 으로만 surface) / **F-S03**(orchestrator P0.1 배포검증 체크리스트가 cloud 경로를 오버라이드하는 Cloud 분기 절과 문자 그대로는 불일치) / **F-S06**(menu/SKILL.md 가 F-M05/F-O05 와 동일한 flat `.type` 매칭 결함을 상속 — 인접 진입점 미일반화 계보 지속). F-Q04(merge-gate.sh generative tier 분류 누락 — 자율머지 3중 방어 우회 경로)는 **auto-build 대상에서 skip**(안전게이트 자체 수정 금지 정책, 사람 review 대기). 상세·반증커맨드는 ledger `round S`.
+
 ## Brainstorm 인덱스 (최근)
 
 cloud cycle 관련 (Phase 3.1/4):
@@ -89,6 +91,8 @@ Phase 2 / Phase 3.0:
 3. **F-K03 refuted (F-O03)** — "CLAUDE.md 부재로 core/rules 미로드"는 오진이었다. 실제 메커니즘은 `.claude/rules/` 자동스캔 + frontmatter path-scoping(2026-07-24 규명). donts.md dormant scope 잔여이슈는 discipline.md 분리(PR #166)로 해소. 재작업 불필요.
 
 4. 신규 기능 트랙 후보: `docs/character-system-spec-plan` 브랜치 (Phase 4 동적 캐릭터 시스템, spec/plan만 존재 미구현)
+
+5. **자율진화 T1~T7 완료 (#166~#178)** — auto-merge 게이트/self-update/graduation·circuit breaker/생성 트랙 전부 구현됨, 전부 default-safe(off/disarmed) 유지. 재작업 불필요.
 
 ### R11 세션이 남긴 방법론 교훈
 
