@@ -84,3 +84,4 @@
 {"op":"status_update","id":"20260807T211209Z-c8e0","new_status":"running","ts":"2026-08-07T21:15:35Z"}
 {"op":"status_update","id":"20260807T211209Z-c8e0","new_status":"done","ts":"2026-08-08T01:01:11Z"}
 {"op":"status_update","id":"Q-1","new_status":"aborted","ts":"2026-08-08T01:11:24Z"}
+{"op":"status_update","id":"20260807T211209Z-c8e0","new_status":"aborted","ts":"2026-08-08T21:01:52Z"}
