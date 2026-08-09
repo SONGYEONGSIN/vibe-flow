@@ -100,6 +100,41 @@ grep -q 'group_by(key)' "$SKILL" && ok "SKILL.md 재키잉 집계 (F-M05)" || ng
 grep -q 'EVENT_ALIAS_TYPES' "$SKILL" && ok "SKILL.md 스킬 유니버스 동적 유도 (F-M06)" || ng "SKILL.md SKILL_TYPES 하드코딩 잔존 (F-M06)"
 grep -q '27 스킬' "$SKILL" && ng "SKILL.md '27 스킬' 하드코딩 카탈로그 주석 잔존 (F-M06)" || ok "하드코딩 카탈로그 주석 제거 (F-M06)"
 
+# ── F-Q08 (audit round Q): cloud-executed 스킬(auto-build) 개선후보 오판 가드 ──
+# cloud session 은 events.jsonl(gitignored)이 로컬과 미동기라 로컬 0건이 미사용이
+# 아닐 수 있다. SKILL.md 와 동일한 가드 로직을 재현해 TELEMETRY_CLOUD_COMMITS override 로
+# 두 분기(cloud 활동 있음/없음) + scope(auto-build 한정, 타 타입 미영향)를 검증.
+echo "=== cloud-executed 스킬 개선후보 가드 (F-Q08) ==="
+
+guard_flags_type() {
+  local type="$1"
+  if [ "$type" = "auto-build" ] && [ "${TELEMETRY_CLOUD_COMMITS:-0}" -gt 0 ]; then
+    return 1   # 개선후보 제외
+  fi
+  return 0     # 개선후보 판정 진행
+}
+
+if TELEMETRY_CLOUD_COMMITS=0 guard_flags_type "auto-build"; then
+  ok "cloud 커밋 0건 — auto-build 개선후보 정상 판정 유지"
+else
+  ng "cloud 커밋 0건인데 auto-build 가 제외됨 — false negative"
+fi
+
+if TELEMETRY_CLOUD_COMMITS=3 guard_flags_type "auto-build"; then
+  ng "cloud 커밋 3건인데 auto-build 가 여전히 개선후보로 판정 — F-Q08 회귀"
+else
+  ok "cloud 커밋 3건 — auto-build 개선후보 제외 (계측 사각 오판 방지)"
+fi
+
+if TELEMETRY_CLOUD_COMMITS=3 guard_flags_type "brainstorm"; then
+  ok "가드가 auto-build 로 스코프됨 — 타 타입(brainstorm) 미영향"
+else
+  ng "가드가 auto-build 이외 타입까지 과잉 제외"
+fi
+
+grep -q 'cloud_commit_count' "$SKILL" && ok "SKILL.md 에 cloud_commit_count 가드 존재 (F-Q08)" || ng "SKILL.md F-Q08 가드 누락"
+grep -q 'TELEMETRY_CLOUD_COMMITS' "$SKILL" && ok "SKILL.md 가 smoke-override 가능(TELEMETRY_CLOUD_COMMITS)" || ng "SKILL.md override 훅 누락"
+
 echo
 echo "=== 결과 ==="
 echo "  통과: $PASS / 실패: $FAIL"
