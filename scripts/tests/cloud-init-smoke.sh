@@ -185,6 +185,45 @@ else
 fi
 teardown_fixture
 
+# F-R01 (audit R17, P0): 프롬프트의 `export AUTO_BUILD_MODE=1` 은 Bash 도구 자식 셸에만
+# 존재해 hook 프로세스(Claude Code 가 spawn)에 **원리적으로 도달할 수 없다**. 그 결과
+# evolution-guard.sh:18 / auto-build-safety.sh:26 이 자율 세션에서 첫 줄 exit 0 으로
+# 무력화됐다. 올바른 통로는 settings.json 의 .env — cloud-init 이 설치 시 심어야 한다.
+echo "Test C8: F-R01 안전 hook 활성 env 를 settings.json 에 주입"
+setup_fixture
+bash "$SCRIPT" >/dev/null 2>&1
+if [ -f .claude/settings.json ]; then
+  V=$(jq -r '.env.AUTO_BUILD_MODE // "null"' .claude/settings.json 2>/dev/null)
+  if [ "$V" = "1" ]; then
+    echo "  ✓ C8.1 .env.AUTO_BUILD_MODE=\"1\" 주입됨 (자율 세션 hook 활성)"
+    PASS=$((PASS + 1))
+  else
+    echo "  ✗ C8.1 .env.AUTO_BUILD_MODE=$V (want \"1\") — hook 이 첫 줄 exit 0 으로 죽는다"
+    FAIL=$((FAIL + 1))
+  fi
+  # 템플릿의 기존 env 키를 덮어쓰지 않아야 한다 (주입은 병합이지 치환이 아니다)
+  N=$(jq -r '.env | length' .claude/settings.json 2>/dev/null)
+  if [ "${N:-0}" -ge 5 ]; then
+    echo "  ✓ C8.2 템플릿 기존 env 키 보존 (총 $N 키)"
+    PASS=$((PASS + 1))
+  else
+    echo "  ✗ C8.2 env 키 $N 개 — 템플릿 4키 + 신규 1 = 5 이상이어야 함(덮어쓰기 의심)"
+    FAIL=$((FAIL + 1))
+  fi
+  # hooks wiring 이 살아있어야 한다 — env 주입이 다른 키를 깨뜨리면 안 됨
+  if jq -e '.hooks | length > 0' .claude/settings.json >/dev/null 2>&1; then
+    echo "  ✓ C8.3 hooks wiring 보존"
+    PASS=$((PASS + 1))
+  else
+    echo "  ✗ C8.3 hooks wiring 소실 — 주입이 파일을 깨뜨림"
+    FAIL=$((FAIL + 1))
+  fi
+else
+  echo "  ✗ C8.1 settings.json 부재 — 전제 실패"
+  FAIL=$((FAIL + 1))
+fi
+teardown_fixture
+
 echo ""
 echo "─────────────────────────────────────────"
 echo "PASS: $PASS   FAIL: $FAIL"

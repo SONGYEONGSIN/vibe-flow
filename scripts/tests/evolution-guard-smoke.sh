@@ -62,6 +62,12 @@ EC=$(run_guard 1 '{"tool_name":"Edit","tool_input":{"file_path":"core/hooks/auto
 assert_exit "E2.2 auto + auto-build-safety.sh Edit → 차단" 2 "$EC"
 EC=$(run_guard 1 '{"tool_name":"Edit","tool_input":{"file_path":"validate.sh"}}')
 assert_exit "E2.3 auto + validate.sh Edit → 차단" 2 "$EC"
+# F-T05 (audit R19/T, 루프 발굴): denylist 는 "이미 부트스트랩된 세션을 게이트하는"
+# 스크립트들만 담고, 그 게이트를 새 ephemeral checkout 에 **설치하는** cloud-init.sh
+# 자신은 빠져 있었다. 자율 세션이 cloud-init.sh 를 고치면 다음 밤부터 자기 가드를
+# 설치하지 않게 만들 수 있다 — 안전코어의 부트스트랩 구멍.
+EC=$(run_guard 1 '{"tool_name":"Edit","tool_input":{"file_path":"core/skills/auto-build/scripts/cloud-init.sh"}}')
+assert_exit "E2.4 auto + cloud-init.sh Edit → 차단 (F-T05 부트스트랩 보호)" 2 "$EC"
 teardown_fixture
 
 echo "Test E3: 자율 모드 — 비보호 파일 Edit 허용"

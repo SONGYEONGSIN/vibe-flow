@@ -23,5 +23,8 @@ core/skills/audit/scripts/capability-gate.sh
 core/skills/audit/scripts/self-prune.sh
 core/skills/audit/scripts/ledger.sh
 core/scripts/sync-drift.sh
+# F-T05 (audit R19/T): cloud 세션에 evolution-guard·auto-build-safety 훅을 설치하는
+# 유일 지점. 이 파일이 보호 밖이면 자율 세션이 자기 가드의 설치를 없앨 수 있다.
+core/skills/auto-build/scripts/cloud-init.sh
 settings/settings.template.json
 validate.sh
