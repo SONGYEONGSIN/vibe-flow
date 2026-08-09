@@ -43,7 +43,9 @@ classify_error() {
   case "$error_signal" in
     # F-G09 (audit R7): 탐색/진단성 비정상 종료(grep no-match, subshell sourcing 등)는
     # 실 도구 실패가 아니므로 'diagnostic' 으로 분리 — failure 스트림 신호 희석 방지.
-    *"no matches found"*|*"read-only variable"*)
+    # F-Q07 (audit round Q): "===" 2회 이상(다중 섹션 헤더)은 조사/진단 스크립트 출력의
+    # 시그니처 — 26/72건(36%) 중 23건이 이 신호 부재로 unknown/build_error/auth 로 오분류.
+    *"no matches found"*|*"read-only variable"*|*"==="*"==="*)
       error_class="diagnostic"; retryable="false"
       recovery="진단/탐색성 비정상 종료 (실 실패 아님). 분석 제외 가능." ;;
     # F-M07 (audit R13): genuine 런타임 예외(Python traceback)가 키워드 부재로 unknown 유실

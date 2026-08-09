@@ -56,11 +56,11 @@ c=$(run_classify "Bash" "Exit code 1
 wc: /Users/yss/개발/build/vibe-flow/.claude/agents/test.md: open: No such file or directory")
 assert_class "path containing /build/ → not_found (not build_error)" "not_found" "$c"
 
-# 2. 파일명에 "build" 포함 (예: sleep-build-phase2.md) + 실제는 noise output
+# 2. 파일명에 "build" 포함 (예: sleep-build-phase2.md) + "===" 헤더 2회 → F-Q07 이후 diagnostic
 c=$(run_classify "Bash" "Exit code 1
 === 20260507-213353-sleep-build-phase2-ralph-vote.md ===
 status: done")
-assert_class "filename containing 'build' → unknown (not build_error)" "unknown" "$c"
+assert_class "filename containing 'build' + '===' 헤더 → diagnostic (F-Q07, not build_error)" "diagnostic" "$c"
 
 # 3. 진짜 빌드 에러 (경로/파일명 아님) → build_error 유지
 c=$(run_classify "Bash" "next build failed: webpack compilation error in src/page.tsx")
@@ -118,6 +118,20 @@ assert_class "python traceback → runtime_error (F-M07)" "runtime_error" "$c"
 c=$(run_classify "Bash" "Tests: 1 failed, 12 passed
 vitest run exited with code 1")
 assert_class "vitest output stays test_error (runtime 브랜치 미탈취)" "test_error" "$c"
+
+# 12. F-Q07 — 다중 섹션 "===" 헤더(조사스크립트 출력)는 auth/build_error 아닌 diagnostic
+#     실이벤트 재현: audit dimension agent 조사 로그가 "401"/"webpack" 등 우연 키워드를
+#     본문에 포함해 auth/build_error 로 오분류되던 것을 헤더 시그니처로 선점.
+c=$(run_classify "Bash" "=== Investigation ===
+checked 401 references in auth docs, none live
+=== Result ===
+no actual failure")
+assert_class "다중 '===' 섹션 헤더 → diagnostic (F-Q07)" "diagnostic" "$c"
+
+# 12b. F-Q07 negative — "===" 1회만 등장(구분선 1개, 여는/닫는 쌍 아님)은 gate 미발동
+c=$(run_classify "Bash" "HTTP 401 Unauthorized: invalid api key
+=== end of log")
+assert_class "'===' 1회만 → gate 미발동, auth 유지 (F-Q07 순서 가드)" "auth" "$c"
 
 teardown
 
