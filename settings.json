@@ -149,7 +149,8 @@
     "superpowers@claude-plugins-official": true,
     "vercel@claude-plugins-official": true,
     "vibe-flow@vibe-flow": true,
-    "reprompt@repick-prompt": true
+    "reprompt@repick-prompt": true,
+    "page-commission@repick-design": true
   },
   "extraKnownMarketplaces": {
     "vibe-flow": {
@@ -162,6 +163,12 @@
       "source": {
         "source": "git",
         "url": "https://github.com/SONGYEONGSIN/repick-prompt.git"
+      }
+    },
+    "repick-design": {
+      "source": {
+        "source": "github",
+        "repo": "SONGYEONGSIN/repick-design"
       }
     }
   },
