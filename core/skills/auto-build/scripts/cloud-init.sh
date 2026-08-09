@@ -118,8 +118,19 @@ if [ "$LOCAL_HAS_HOOKS" = "true" ] && [ "$FORCE" != "1" ]; then
 elif [ -f "$SETTINGS_DST" ] && [ "$FORCE" != "1" ]; then
   echo "[cloud-init] skip — settings already exists: .claude/settings.json (CLOUD_INIT_FORCE=1 to overwrite)" >&2
 else
-  cp "$SETTINGS_SRC" "$SETTINGS_DST"
-  echo "[cloud-init] settings.json staged: .claude/settings.json" >&2
+  # F-R01 (audit R17, P0): 프롬프트의 `export AUTO_BUILD_MODE=1` 은 Bash 도구 자식 셸에만
+  # 살아 hook 프로세스(Claude Code 가 spawn)에 도달할 수 없다 — 그래서 evolution-guard 와
+  # auto-build-safety 가 자율 세션에서 첫 줄 exit 0 으로 죽어 있었다(T4~T7 이 그 미검증
+  # 가정 위에 축적됨). settings.json 의 .env 가 hook 에 전파되는 유일한 통로다.
+  # 병합(치환 아님)이라 템플릿의 기존 env 키와 hooks wiring 은 보존된다.
+  if command -v jq &>/dev/null; then
+    jq '.env.AUTO_BUILD_MODE = "1"' "$SETTINGS_SRC" > "$SETTINGS_DST"
+    echo "[cloud-init] settings.json staged + AUTO_BUILD_MODE=1 (안전 hook 활성): .claude/settings.json" >&2
+  else
+    # jq 부재는 cloud 환경에서 발생한 적 없으나, 조용히 가드 없는 설정을 깔지는 않는다.
+    cp "$SETTINGS_SRC" "$SETTINGS_DST"
+    echo "[cloud-init] WARN — jq 부재로 AUTO_BUILD_MODE 미주입. evolution-guard/auto-build-safety 가 비활성 상태로 남는다(F-R01)." >&2
+  fi
 fi
 
 exit 0
