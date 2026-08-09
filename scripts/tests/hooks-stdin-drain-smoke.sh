@@ -55,6 +55,31 @@ else
 fi
 cd /; rm -rf "$NOGIT"
 
+# ── 3) 런타임 전수 — 조기 exit 경로까지 (F-U06) ─────────────
+# 정적 게이트(1)는 "파일 어딘가에 stdin 소비 토큰이 있다"만 본다. 소비 **이전에**
+# exit 하는 분기가 있으면 그 경로는 여전히 EPIPE 다 — evolution-guard.sh 와
+# auto-build-safety.sh 가 `AUTO_BUILD_MODE != 1 → exit 0` 을 cat 앞에 두어,
+# **평범한 사람 세션(기본 경로)** 이 전부 141 을 냈는데도 (1)(2)는 통과했다.
+# 런타임 축을 1/27 훅 → 등록 훅 전수로 확장한다.
+echo "=== 3) 등록 훅 전수 — 기본 env(사람 세션) 120KB 파이프 (런타임, F-U06) ==="
+PAYLOAD=$(printf 'x%.0s' $(seq 1 120000))
+NOGIT2=$(mktemp -d)
+while IFS= read -r cmd; do
+  base=$(basename "$cmd")
+  src="$REPO_ROOT/core/hooks/$base"
+  [ -f "$src" ] || continue
+  # 부작용 격리: 임시 non-git cwd + 자율 env 미설정(= 사람 세션 기본 경로)
+  rc=$(cd "$NOGIT2" && printf '%s' "$PAYLOAD" | env -u AUTO_BUILD_MODE bash "$src" >/dev/null 2>&1; echo "${PIPESTATUS[0]}")
+  if [ "$rc" = "141" ]; then
+    echo "  ✗ $base — writer SIGPIPE(141): stdin 소비 전에 exit 하는 분기 존재"
+    FAIL=$((FAIL + 1))
+  else
+    echo "  ✓ $base (writer exit $rc)"
+    PASS=$((PASS + 1))
+  fi
+done < <(jq -r '.hooks | to_entries[] | .value[].hooks[].command' "$TEMPLATE" | sort -u)
+rm -rf "$NOGIT2"
+
 echo
 echo "=== 결과 ==="
 echo "  통과: $PASS / 실패: $FAIL"

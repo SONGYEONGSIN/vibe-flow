@@ -22,12 +22,15 @@ set -u
 #   R8 실패 시 A3.3 fallback: orchestrator가 vote confidence floor 1.0 강제 +
 #   safety 비활성 가정 추가 보수 처리.
 
+# F-U06: stdin 을 먼저 비운다 (evolution-guard.sh 동일 사유 — 조기 exit 분기가
+# 사람 세션 기본 경로에서 writer EPIPE 를 냈다, 실측 writer exit 141).
+INPUT=$(cat)
+
 # 자율 모드 아니면 즉시 통과 (비-자율 영향 0 — silent)
 if [ "${AUTO_BUILD_MODE:-}" != "1" ]; then
   exit 0
 fi
 
-INPUT=$(cat)
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
 
 pass() {
