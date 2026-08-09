@@ -95,3 +95,6 @@
 {"id":"20260808T211326Z-e73f","task":"[audit F-T08/D4/impl] persona-vote-smoke.sh:74 뒤에 tmp 디렉토리로 스크립트만 격리 복사해 exit 2 를 대조하는 케이스 1개 추가. 근거: scripts/tests/persona-vote-smoke.sh:69-74 \"mapping 부재 case는 unit 환경 격리 어려워 코드 line 39 review 로 보완(생략)\" 라 주석만 있고 assertion 미실행. 실측: persona-vote.sh 를 data/persona-mapping.json 없는 tmp 트리로 격리 복사 시 결정론적으로 exit 2 재현(격리 어렵다는 주석 claim 반증됨). 원인: 스모크가 자기 자신의 \"격리 어려움\" 주석을 검증 없이 그대로 받아들여 미싱-매핑 분기(persona-vote.sh:39)가 어떤 뮤테이션(exit 2→0 등)에도 무방비 — F-S07-09 와 동일한 happy-path-only 패턴이나 그 findings 가 다루지 않은 파일. 예상효과: +0.1~0.2 D4, mutation-covered branch +1. 반증: fix 적용 후 sed -i s/exit 2/exit 0/ persona-vote.sh && bash persona-vote-smoke.sh — fix 전 GREEN(갭 증명), fix 후 RED(검출 증명).","created_ts":"2026-08-08T21:13:26Z","status":"queued"}
 {"op":"status_update","id":"20260807T211209Z-4a72","new_status":"running","ts":"2026-08-08T21:14:12Z"}
 {"op":"status_update","id":"20260807T211209Z-4a72","new_status":"done","ts":"2026-08-08T23:31:16Z"}
+{"op":"status_update","id":"20260807T211209Z-f889","new_status":"aborted","ts":"2026-08-09T21:04:58Z"}
+{"op":"status_update","id":"20260807T211210Z-a1d2","new_status":"aborted","ts":"2026-08-09T21:05:03Z"}
+{"op":"status_update","id":"20260808T211325Z-5e32","new_status":"aborted","ts":"2026-08-09T21:05:04Z"}
