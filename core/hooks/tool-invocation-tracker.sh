@@ -11,10 +11,14 @@ set -u
 #
 # 실패해도 exit 0 — 워크플로우 차단 X.
 
+# F-U06: stdin 을 먼저 비운다. non-git cwd 에서 조기 exit 하던 분기가 사람 세션
+# 기본 경로에서 writer EPIPE 를 냈다(실측 writer exit 141). 루프의 F-U06 은 훅
+# 2개만 지목했으나 런타임 축을 전수로 넓히자 이 세 번째가 드러났다.
+INPUT=$(cat)
+
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
 [ -z "$PROJECT_ROOT" ] && exit 0
 
-INPUT=$(cat)
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
 [ -z "$TOOL_NAME" ] && exit 0
 

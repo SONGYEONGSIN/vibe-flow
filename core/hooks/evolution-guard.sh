@@ -14,10 +14,15 @@ set -u
 #   비-자율(AUTO_BUILD_MODE≠1) = silent exit 0 (영향 0).
 #   denylist 부재 = fail-closed (안전코어 보호 불가 → 자율 변경 전면 차단).
 
+# F-U06: stdin 을 **먼저** 비운다. 이 게이트가 cat 앞에 있던 동안, 비-자율 경로
+# (= 평범한 사람 세션의 기본 경로)가 64KB 초과 payload 에서 writer 에게 EPIPE 를
+# 냈다(실측 writer exit 141). F-K20/K21 이 닫은 회귀 클래스가 조기-exit 분기로
+# 재개봉된 것 — drain 은 어떤 분기보다 앞서야 한다.
+INPUT=$(cat)
+
 # 자율 모드 아니면 즉시 통과 (사람은 안전코어 수정 허용)
 [ "${AUTO_BUILD_MODE:-}" != "1" ] && exit 0
 
-INPUT=$(cat)
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
 
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
