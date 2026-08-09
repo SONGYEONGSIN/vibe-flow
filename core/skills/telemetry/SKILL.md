@@ -277,9 +277,20 @@ for type in "${SKILL_TYPES[@]}"; do
   [ "$c" = "0" ] && STALE+=("$type")
 done
 
+# F-Q08 (audit round Q): cloud-executed 스킬(auto-build)은 격리된 cloud session에서
+# 돌아 events.jsonl(gitignored)이 로컬과 미동기 — 로컬 0건이 미사용이 아니라 계측
+# 사각일 수 있다. git log의 cloud 커밋(author=Claude <noreply@anthropic.com>)으로
+# 교차검증해 오판(개선후보 판정)을 막는다. TELEMETRY_CLOUD_COMMITS override로 smoke 격리.
+cloud_commit_count() {
+  echo "${TELEMETRY_CLOUD_COMMITS:-$(git log --since="${PERIOD_DAYS} days ago" --author='Claude <noreply@anthropic.com>' --oneline 2>/dev/null | wc -l | tr -d ' ')}"
+}
+
 # 개선 후보 매핑
 IMPROVEMENTS=()
 for type in "${STALE[@]}"; do
+  if [ "$type" = "auto-build" ] && [ "$(cloud_commit_count)" -gt 0 ]; then
+    continue
+  fi
   last=$(last_used_iso "$type")
   ago=$(days_ago "$last")
   label=$(type_to_label "$type")
