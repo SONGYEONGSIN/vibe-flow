@@ -16,6 +16,11 @@ ng()  { echo "  ✗ $1"; FAIL=$((FAIL + 1)); }
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 export LEDGER="$TMP/audit-ledger.jsonl"
+# F-R06(#185) 이 resolve) 에 queue.sh status-update 호출을 추가한 뒤로, enqueued_task 가
+# 채워진 finding 을 resolve 하는 구간이 **실** .claude/memory/auto-build-queue.jsonl 에
+# 쓴다(stub id "Q-1" 이 실 store 로 누출된 것을 실측). LEDGER 처럼 최상단에서 전역
+# 격리해, 이후 어떤 섹션을 추가해도 실 store 를 오염시킬 수 없게 한다.
+export QUEUE_STORE="$TMP/auto-build-queue.jsonl"
 
 L() { bash "$SCRIPT" "$@"; }
 mkfinding() {  # round component dimension
