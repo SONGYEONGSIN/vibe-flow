@@ -37,6 +37,8 @@ bash core/skills/audit/scripts/ledger.sh resolve <id> "<실측 actual_delta>" ve
 ```
 **actual_delta는 반드시 실측 델타 문자열** — "fix live on main" 같은 배포상태 문자열 금지 (F-H07 lifecycle 불변식). 측정 없이 verified로 닫으면 반증 메커니즘이 단락된다.
 
+**계기 유효성 (F-T09/F-V07)**: 브랜치 보호·권한 계열 반증에 **`git push --dry-run` 을 쓰지 마라.** dry-run 은 ref 를 갱신하지 않아 remote 의 pre-receive 가 돌지 않고, **보호가 켜져 있어도 항상 accept 로 보인다.** 실측 사고: R20/V 가 이 도구로 `F-S10` 을 거짓 refuted 처리했으나, 같은 시점 실 push 는 `! [remote rejected] (protected branch hook declined)` 로 거부됐다. 보호 계열은 (a) `gh api .../branches/main/protection` 설정 재조회 (b) 실 push 시도의 remote 응답으로만 판정한다. **측정 수단이 없으면 `verified`/`refuted` 어느 쪽으로도 닫지 말고 pending 으로 남겨라** — 모르는 것을 닫는 것이 가장 나쁘다.
+
 ### Phase 2 — AUDIT (신규 finding)
 `/audit` 스킬을 호출한다. dimension agent 병렬로 4-필드 finding(evidence/root_cause/fix/predicted_delta)을 발굴하고 전역 단일 시퀀스로 `ledger.sh append` 한다 (4-필드 계약은 기계 강제). rules/harness-evolution.md의 루프를 그대로 따른다.
 
