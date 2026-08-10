@@ -23,6 +23,12 @@ echo "Test L2: 5 phase 배선"
 have "L2.1 bootstrap cloud-init" "cloud-init.sh"
 have "L2.2 HEALTH baseline"      "health-metric.sh"
 have "L2.3 VERIFY pending-verify" "ledger.sh pending-verify"
+# F-T09/F-V07: `git push --dry-run` 은 ref 를 갱신하지 않아 remote 의 pre-receive
+# (브랜치 보호)가 돌지 않는다 — 보호 유무와 무관하게 항상 accept 로 보인다. 루프가
+# 이 무효 계기로 F-S10 을 **거짓 refuted** 처리해 원장을 오염시킨 사고가 실재한다.
+# 프롬프트(= 루프의 유일한 계약)에 금지가 박혀 있는지 게이트한다.
+# 검색어는 선행 대시로 시작하면 안 된다 — grep 이 옵션으로 해석한다(이 케이스 작성 중 실측).
+have "L2.3b VERIFY dry-run 금지 명시" "push --dry-run"
 have "L2.4 VERIFY resolve"        "ledger.sh resolve"
 have "L2.5 AUDIT"                 "/audit"
 have "L2.6 ENQUEUE"              "ledger.sh enqueue"

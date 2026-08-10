@@ -57,6 +57,8 @@ ledger 1 entry = `{round, id, component, dimension, evidence, root_cause, fix, p
 
 > **lifecycle 불변식 (F-H07, R8)**: finding 은 `append`(status=open)로 시작해 fix PR 머지 시 `mark-fixed`(→fixed, actual_delta=null), 다음 라운드가 측정 후 `resolve`(→verified/refuted)로 닫는다. **`actual_delta`는 반드시 실측 델타** — "fix live on main" 같은 배포-상태 문자열 금지(측정 없이 verified 로 닫으면 반증 메커니즘이 단락된다). seed/backfill 시에도 `verified`가 아닌 `fixed`로 넣어 다음 라운드가 `pending-verify`로 실측하게 한다.
 
+> **계기 유효성 (F-T09, R19/T)**: **브랜치 보호·권한 계열 반증에 `git push --dry-run` 을 쓰지 않는다.** dry-run 은 ref 를 갱신하지 않아 remote 의 pre-receive 훅이 돌지 않고, **보호 유무와 무관하게 항상 accept 를 출력**한다. 측정은 (a) API 설정 재조회 (b) **실 push/머지 시도의 remote 응답** 으로만 한다. 실제 사고: R20/V 가 이 무효 계기로 `F-S10` 을 **거짓 refuted** 처리했고, 같은 시점 실 push 는 `! [remote rejected] (protected branch hook declined)` 로 거부됐다. 계기를 검증하지 않으면 반증 메커니즘 전체가 헛돈다.
+
 ## 5. Cross-link
 
 - 실행: **`/audit` 스킬** — 본 규칙의 루프를 1 호출로 수행 (dimension dispatch → 4-필드 finding → ledger write)
