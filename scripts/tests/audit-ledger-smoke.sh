@@ -51,6 +51,15 @@ h_lines=$(printf '%s\n' "$rout" | grep -cE '^F-H0[123]')
 printf '%s\n' "$rout" | grep -qE '^F-G' && ng "round H 에 G 라운드 누출(필터 실패)" || ok "round H 라운드 필터 정확(G 미포함)"
 printf '%s\n' "$rout" | head -1 | grep -qE '^F-H0[123].*open' && ok "round H tab-필드(id+status) 포맷" || ng "round H 포맷 이상: $(printf '%s' "$rout" | head -1)"
 
+# F-Q09 (audit round Q): 위 두 assertion 은 id/status(1·2번째 tab-필드)만 검증해
+# predicted_delta/actual_delta(3·4번째)가 append/resolve 값과 실제로 대조되는지는
+# 반증 안 된 사각이었다 — 변이 주입 실측(.predicted_delta 오타 → smoke exit 0 그대로)으로 확인.
+h01_line=$(printf '%s\n' "$rout" | grep '^F-H01')
+h01_predicted=$(printf '%s' "$h01_line" | cut -f3)
+[ "$h01_predicted" = "+0.2" ] && ok "round H 3번째 필드(predicted_delta) = append 값" || ng "predicted_delta=$h01_predicted (want +0.2)"
+h01_actual=$(printf '%s' "$h01_line" | cut -f4)
+[ "$h01_actual" = "-" ] && ok "round H 4번째 필드(actual_delta) = 미해결 시 '-'" || ng "actual_delta=$h01_actual (want -)"
+
 echo "=== open 목록 + resolve(actual_delta 반증) ==="
 opencount=$(L open | wc -l | tr -d ' ')
 [ "$opencount" = "4" ] && ok "open 4건" || ng "open=$opencount (want 4)"
@@ -59,6 +68,9 @@ st=$(jq -r 'select(.id=="F-H01") | .status' "$LEDGER")
 ad=$(jq -r 'select(.id=="F-H01") | .actual_delta' "$LEDGER")
 [ "$st" = "verified" ] && ok "resolve → status=verified" || ng "status=$st"
 [ "$ad" = "+0.3 confirmed" ] && ok "actual_delta 기록됨" || ng "actual_delta=$ad"
+rout2=$(L round H)
+h01_actual2=$(printf '%s\n' "$rout2" | grep '^F-H01' | cut -f4)
+[ "$h01_actual2" = "+0.3 confirmed" ] && ok "round H 4번째 필드(actual_delta) resolve 후 갱신 반영" || ng "round 재조회 actual_delta=$h01_actual2 (want +0.3 confirmed)"
 opencount2=$(L open | wc -l | tr -d ' ')
 [ "$opencount2" = "3" ] && ok "resolve 후 open 3건" || ng "open=$opencount2 (want 3)"
 
