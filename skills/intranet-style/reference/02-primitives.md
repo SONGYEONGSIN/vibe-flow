@@ -1626,7 +1626,7 @@ className={over80 ? "[&>*]:bg-red-500" : undefined}
 `SidebarHeader`(`sidebar.tsx:337`)와 `SidebarContent`(`sidebar.tsx:376`)에 `[--radius:var(--radius-xl)]`가 붙어 있다. 사이드바 **내부에 넣은 모든 컴포넌트의 radius가 자동으로 작아진다**(전역 `--radius: 0.625rem` → `--radius-xl` = `calc(0.625rem * 1.4)`). 사이드바 안에서 카드나 다이얼로그를 렌더하면 바깥과 모서리가 달라 보이는데, 버그가 아니라 의도된 동작이다.
 
 ### C-8. `rounded-2xl`는 크기에 따라 원이 된다
-전역 radius 규약이 `rounded-2xl`(=1rem, 16px)이므로 **높이 32px 이하 요소는 사실상 pill 형태**가 된다(Button `h-8`, Badge `h-5`, Input `h-8`). 이는 의도된 디자인이다. 사각형이 필요한 소형 요소는 Checkbox처럼 임의값(`rounded-[5px]`)을 쓴다.
+전역 radius 규약이 `rounded-2xl`(=1.125rem, 18px)이므로 **높이 32px 이하 요소는 사실상 pill 형태**가 된다(Button `h-8`, Badge `h-5`, Input `h-8`). 이는 의도된 디자인이다. 사각형이 필요한 소형 요소는 Checkbox처럼 임의값(`rounded-[5px]`)을 쓴다.
 
 ### C-9. `data-slot` 은 스타일링 계약이다
 `data-slot`은 디버깅용 마커가 아니라 **외부에서 내부 요소를 겨냥하는 공식 훅**이다. 예: `[&_[data-slot=progress-indicator]]:bg-chart-1`(`app/usage/page.tsx:261`), `*:data-[slot=avatar]:ring-2`(`avatar.tsx:81`), `has-data-[slot=card-action]:grid-cols-[1fr_auto]`(`card.tsx:28`). **컴포넌트를 수정할 때 `data-slot` 값을 바꾸면 앱 곳곳의 스타일이 조용히 깨진다.**

@@ -38,7 +38,7 @@ description: Lean-AX 인트라넷과 픽셀 단위로 동일한 UI를 만들 때
 2. **입력 필드는 "채워진" 스타일**: `rounded-2xl h-8 border-transparent bg-input/50` (윤곽선 필드 아님).
 3. **표면 경계는 `border`가 아니라 `ring-1 ring-foreground/5`** (전경색 알파 — 테마 33종이라 고정 테두리색을 못 씀).
 4. **radius는 스케일로.** 전역 `--radius: 0.625rem` 하나에서 7단계 파생(sm 0.6× ~ 4xl 2.6×). 임의 px 금지.
-   - `rounded-2xl`(16px)가 규약이라 **높이 32px 이하 요소는 자연히 pill**이 된다 — 의도된 디자인.
+   - `rounded-2xl`(18px)가 규약이라 **높이 32px 이하 요소는 자연히 pill**이 된다 — 의도된 디자인.
 5. **색 값은 `:root`/`.dark` 2층에만.** `--color-*`는 전부 `var()` 별칭. 하드코딩 색(`bg-red-500` 등)은 테마를 깨뜨린다.
 6. **Dialog/AlertDialog는 `grid` + `[&>*]:min-w-0` 안전망 필수** — 빼면 긴 URL·와이드 콘텐츠에서 레이아웃이 넘친다.
 

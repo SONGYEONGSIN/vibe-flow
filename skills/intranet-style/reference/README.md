@@ -32,7 +32,7 @@
 5. **컨트롤 기본 높이는 `h-8`**(shadcn은 `h-9`). Button은 size 8종.
 6. **Dialog/AlertDialog는 `flex`가 아니라 `grid`** + `[&>*]:min-w-0` 안전망(긴 URL 오버플로 방지). 이 안전망을 빼면 레이아웃이 깨진다.
 
-> `rounded-2xl`(16px)가 전역 규약이라 **높이 32px 이하 요소는 자연히 pill 형태**가 된다(Button `h-8`, Input `h-8`, Badge `h-5`). 의도된 디자인이다.
+> `rounded-2xl`(18px)가 전역 규약이라 **높이 32px 이하 요소는 자연히 pill 형태**가 된다(Button `h-8`, Input `h-8`, Badge `h-5`). 의도된 디자인이다.
 
 > **버튼 높이 — 컴포넌트 기본 vs 페이지 관례 (혼동 주의)**
 > `Button`의 **컴포넌트 기본은 `size="default"` = `h-8`(32px)**이다(`components/ui/button.tsx:24-25`).
