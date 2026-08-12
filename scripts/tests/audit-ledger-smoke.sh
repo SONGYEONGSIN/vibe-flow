@@ -219,6 +219,42 @@ else
   fi
 fi
 
+echo "=== F-V08: 오검증 정정 경로 (correct) ==="
+# F-K02 가 넣은 종결-상태 가드는 '악의적 재기록'과 '오검증 정정'을 구분하지 못한다.
+# 실제 사고: R21/V 가 무효 계기(push --dry-run)로 F-S10 을 거짓 refuted 처리했고,
+# 실 push 거부 로그를 확보하고도 resolve 가 거부해 되돌릴 수 없었다(F-V07/F-V08).
+# correct 는 원 값을 correction 레코드로 보존한 채 종결 상태를 정정한다.
+CID=$(mkf | L append)                       # F-Z**
+L mark-fixed "$CID" >/dev/null
+L resolve "$CID" "+0.1 잘못된 측정" verified >/dev/null
+
+L correct "$CID" refuted "0.0 실측 재수행" "무효 계기로 판정했음" >/dev/null 2>&1
+cst=$(jq -r --arg i "$CID" 'select(.id==$i) | .status' "$LEDGER")
+cad=$(jq -r --arg i "$CID" 'select(.id==$i) | .actual_delta' "$LEDGER")
+[ "$cst" = "refuted" ] && ok "correct → 종결 상태 정정 (verified→refuted)" || ng "status=$cst (want refuted)"
+[ "$cad" = "0.0 실측 재수행" ] && ok "actual_delta 재측정값으로 교체" || ng "actual_delta=$cad"
+
+# 원 값이 correction 레코드로 보존돼야 한다 — 정정은 삭제가 아니다
+prev=$(jq -r --arg i "$CID" 'select(.op=="correction") | select(.target_id==$i) | .prev_status' "$LEDGER" 2>/dev/null)
+[ "$prev" = "verified" ] && ok "correction 레코드에 prev_status 보존" || ng "prev_status=$prev (이력 소실)"
+preva=$(jq -r --arg i "$CID" 'select(.op=="correction") | select(.target_id==$i) | .prev_actual_delta' "$LEDGER" 2>/dev/null)
+[ "$preva" = "+0.1 잘못된 측정" ] && ok "correction 레코드에 prev_actual_delta 보존" || ng "prev_actual_delta=$preva"
+rsn=$(jq -r --arg i "$CID" 'select(.op=="correction") | select(.target_id==$i) | .reason' "$LEDGER" 2>/dev/null)
+[ -n "$rsn" ] && [ "$rsn" != "null" ] && ok "correction 사유 기록" || ng "reason 누락"
+
+echo "=== F-V08 가드 ==="
+L correct "$CID" verified "x" "" >/dev/null 2>&1 && ng "빈 사유 통과됨" || ok "빈 사유 거부 (정정은 근거 필수)"
+L correct "F-ZZ99" verified "x" "r" >/dev/null 2>&1 && ng "없는 id 통과됨" || ok "없는 id 거부"
+OID=$(mkf | L append)
+L correct "$OID" verified "x" "r" >/dev/null 2>&1 && ng "open 상태 correct 통과됨" || ok "비-종결 상태 거부 (resolve 를 쓸 것)"
+L correct "$CID" bogus "x" "r" >/dev/null 2>&1 && ng "bogus status 통과됨" || ok "bogus status 거부"
+
+# 조회 커맨드가 correction 레코드에 오염되지 않아야 한다
+opn=$(L open | grep -c "$OID")
+[ "$opn" = "1" ] && ok "open 목록이 correction 레코드에 영향 없음" || ng "open 출력 이상"
+rnd=$(L round Z | grep -c "^$CID")
+[ "$rnd" = "1" ] && ok "round 출력에 finding 1행만 (correction 미유출)" || ng "round 출력 행수 이상: $rnd"
+
 echo "=== F-Q20: 실 repo ledger 자신을 검증 (정본 파일이 무게이트였음) ==="
 # 종전 스모크는 전부 fixture 위에서만 돌아, 정본 .claude/memory/audit-ledger.jsonl 이
 # 손상돼도(수기 편집·부분 write) 어떤 테스트도 울지 않았다. 아래 validator 를
@@ -231,6 +267,15 @@ validate_ledger() {  # <file> → 위반 사유를 stdout 으로, 위반 0 이�
     n=$((n+1))
     [ -z "$line" ] && continue
     if ! echo "$line" | jq -e . >/dev/null 2>&1; then echo "line $n: JSON 파싱 실패"; continue; fi
+    # F-V08: 원장에는 finding 엔트리 외에 correction(op) 레코드가 섞인다. 두 종류는
+    # 필수 키가 다르므로 종류별로 검증한다 — op 라인을 그냥 skip 하면 correction 이
+    # 무게이트가 되어 F-Q20 이 닫은 "정본 파일이 검증 밖" 사각이 되돌아온다.
+    if [ "$(echo "$line" | jq -r '.op // ""')" = "correction" ]; then
+      for k in target_id prev_status new_status reason ts; do
+        echo "$line" | jq -e --arg k "$k" 'has($k)' >/dev/null 2>&1 || echo "line $n(correction): .$k 부재"
+      done
+      continue
+    fi
     for k in round id status predicted_delta; do
       echo "$line" | jq -e --arg k "$k" 'has($k)' >/dev/null 2>&1 || echo "line $n: .$k 부재"
     done
