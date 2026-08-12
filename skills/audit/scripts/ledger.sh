@@ -176,6 +176,39 @@ case "$cmd" in
     release_lock
     echo "enqueued $count finding(s)" >&2
     ;;
+  correct)
+    # F-V08 (audit R21/V): F-K02 의 종결-상태 가드는 '악의적 재기록'과 '오검증 정정'을
+    # 구분하지 못한다. 실제 사고 — R21/V 가 무효 계기(push --dry-run, F-T09)로 F-S10 을
+    # 거짓 refuted 처리했고, 실 push 거부 로그를 확보하고도 resolve 가 거부해 되돌릴 수
+    # 없었다. append-only 원장에서 정정은 '덮어쓰기'가 아니라 **원 값을 correction
+    # 레코드로 보존한 채** 엔트리를 갱신하는 것이다. 사유(reason)는 필수 — 근거 없는
+    # 정정은 F-K02 가 막으려던 그 재기록과 구분되지 않는다.
+    id="${1:-}"; new="${2:-}"; actual="${3:-}"; reason="${4:-}"
+    { [ -z "$id" ] || [ -z "$new" ] || [ -z "$actual" ] || [ -z "$reason" ]; } && {
+      echo "usage: correct <id> <verified|refuted> <actual_delta> <사유>" >&2; exit 1; }
+    case "$new" in verified|refuted) ;; *) echo "error: correct 의 status ∈ verified|refuted" >&2; exit 1 ;; esac
+    acquire_lock
+    jq -e --arg i "$id" 'select(.id==$i)' "$LEDGER" >/dev/null 2>&1 || { release_lock; echo "error: id $id not found" >&2; exit 1; }
+    cur=$(jq -r --arg i "$id" 'select(.id==$i) | .status' "$LEDGER")
+    case "$cur" in
+      verified|refuted) ;;
+      *) release_lock
+         echo "error: correct 는 종결 상태(verified|refuted) 전용 — 현재 $cur 는 resolve 를 쓸 것" >&2; exit 1 ;;
+    esac
+    prev_actual=$(jq -r --arg i "$id" 'select(.id==$i) | .actual_delta // ""' "$LEDGER")
+    tmp=$(mktemp)
+    jq -c --arg i "$id" --arg a "$actual" --arg s "$new" \
+      'if .id==$i then .actual_delta=$a | .status=$s else . end' "$LEDGER" > "$tmp" && mv "$tmp" "$LEDGER"
+    # 원 값 보존 레코드. 키를 target_id 로 두는 이유: .id 를 쓰면 select(.id==$i) 를 쓰는
+    # 모든 read(resolve/mark-fixed/correct 의 현재상태 가드, append 의 id 충돌검사)가
+    # 엔트리+correction 두 줄을 받아 문자열 비교가 전부 깨진다(구현 중 실측).
+    jq -nc --arg i "$id" --arg ps "$cur" --arg pa "$prev_actual" --arg ns "$new" \
+           --arg na "$actual" --arg r "$reason" --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      '{op:"correction", ts:$ts, target_id:$i, prev_status:$ps, prev_actual_delta:$pa,
+        new_status:$ns, new_actual_delta:$na, reason:$r}' >> "$LEDGER"
+    release_lock
+    echo "corrected $id: $cur → $new"
+    ;;
   mark-fixed)
     # fix PR 머지 시점 전이: open → fixed (actual_delta 는 null 유지 — 아직 미검증).
     # 다음 라운드가 pending-verify 로 집어 측정 후 resolve(verify/refute).
@@ -199,7 +232,7 @@ case "$cmd" in
       "$LEDGER" 2>/dev/null
     ;;
   *)
-    echo "usage: ledger.sh {append|resolve|open|round|next-num|enqueue|mark-fixed|pending-verify}" >&2
+    echo "usage: ledger.sh {append|resolve|correct|open|round|next-num|enqueue|mark-fixed|pending-verify}" >&2
     exit 2
     ;;
 esac
