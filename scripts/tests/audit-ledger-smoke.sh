@@ -152,6 +152,31 @@ QUEUE_SH="$TMP/queue.sh" L enqueue >/dev/null 2>&1
 qn2=$(wc -l < "$QSTORE" | tr -d ' ')
 [ "$qn2" = "2" ] && ok "재실행 idempotent (중복 큐잉 0)" || ng "재실행 후 큐=$qn2 (want 2)"
 
+echo "=== F-W09: enqueue 가 안전코어 대상 finding 을 큐에 넣지 않는다 ==="
+# #198 로 evolution-guard 가 실제 활성화된 뒤, 자율 세션은 denylist 파일을 편집할 수
+# 없다(exit 2). 그런데 enqueue 는 fix 대상을 보지 않고 큐에 넣어, 큐 head 가 안전코어
+# task 면 매 firing 이 pop→차단→abort 로 **산출 0** 이 된다(2026-08-12 firing 실측:
+# PR/브랜치/커밋/큐op 전부 0). 실 큐 63건 중 24건이 이 유형이었다.
+DENY="$TMP/evolution-protected"
+printf 'core/hooks/evolution-guard.sh\ncore/skills/audit/scripts/self-update.sh\n' > "$DENY"
+SLEDGER="$TMP/safety-ledger.jsonl"; : > "$SLEDGER"
+mksafety() {  # $1=fix 문자열
+  jq -nc --arg f "$1" '{round:"S9", component:"hooks", dimension:"D4", evidence:"e.sh:1 \"x\"",
+    root_cause:"rc", fix:$f, predicted_delta:"+0.1"}'
+}
+sid1=$(mksafety 'core/skills/audit/scripts/self-update.sh:32 의 --format 을 교체' | LEDGER="$SLEDGER" bash "$SCRIPT" append)
+sid2=$(mksafety 'core/skills/plan/SKILL.md 에 source 필드 추가' | LEDGER="$SLEDGER" bash "$SCRIPT" append)
+: > "$QSTORE"
+LEDGER="$SLEDGER" QUEUE_SH="$TMP/queue.sh" EVOLUTION_DENYLIST="$DENY" bash "$SCRIPT" enqueue >/dev/null 2>&1
+sq=$(wc -l < "$QSTORE" | tr -d ' ')
+[ "$sq" = "1" ] && ok "안전코어 대상 1건 제외, 일반 1건만 큐잉" || ng "큐 task=$sq (want 1 — 안전코어 미필터)"
+e1=$(jq -r --arg i "$sid1" 'select(.id==$i) | .enqueued_task' "$SLEDGER")
+[ "$e1" = "null" ] && ok "안전코어 finding 은 enqueued_task 미기록 (open 유지)" || ng "enqueued_task=$e1"
+e2=$(jq -r --arg i "$sid2" 'select(.id==$i) | .enqueued_task' "$SLEDGER")
+[ "$e2" != "null" ] && [ -n "$e2" ] && ok "일반 finding 은 정상 큐잉 ($e2)" || ng "일반 finding 이 잘못 걸러짐"
+serr=$(LEDGER="$SLEDGER" QUEUE_SH="$TMP/queue.sh" EVOLUTION_DENYLIST="$DENY" bash "$SCRIPT" enqueue 2>&1 >/dev/null)
+echo "$serr" | grep -q "$sid1" && ok "제외 사유를 stderr 로 표면화 (사람 review 필요)" || ng "silent skip — 사람이 알 수 없다"
+
 echo "=== decision-observability: mark-fixed → pending-verify → resolve ==="
 L mark-fixed F-H03 >/dev/null
 [ "$(L pending-verify | grep -c 'F-H03')" = "1" ] && ok "mark-fixed 후 pending-verify 등장 (actual_delta null)" || ng "pending-verify 누락"
