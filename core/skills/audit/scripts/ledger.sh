@@ -162,10 +162,31 @@ case "$cmd" in
     ids=$(jq -r --arg r "$r" \
       'select(.status=="open") | select($r=="" or .round==$r) | select((.enqueued_task // "")=="") | .id' \
       "$LEDGER" 2>/dev/null | tr -d '\r')
+    # F-W09 (audit R22/W): #198 로 evolution-guard 가 실제 활성화된 뒤, 자율 세션은
+    # denylist(안전코어) 파일을 편집할 수 없다(exit 2). 그런데 enqueue 는 fix 대상을
+    # 보지 않고 적재해, 큐 head 가 안전코어 task 면 매 firing 이 pop→차단→abort 로
+    # **산출 0** 이 된다. 2026-08-12 firing 실측: PR/브랜치/커밋/큐op 전부 0, 그 시점
+    # 큐 63건 중 24건이 이 유형이었다. 가드가 inert 일 땐 "작동"했으나(그 자체가 위험),
+    # 켜자마자 보장된 실패로 바뀌었다 — 라우팅이 가드 상태를 따라가지 못한 것.
+    DENYLIST_F="${EVOLUTION_DENYLIST:-$PROJECT_ROOT/.claude/evolution-protected}"
+    DENY_NAMES=""
+    if [ -f "$DENYLIST_F" ]; then
+      DENY_NAMES=$(grep -v '^#' "$DENYLIST_F" | grep -v '^[[:space:]]*$' | sed 's#.*/##' | tr -d '\r')
+    fi
     for id in $ids; do
       task=$(jq -r --arg i "$id" \
         'select(.id==$i) | "[audit \(.id)/\(.dimension)/\(.component)] \(.fix). 근거: \(.evidence). 원인: \(.root_cause). 예상효과: \(.predicted_delta)."' \
         "$LEDGER")
+      # fix 문구가 안전코어 파일을 가리키면 큐에 넣지 않는다 — 자율이 할 수 없는 일이다.
+      # open 으로 남겨 사람이 집도록 하고, 사유를 stderr 로 표면화한다(silent skip 금지).
+      skip=""
+      for n in $DENY_NAMES; do
+        case "$task" in *"$n"*) skip="$n"; break ;; esac
+      done
+      if [ -n "$skip" ]; then
+        echo "skip: $id — fix 대상이 안전코어($skip). 자율 세션은 evolution-guard 로 차단됨 → 사람 review 필요" >&2
+        continue
+      fi
       qid=$(bash "$QUEUE_SH" add "$task" 2>/dev/null | sed -n 's/^queued: //p')
       [ -z "$qid" ] && { echo "warn: enqueue failed for $id" >&2; continue; }
       tmp=$(mktemp)
