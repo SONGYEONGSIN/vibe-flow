@@ -310,6 +310,17 @@ validate_ledger() {  # <file> → 위반 사유를 stdout 으로, 위반 0 이�
 if [ ! -f "$REAL_LEDGER" ]; then
   ng "실 ledger 부재 — $REAL_LEDGER"
 else
+  # F-X12: rebase 충돌을 union 으로 해소하면 finding 엔트리가 통째로 복제된다(실측:
+  # round X 10건이 2회씩, enqueued_task 만 상이). append 시점의 id 충돌 가드는
+  # ledger.sh 안에서만 돌아 **파일 밖에서 생긴 중복**을 못 잡는다 — 정본 파일 자신의
+  # primary-key 유일성은 여기서 검사해야 한다.
+  dup=$(jq -r 'select((.op // "")=="") | .id' "$REAL_LEDGER" 2>/dev/null | sort | uniq -d)
+  if [ -z "$dup" ]; then
+    ok "실 ledger id 유일성 (중복 primary key 0)"
+  else
+    ng "실 ledger 중복 id: $(echo "$dup" | tr '\n' ' ')"
+  fi
+
   violations=$(validate_ledger "$REAL_LEDGER")
   if [ -z "$violations" ]; then
     ok "실 ledger 전 라인 유효 JSON + round/id/status/predicted_delta 보유 ($(grep -c . "$REAL_LEDGER")건)"
