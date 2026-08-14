@@ -474,6 +474,14 @@ if [ -d "$PROJECT_DIR/.git/hooks" ]; then
   echo "  ↳ .git/hooks/post-commit 배포 (commit_pushed 이벤트 emit)"
 fi
 
+# F-Q12 (audit round Q): core.hooksPath 가 override 상태면 위에서 배포한
+# .git/hooks/post-commit 이 실행되지 않아 commit_pushed 이벤트가 조용히 미기록된다
+# (실측: 로컬 197커밋 중 1건만 기록). 설치를 막지 않고 경고만 표면화한다.
+HOOKS_PATH_OVERRIDE=$(git -C "$PROJECT_DIR" config core.hooksPath 2>/dev/null || true)
+if [ -n "$HOOKS_PATH_OVERRIDE" ]; then
+  echo "  ⚠ git config core.hooksPath 가 '${HOOKS_PATH_OVERRIDE}' 로 override 상태 — .git/hooks/post-commit 이 실행되지 않아 commit_pushed 이벤트가 기록되지 않을 수 있습니다"
+fi
+
 # Skills 복사 (루트 .md 파일 모두 + 하위 디렉토리 포함)
 echo "[3/$TOTAL_STEPS] Skills..."
 for skill_dir in "$SCRIPT_DIR/core/skills"/*/; do
