@@ -472,6 +472,12 @@ if [ -d "$PROJECT_DIR/.git/hooks" ]; then
   cp "$SCRIPT_DIR/core/hooks/git-post-commit.sh" "$PROJECT_DIR/.git/hooks/post-commit"
   chmod +x "$PROJECT_DIR/.git/hooks/post-commit"
   echo "  ↳ .git/hooks/post-commit 배포 (commit_pushed 이벤트 emit)"
+  # F-Q12: core.hooksPath 가 override 되어 있으면 .git/hooks/post-commit 은 git 에
+  # 의해 실행되지 않아 방금 배포한 훅이 조용히 무효화된다 — 감지해 경고한다.
+  HOOKS_PATH_OVERRIDE=$(git -C "$PROJECT_DIR" config --get core.hooksPath 2>/dev/null || true)
+  if [ -n "$HOOKS_PATH_OVERRIDE" ]; then
+    echo "  ⚠ 경고: git core.hooksPath가 '$HOOKS_PATH_OVERRIDE'로 override됨 — .git/hooks/post-commit이 실행되지 않을 수 있다"
+  fi
 fi
 
 # Skills 복사 (루트 .md 파일 모두 + 하위 디렉토리 포함)
