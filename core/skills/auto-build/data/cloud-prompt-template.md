@@ -27,6 +27,16 @@ bash core/skills/audit/scripts/health-metric.sh
 ```
 3지표(ci_pass_rate / ledger_health / safetycore_checksum)를 stdout에 기록한다. 이 값이 PR-5 circuit breaker의 baseline이 된다 (지금은 기록만 — 판정 없음).
 
+이어서 **heartbeat 를 남긴다** — 이후 어느 Phase 에서 죽든 "발화했고 여기까지 왔다"가 저장소에 남는다:
+```bash
+bash core/skills/auto-build/scripts/firing-log.sh phase0 "health baseline 기록"
+```
+**F-Y16**: 무산출 firing 3회(2026-08-12/15/17)가 브랜치·PR·커밋을 하나도 남기지 않아 사후 진단이 불가능했다. stderr 는 클라우드 세션에만 존재한다. 각 Phase 진입 시 같은 방식으로 heartbeat 를 남기고, **abort 할 때는 사유를 detail 에 실어 반드시 기록한 뒤 종료**한다:
+```bash
+bash core/skills/auto-build/scripts/firing-log.sh abort "<사유>"
+```
+heartbeat 는 `auto-build/firing-<UTC일자>` 브랜치에 fast-forward 로만 쌓인다(main 은 보호돼 push 불가, force 는 auto-build-safety 가 차단). 실패해도 사이클을 죽이지 않는다 — 관찰 보조지 게이트가 아니다.
+
 ### Phase 1 — VERIFY (지난 라운드 반증)
 ```bash
 bash core/skills/audit/scripts/ledger.sh pending-verify
