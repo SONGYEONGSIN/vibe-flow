@@ -48,12 +48,22 @@ remote_branches=$(git -C "$BARE" for-each-ref --format='%(refname:short)' refs/h
 
 echo "Test H3: 실 경로 — 전용 브랜치에 heartbeat 착지"
 setup
-(cd "$WORK" && bash "$SCRIPT" phase0 "health ok" >/dev/null 2>&1)
+# 스크립트 출력을 버리지 않는다 — 실패 시 진단 근거가 없으면 추측만 남는다(F-Y16 의 교훈).
+h3out=$(cd "$WORK" && bash "$SCRIPT" phase0 "health ok" 2>&1)
 hb=$(git -C "$BARE" for-each-ref --format='%(refname:short)' refs/heads | grep firing | head -1)
+diag() {  # 실패 시에만 호출 — 무엇이 어디에 있는지 그대로 드러낸다
+  echo "  --- 진단 ---"
+  echo "  script stdout/stderr: ${h3out:-<없음>}"
+  echo "  origin 브랜치: $(git -C "$BARE" for-each-ref --format='%(refname:short)' refs/heads | tr '\n' ' ')"
+  [ -n "$hb" ] && echo "  $hb 트리: $(git -C "$BARE" ls-tree -r --name-only "$hb" | tr '\n' ' ')"
+  echo "  work 파일: $(cd "$WORK" && ls -1 .claude/memory 2>/dev/null | tr '\n' ' ')"
+  echo "  work 브랜치: $(git -C "$WORK" rev-parse --abbrev-ref HEAD 2>/dev/null)"
+  echo "  -------------"
+}
 if [ -n "$hb" ]; then
   ok "H3.1 origin 에 heartbeat 브랜치 생성 ($hb)"
   n=$(git -C "$BARE" show "$hb:.claude/memory/firing-log.jsonl" 2>/dev/null | grep -c . || true)
-  [ "$n" = "1" ] && ok "H3.2 레코드 1건 착지" || ng "H3.2 레코드 $n 건 (want 1)"
+  if [ "$n" = "1" ]; then ok "H3.2 레코드 1건 착지"; else ng "H3.2 레코드 $n 건 (want 1)"; diag; fi
   git -C "$BARE" show "$hb:.claude/memory/firing-log.jsonl" 2>/dev/null | jq -e '.ts and .phase' >/dev/null 2>&1 \
     && ok "H3.3 레코드에 ts/phase 필수 키" || ng "H3.3 필수 키 누락"
 else
