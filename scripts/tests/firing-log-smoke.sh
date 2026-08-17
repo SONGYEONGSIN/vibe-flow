@@ -52,7 +52,7 @@ setup
 hb=$(git -C "$BARE" for-each-ref --format='%(refname:short)' refs/heads | grep firing | head -1)
 if [ -n "$hb" ]; then
   ok "H3.1 origin 에 heartbeat 브랜치 생성 ($hb)"
-  n=$(git -C "$BARE" show "$hb:.claude/memory/firing-log.jsonl" 2>/dev/null | grep -c . || echo 0)
+  n=$(git -C "$BARE" show "$hb:.claude/memory/firing-log.jsonl" 2>/dev/null | grep -c . || true)
   [ "$n" = "1" ] && ok "H3.2 레코드 1건 착지" || ng "H3.2 레코드 $n 건 (want 1)"
   git -C "$BARE" show "$hb:.claude/memory/firing-log.jsonl" 2>/dev/null | jq -e '.ts and .phase' >/dev/null 2>&1 \
     && ok "H3.3 레코드에 ts/phase 필수 키" || ng "H3.3 필수 키 누락"
@@ -66,7 +66,7 @@ setup
 (cd "$WORK" && bash "$SCRIPT" phase0 "start" >/dev/null 2>&1)
 (cd "$WORK" && bash "$SCRIPT" phase4 "queue empty" >/dev/null 2>&1)
 hb=$(git -C "$BARE" for-each-ref --format='%(refname:short)' refs/heads | grep firing | head -1)
-n=$(git -C "$BARE" show "$hb:.claude/memory/firing-log.jsonl" 2>/dev/null | grep -c . || echo 0)
+n=$(git -C "$BARE" show "$hb:.claude/memory/firing-log.jsonl" 2>/dev/null | grep -c . || true)
 [ "$n" = "2" ] && ok "H4.1 2건 누적 (앞 기록 보존)" || ng "H4.1 레코드 $n 건 (want 2 — 덮어썼거나 실패)"
 phases=$(git -C "$BARE" show "$hb:.claude/memory/firing-log.jsonl" 2>/dev/null | jq -r '.phase' | tr '\n' ',')
 [ "$phases" = "phase0,phase4," ] && ok "H4.2 phase 순서 보존 (phase0→phase4)" || ng "H4.2 phases=$phases"
