@@ -1,5 +1,5 @@
 - [DB 마이그레이션 적용 방법](db-migration-apply.md) — Supabase CLI 없음; DATABASE_URL(풀러) + `pg --no-save` 인라인으로 적용 후 RLS 검증
-- [경위서 양식 뷰어 기능](incident-report-form-viewer.md) — ★완료로 확인(2026-07-15): incident-reports 편집기가 main 가동 중(#640·#654 A4 규격 등), 브랜치 소멸. 본문은 낡은 재개 컨텍스트
+- [경위서 양식 뷰어 기능](incident-report-form-viewer.md) — ★실운영 + 발송경로 3연속 수정 완료(2026-08-14 #976 담당자·결재라인 발송시점 확정+보관본=메일PDF·docx 제거 / #977 대장 F열 HYPERLINK 형태+미기입 노출)
 - [SmileEDI 자동화](smileedi-automation.md) — 스크래핑+조건부메일 이식(Phase1/2 머지 완료), 운영 잔여(Vercel env·GH Secrets·cron-job.org·비번 로테이션·Q2 업로드인증)
 - [서비스 마감(closing) 자동화](closing-automation.md) — ★실운영 가동으로 확인(2026-07-15): scrape.py+PC 폴러+평일 09:00 스케줄(#841~#843)까지 완료. 본문의 "Phase2 미착수"는 낡음
 - [버튼 호버 검정 규칙](button-hover-black-rule.md) — 기본 디자인 규칙: 버튼 호버 시 `hover:bg-ink hover:text-cream`
@@ -16,3 +16,6 @@
 - [Claude 상태표시줄 구성](claude-statusline-setup.md) — ~/.claude/statusline.sh 6줄 레이아웃 + 이식용 원샷 프롬프트(statusline-setup-prompt.md, pbcopy)
 - [메일 CC 제외 제약](mail-cc-exclusion.md) — 이이화(llh@jinhak.com) 자동 CC 금지, operators.mail_cc_excluded 플래그(PR #852)·신규 팀메일 기능도 존중 필수
 - [경쟁률 점검 자동화(세팅+페이지)](ratio-setting-audit.md) — #926~#936 머지 + 마이그·예외·폴러 셋업 전부 완료 확인(8/4). 잔여는 fix 이후 성공 실행 검증 1회뿐
+- [Graph 워크북 세션 반영 지연](graph-workbook-session-persist-delay.md) — 엑셀 PATCH는 파일 반영에 1~2분. 직후 재조회로 성공/실패 판정하면 오진(2026-08-14 실제 사고)
+- [업무 지식망 프로젝트](knowledge-vault-project.md) — 볼트=SharePoint·전원 작성·레포 PUBLIC이라 지식 못 담음. ★(a)저장소+(b)열람+(c)어시스턴트 연결까지 실운영(#982~#989, 인덱싱 10분 cron). 남은 건 (d)자동학습+사람 분류 판정
+- [어시스턴트 채팅 런처](assistant-chat-launcher.md) — 우하단 고정 런처+표준 인스펙터. **LLM은 Claude 아닌 Gemini 2.5-flash**(구독+Agent SDK는 미구현). 도메인 추가 시 고칠 4곳

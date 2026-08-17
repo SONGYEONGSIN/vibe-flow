@@ -5,6 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 15dfa71d-856b-42bd-ae4b-749e69f7bd3a
+  modified: 2026-08-14T07:45:50.874Z
 ---
 
 경위서(incident report)를 실제 Word 공문 양식 그대로 화면에서 보고 편집하는 기능.
@@ -15,7 +16,7 @@ metadata:
 - **로고**: `public/brand/jinhakapply-logo-v2.png`(HTML) / `.jpg`(PDF). @react-pdf가 그 PNG를 검은박스로 디코딩 → PDF는 JPEG 사용. 라벨 제외 크롭은 sharp로.
 - **직인**: `public/brand/incident-report-seal.png` (.doc에서 carve 추출). 글자 뒤(겹침).
 - **시행번호 발번 흐름 (2026-06-08 변경, PR #431)**: `운영{YY}{MM}-{DD}{순번2}`. **발번 = PDF 버튼 클릭 시점**(approved+미발번 1회, 멱등). 액션 `issueIncidentReportDocNumber(id)`. draft/대기/반려는 `previewNextDocNumber` 미리보기만.
-  - `registerIncidentReportToSharePoint` → **분리**: `assignDocNumber`(채번+공문관리대장 행기록, **F열 빈칸**) / `uploadAndLinkReportFile`(docx 렌더+업로드+F링크 채움). `gongmun-ledger.updateSenderRowLink`(기존 행 F PATCH) 신규.
+  - `registerIncidentReportToSharePoint` → **분리**: `assignDocNumber`(채번+공문관리대장 행기록, **F열 빈칸**) / `uploadAndLinkReportFile`(**메일에 첨부한 그 PDF를 그대로 업로드**+F링크 채움). `gongmun-ledger.updateSenderRowLink`(기존 행 F PATCH) 신규.
   - **파일 업로드는 발송(send) 시점** — 본인 MS 위임 계정 우선(`getDelegatedGraphToken`), 없으면 서비스 계정. 업로드 후 대장 F열 링크 채움.
   - PDF 버튼 = `PdfButton`(client) — 발번 액션 먼저 → PDF 새 탭.
 - **SharePoint env (운영 Vercel 반영 완료)**: `sharePointConfig()` 3종 필요 — `SHAREPOINT_DRIVE_ID` + `SHAREPOINT_GONGMUN_ITEM_ID`(=DOCUMENTS와 동일, 공문관리대장.xlsx) + `SHAREPOINT_INCIDENT_REPORT_FOLDER_ID`(=`/06. 경위서` 폴더 `01TGOQVTXYXPVN6FVGH5F37SY2CMWMROXN`). **셋 다 Vercel prod + .env.local 설정 완료**. 하나라도 없으면 발번/대장/업로드 전부 no-op.
@@ -25,4 +26,10 @@ metadata:
 - **3.처리**: `handling_rows jsonb`(마이그 적용) 시간/내용 2열 표 + 행 편집기.
 - **검증 방법**: PDF는 임시 vitest로 `renderIncidentReportPdf` → /tmp 파일 → Read(PDF)로 시각 확인(poppler 없음, 텍스트+이미지 추출됨).
 
-**주의**: dev 서버 재시작해야 시행번호 미리보기 동작. operators role enum에 이사/부사장 없음(필요시 추가). 운영 검증 권장: 승인된 경위서 PDF 클릭 → 공문관리대장 새 행+PDF 번호 → 재클릭 번호 동일 → 발송 시 F링크.
+**2026-08-14 발송 경로 3연속 수정 (#976·#977)**:
+- **담당자·결재라인은 발송 시점에 확정**(#976) — 화면·공문관리대장은 사고 담당자 기준 라이브인데 문서만 저장 스냅샷(=경위서 만든 사람)을 써서 공문에 엉뚱한 담당자·빈 결재라인이 찍혔다. `sendIncidentReport`가 `getIncidentById`+`resolveApprovalChain`으로 스냅샷을 DB에 굳힌 뒤 그 값으로 렌더. 하단 연락처 전화도 담당자 기준.
+- **보관본 = 메일 첨부 PDF 동일 파일**(#976). 별도 docx 렌더러(`lib/docx/incident-report-docx.ts`)가 `deriveFormModel`을 안 써서 옛 인사말·고정 직책을 그렸다 → 파일·`docx` 의존성 삭제. 렌더도 1회로.
+- **대장 F열은 `=HYPERLINK(주소,"링크")` 수식**(#977, `gongmun-ledger.linkCellBody`). 사람이 손으로 넣은 기존 행이 표시 텍스트 "링크"라 앱 행만 URL 원문이 노출됐다. **HYPERLINK 주소 인자는 255자 제한** — SharePoint webUrl은 한글 경로 퍼센트 인코딩으로 실측 403자라 `#VALUE!`가 났고 `decodeURIComponent`로 131자로 줄여 해결. 디코딩해도 초과하면(제목 155자↑) 원문을 값으로.
+- **대장 미기입을 삼키지 않는다**(#977). `uploadAndLinkReportFile`이 `{sharepointUrl, ledgerLinked}`를 갈라 반환 — 예전엔 `updateSenderRowLink`의 false를 버려서, 대장 행이 없어도 `sharepoint_url`이 채워져 화면엔 링크가 정상으로 보였다. false면 업무활동로그 msg에 `[공문관리대장 미기입]`. 발송 자체는 실패시키지 않음(PDF는 유효).
+
+**주의**: 대장 쓰기는 [[graph-workbook-session-persist-delay]] — 발송 직후 열어 비어 있어도 실패가 아니다. dev 서버 재시작해야 시행번호 미리보기 동작. operators role enum에 이사/부사장 없음(필요시 추가). 운영 검증 권장: 승인된 경위서 PDF 클릭 → 공문관리대장 새 행+PDF 번호 → 재클릭 번호 동일 → 발송 시 F링크.

@@ -1,3 +1,4 @@
 - [Word 픽스처 생성](word-fixture-generation.md) — 샌드박스 컨테이너 경유가 유일하게 통하는 길, 그리고 막혀도 화면을 볼 수 없는 이유
 - [엔티티 왕복 한계](pantograph-entity-limitation.md) — I4a 가 초록인 건 우연이다. 무엇을 넣으면 정당하게 깨지는지
 - [gh pr edit 고장](gh-pr-edit-broken.md) — 이 레포에서 항상 실패한다. REST PATCH 우회로
+- [HTML 산출물 시각 검증](html-output-visual-verification.md) — 헤드리스 크롬 스크린샷은 된다. 브라우저 확장은 막힘. vmin 창비율 함정 포함
