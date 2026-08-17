@@ -56,6 +56,10 @@ diag() {  # 실패 시에만 호출 — 무엇이 어디에 있는지 그대로 
   echo "  script stdout/stderr: ${h3out:-<없음>}"
   echo "  origin 브랜치: $(git -C "$BARE" for-each-ref --format='%(refname:short)' refs/heads | tr '\n' ' ')"
   [ -n "$hb" ] && echo "  $hb 트리: $(git -C "$BARE" ls-tree -r --name-only "$hb" | tr '\n' ' ')"
+  # 파일이 트리에 있는데 읽히지 않는다면 blob 이 비었는지 / show 가 실패하는지를 가른다
+  [ -n "$hb" ] && echo "  blob 크기: $(git -C "$BARE" cat-file -s "$hb:.claude/memory/firing-log.jsonl" 2>&1 | head -1) bytes"
+  [ -n "$hb" ] && echo "  blob 내용: [$(git -C "$BARE" cat-file -p "$hb:.claude/memory/firing-log.jsonl" 2>&1 | head -c 120)]"
+  [ -n "$hb" ] && echo "  커밋수: $(git -C "$BARE" rev-list --count "$hb" 2>&1)"
   echo "  work 파일: $(cd "$WORK" && ls -1 .claude/memory 2>/dev/null | tr '\n' ' ')"
   echo "  work 브랜치: $(git -C "$WORK" rev-parse --abbrev-ref HEAD 2>/dev/null)"
   echo "  -------------"
