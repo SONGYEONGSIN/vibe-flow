@@ -18,4 +18,5 @@
 - [경쟁률 점검 자동화(세팅+페이지)](ratio-setting-audit.md) — #926~#936 머지 + 마이그·예외·폴러 셋업 전부 완료 확인(8/4). 잔여는 fix 이후 성공 실행 검증 1회뿐
 - [Graph 워크북 세션 반영 지연](graph-workbook-session-persist-delay.md) — 엑셀 PATCH는 파일 반영에 1~2분. 직후 재조회로 성공/실패 판정하면 오진(2026-08-14 실제 사고)
 - [업무 지식망 프로젝트](knowledge-vault-project.md) — 볼트=SharePoint·전원 작성·레포 PUBLIC이라 지식 못 담음. ★(a)저장소+(b)열람+(c)어시스턴트 연결까지 실운영(#982~#989, 인덱싱 10분 cron). 남은 건 (d)자동학습+사람 분류 판정
-- [어시스턴트 채팅 런처](assistant-chat-launcher.md) — 우하단 고정 런처+표준 인스펙터. **LLM은 Claude 아닌 Gemini 2.5-flash**(구독+Agent SDK는 미구현). 도메인 추가 시 고칠 4곳
+- [어시스턴트 채팅 런처](assistant-chat-launcher.md) — 우하단 런처+표준 인스펙터. ★기본이 Claude(회사PC 구독+SDK, 볼트 직접읽기+일정도구), 토글 끄면 Gemini 즉답. 폴러가 아직 개발자 맥
+- [Agent SDK 호스팅 함정](claude-agent-sdk-hardening.md) — 실측 4건: MCP는 allowedTools로 안 막힘(개인 캘린더 유출 재현)·Bash도 disallowedTools 필요·interrupt 대신 abortController·도구 fetch 타임아웃 필수
