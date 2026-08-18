@@ -96,7 +96,10 @@ setup
 hb=$(git -C "$BARE" for-each-ref --format='%(refname:short)' refs/heads | grep firing | head -1)
 n=$(blob_of "$hb" .claude/memory/firing-log.jsonl | grep -c . || true)
 [ "$n" = "2" ] && ok "H4.1 2건 누적 (앞 기록 보존)" || ng "H4.1 레코드 $n 건 (want 2 — 덮어썼거나 실패)"
-phases=$(blob_of "$hb" .claude/memory/firing-log.jsonl | jq -r '.phase' | tr '\n' ',')
+# tr -d '\r': Windows 에서 blob 이 CRLF 로 읽히면 `tr '\n' ','` 가 \r 을 남겨
+# "phase0\r,phase4\r," 가 되고, 출력 시 CR 이 커서를 되돌려 "phase0" 만 보인다
+# (F-K13/K14/N01 CRLF 계보). 비교 전에 제거한다.
+phases=$(blob_of "$hb" .claude/memory/firing-log.jsonl | tr -d '\r' | jq -r '.phase' | tr '\n' ',')
 [ "$phases" = "phase0,phase4," ] && ok "H4.2 phase 순서 보존 (phase0→phase4)" || ng "H4.2 phases=$phases"
 
 echo "Test H5: main 을 건드리지 않는다 (보호 브랜치 회피)"
