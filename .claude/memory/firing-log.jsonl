@@ -9,3 +9,4 @@
 {"ts":"2026-08-18T22:44:12Z","phase":"phase6","detail":"SELF-UPDATE skip — Phase5 미머지","base_sha":"cd7075c"}
 {"ts":"2026-08-18T22:44:14Z","phase":"phase7","detail":"GRADUATION tick 판정 시작","base_sha":"cd7075c"}
 {"ts":"2026-08-18T22:44:57Z","phase":"phase8","detail":"GENERATIVE skip — tier=off (disarmed)","base_sha":"f69d5f6"}
+{"ts":"2026-08-18T22:44:59Z","phase":"done","detail":"AHE round Z 1 cycle 완료 — PR #218(merged, audit bookkeeping) + PR #220(open, F-Q16 fix, HOLD_TIER)","base_sha":"f69d5f6"}
