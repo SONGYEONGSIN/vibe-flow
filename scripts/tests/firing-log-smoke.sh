@@ -26,7 +26,15 @@ trap 'rm -rf "$TMP"' EXIT
 # `<rev>:<path>` 가 `<rev>\<path>` + `;` 로 바뀌어 `git show` 가 통째로 실패한다
 # (Windows CI 실측: "fatal: Not a valid object name auto-build\firing-…;.claude\memory\…").
 # F-K13/K14/N01/N03 "POSIX 가정 vs Windows 실환경" 계보의 **인자 변환 축**.
-gshow() { MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*' git -C "$BARE" "$@"; }
+#
+# MSYS_NO_PATHCONV=1 로 변환을 통째로 끄면 이번엔 `-C /tmp/…/origin.git` 이 변환되지
+# 않아 "cannot change to '/tmp/…'" 로 죽는다(2차 실측). 즉 변환은 필요하고 콜론 인자만
+# 문제다 → **콜론 문법을 아예 쓰지 않는다.** ls-tree 로 blob sha 를 얻어 cat-file 로 읽는다.
+blob_of() {  # $1=rev $2=repo-relative path → 내용을 stdout 으로
+  local sha
+  sha=$(git -C "$BARE" ls-tree "$1" -- "$2" 2>/dev/null | awk '{print $3}')
+  [ -n "$sha" ] && git -C "$BARE" cat-file blob "$sha" 2>/dev/null
+}
 
 echo "Test H1: 스크립트 존재"
 if [ -f "$SCRIPT" ]; then ok "H1.1 firing-log.sh 존재"; else ng "H1.1 부재"; echo "PASS:$PASS FAIL:$FAIL"; exit 1; fi
@@ -63,8 +71,8 @@ diag() {  # 실패 시에만 호출 — 무엇이 어디에 있는지 그대로 
   echo "  origin 브랜치: $(git -C "$BARE" for-each-ref --format='%(refname:short)' refs/heads | tr '\n' ' ')"
   [ -n "$hb" ] && echo "  $hb 트리: $(git -C "$BARE" ls-tree -r --name-only "$hb" | tr '\n' ' ')"
   # 파일이 트리에 있는데 읽히지 않는다면 blob 이 비었는지 / show 가 실패하는지를 가른다
-  [ -n "$hb" ] && echo "  blob 크기: $(gshow cat-file -s "$hb:.claude/memory/firing-log.jsonl" 2>&1 | head -1) bytes"
-  [ -n "$hb" ] && echo "  blob 내용: [$(gshow cat-file -p "$hb:.claude/memory/firing-log.jsonl" 2>&1 | head -c 120)]"
+  [ -n "$hb" ] && echo "  blob 크기: $(blob_of "$hb" .claude/memory/firing-log.jsonl | wc -c) bytes"
+  [ -n "$hb" ] && echo "  blob 내용: [$(blob_of "$hb" .claude/memory/firing-log.jsonl | head -c 120)]"
   [ -n "$hb" ] && echo "  커밋수: $(git -C "$BARE" rev-list --count "$hb" 2>&1)"
   echo "  work 파일: $(cd "$WORK" && ls -1 .claude/memory 2>/dev/null | tr '\n' ' ')"
   echo "  work 브랜치: $(git -C "$WORK" rev-parse --abbrev-ref HEAD 2>/dev/null)"
@@ -72,9 +80,9 @@ diag() {  # 실패 시에만 호출 — 무엇이 어디에 있는지 그대로 
 }
 if [ -n "$hb" ]; then
   ok "H3.1 origin 에 heartbeat 브랜치 생성 ($hb)"
-  n=$(gshow show "$hb:.claude/memory/firing-log.jsonl" 2>/dev/null | grep -c . || true)
+  n=$(blob_of "$hb" .claude/memory/firing-log.jsonl | grep -c . || true)
   if [ "$n" = "1" ]; then ok "H3.2 레코드 1건 착지"; else ng "H3.2 레코드 $n 건 (want 1)"; diag; fi
-  gshow show "$hb:.claude/memory/firing-log.jsonl" 2>/dev/null | jq -e '.ts and .phase' >/dev/null 2>&1 \
+  blob_of "$hb" .claude/memory/firing-log.jsonl | jq -e '.ts and .phase' >/dev/null 2>&1 \
     && ok "H3.3 레코드에 ts/phase 필수 키" || ng "H3.3 필수 키 누락"
 else
   ng "H3.1 heartbeat 브랜치 없음 — 무산출 firing 이 여전히 무흔적"
@@ -86,9 +94,9 @@ setup
 (cd "$WORK" && bash "$SCRIPT" phase0 "start" >/dev/null 2>&1)
 (cd "$WORK" && bash "$SCRIPT" phase4 "queue empty" >/dev/null 2>&1)
 hb=$(git -C "$BARE" for-each-ref --format='%(refname:short)' refs/heads | grep firing | head -1)
-n=$(gshow show "$hb:.claude/memory/firing-log.jsonl" 2>/dev/null | grep -c . || true)
+n=$(blob_of "$hb" .claude/memory/firing-log.jsonl | grep -c . || true)
 [ "$n" = "2" ] && ok "H4.1 2건 누적 (앞 기록 보존)" || ng "H4.1 레코드 $n 건 (want 2 — 덮어썼거나 실패)"
-phases=$(gshow show "$hb:.claude/memory/firing-log.jsonl" 2>/dev/null | jq -r '.phase' | tr '\n' ',')
+phases=$(blob_of "$hb" .claude/memory/firing-log.jsonl | jq -r '.phase' | tr '\n' ',')
 [ "$phases" = "phase0,phase4," ] && ok "H4.2 phase 순서 보존 (phase0→phase4)" || ng "H4.2 phases=$phases"
 
 echo "Test H5: main 을 건드리지 않는다 (보호 브랜치 회피)"
