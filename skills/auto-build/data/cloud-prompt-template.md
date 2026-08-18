@@ -52,6 +52,10 @@ bash core/skills/audit/scripts/ledger.sh resolve <id> "<실측 actual_delta>" ve
 ### Phase 2 — AUDIT (신규 finding)
 `/audit` 스킬을 호출한다. dimension agent 병렬로 4-필드 finding(evidence/root_cause/fix/predicted_delta)을 발굴하고 전역 단일 시퀀스로 `ledger.sh append` 한다 (4-필드 계약은 기계 강제). rules/harness-evolution.md의 루프를 그대로 따른다.
 
+**append 완료 후 `.claude/memory/MEMORY.md` 에 라운드 요약 1줄을 반드시 추가한다 — 그 줄에 이번 라운드의 첫·끝 finding id 를 둘 다 적는다** (예: `F-Z01~F-Z04`). `scripts/check-doc-counts.sh:82` 가 최신 라운드의 첫·끝 id 가 MEMORY.md 에 등장하는지 검사하고, 없으면 `eval-regression` 이 RED 가 되어 이 PR 이 머지 불가가 된다.
+
+**F-T10**: 이 갱신 누락으로 R17/R18/R19/R25 네 라운드가 연속 RED 를 만들었다. 게이트에만 있고 생산자 지시문에 없던 계약이라, 매번 사후 수정으로 때웠다. ledger 를 append 한 라운드는 MEMORY 도 같은 커밋에서 갱신한다 — 둘은 한 트랜잭션이다.
+
 ### Phase 3 — ENQUEUE
 ```bash
 bash core/skills/audit/scripts/ledger.sh enqueue
