@@ -100,7 +100,16 @@ n=$(blob_of "$hb" .claude/memory/firing-log.jsonl | grep -c . || true)
 # "phase0\r,phase4\r," 가 되고, 출력 시 CR 이 커서를 되돌려 "phase0" 만 보인다
 # (F-K13/K14/N01 CRLF 계보). 비교 전에 제거한다.
 phases=$(blob_of "$hb" .claude/memory/firing-log.jsonl | tr -d '\r' | jq -r '.phase' | tr '\n' ',')
-[ "$phases" = "phase0,phase4," ] && ok "H4.2 phase 순서 보존 (phase0→phase4)" || ng "H4.2 phases=$phases"
+if [ "$phases" = "phase0,phase4," ]; then
+  ok "H4.2 phase 순서 보존 (phase0→phase4)"
+else
+  ng "H4.2 phases=$phases"
+  echo "  --- H4 진단 ---"
+  echo "  blob raw   : [$(blob_of "$hb" .claude/memory/firing-log.jsonl | od -c | head -4 | tr '\n' '|')]"
+  echo "  jq 출력    : [$(blob_of "$hb" .claude/memory/firing-log.jsonl | jq -r '.phase' 2>&1 | tr '\n' '/')]"
+  echo "  커밋 로그  : $(git -C "$BARE" log --format='%s' "$hb" | tr '\n' '/')"
+  echo "  ---------------"
+fi
 
 echo "Test H5: main 을 건드리지 않는다 (보호 브랜치 회피)"
 main_sha_before=$(git -C "$BARE" rev-parse main)
