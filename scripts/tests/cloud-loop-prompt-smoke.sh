@@ -31,6 +31,9 @@ have "L2.3 VERIFY pending-verify" "ledger.sh pending-verify"
 have "L2.3b VERIFY dry-run 금지 명시" "push --dry-run"
 have "L2.4 VERIFY resolve"        "ledger.sh resolve"
 have "L2.5 AUDIT"                 "/audit"
+# F-T10: Phase 2 가 ledger append 후 MEMORY 인덱스를 갱신하지 않아 R17/R18/R19/R25
+# 네 라운드가 연속 RED. 게이트(check-doc-counts:82)에만 있고 생산자 지시문에 없던 계약.
+have "L2.5b AUDIT 후 MEMORY 갱신 지시" "라운드 요약 1줄을 반드시 추가"
 have "L2.6 ENQUEUE"              "ledger.sh enqueue"
 have "L2.7 IMPROVE run-cloud"     "run-cloud.sh"
 
