@@ -165,6 +165,35 @@ case "$CMD" in
     release_lock
     ;;
 
+  reclaim)
+    # F-Z05: run-cloud.sh 는 entry 를 running 으로 표시하고 "이제 네가 P0~P5 를 하라"는
+    # 안내문만 stderr 로 낸 뒤 exit 0 한다. 그 인계가 이뤄지지 않으면 entry 는 running 에
+    # 영구 잔류하고, running 은 queued 도 done 도 아니라 다음 firing 의 `next` 가 다시
+    # 집지 않는다 — 작업이 큐에서 조용히 증발한다(2026-08-18 실측: heartbeat 의 마지막
+    # 레코드 7초 뒤 running 이 생긴 채 그대로).
+    # N시간 이상 running 인 entry 를 queued 로 되돌린다. 진행 중일 수 있는 최근 running 은
+    # 건드리지 않는다 — 회수 임계는 1 사이클 최대 소요보다 넉넉해야 한다.
+    HOURS="${1:-6}"
+    case "$HOURS" in ''|*[!0-9]*) echo "usage: reclaim [<시간, 기본 6>]" >&2; exit 1 ;; esac
+    acquire_lock
+    CUTOFF=$(python3 -c "import datetime,sys;print((datetime.datetime.now(datetime.timezone.utc)-datetime.timedelta(hours=int(sys.argv[1]))).strftime('%Y-%m-%dT%H:%M:%SZ'))" "$HOURS" 2>/dev/null)
+    if [ -z "$CUTOFF" ]; then release_lock; echo "queue reclaim: 시각 계산 실패" >&2; exit 1; fi
+    # 접기(fold): 마지막 status_update 가 running 이고 그 ts 가 CUTOFF 이전인 entry
+    STALE=$(jq -rs --arg cut "$CUTOFF" '
+      (map(select(.op=="status_update")) | group_by(.id) | map(max_by(.ts))) as $last
+      | $last[] | select(.new_status=="running") | select(.ts < $cut) | .id' "$QUEUE_STORE" 2>/dev/null | tr -d '\r')
+    n=0
+    for sid in $STALE; do
+      jq -nc --arg id "$sid" --arg ts "$(iso_ts)" \
+        '{op:"status_update", id:$id, new_status:"queued", ts:$ts}' >> "$QUEUE_STORE"
+      # silent reclaim 금지 — 왜 되돌아왔는지 사람이 알아야 한다
+      echo "queue reclaim: $sid — ${HOURS}h 이상 running (인계 미완). queued 로 회수" >&2
+      n=$((n+1))
+    done
+    release_lock
+    echo "reclaimed $n entry" >&2
+    ;;
+
   status-update)
     TARGET_ID="${1:-}"
     NEW_STATUS="${2:-}"
@@ -240,7 +269,7 @@ USAGE
 
   *)
     echo "queue.sh: unknown command '$CMD'" >&2
-    echo "use: add | list | remove | clear | next | status-update" >&2
+    echo "use: add | list | remove | clear | next | status-update | reclaim" >&2
     exit 1
     ;;
 esac

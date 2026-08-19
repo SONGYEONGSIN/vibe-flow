@@ -75,7 +75,7 @@ Andrej Karpathy가 공개한 LLM 코딩의 흔한 함정 관찰에서 도출된 
 - 명확한 성공 기준으로 독립 실행
 
 **vibe-flow 적용**:
-- `rules/conventions.md` "최소 설계 체크리스트" 4번 — "검증: 변경 후 어떻게 확인할 것인가"
+- `rules/discipline.md` "최소 설계 체크리스트" 4번 — "검증: 변경 후 어떻게 확인할 것인가"
 - `skills/auto-build/SKILL.md` 호출 형태 4문항의 "성공" 필드 필수
 - `skills/verify/SKILL.md` — `/verify` 스킬이 lint/typecheck/test/E2E 순차 실행으로 성공 기준 자동 검증
 - `rules/tdd.md` RED-GREEN-REFACTOR — RED 단계가 곧 성공 기준 정의

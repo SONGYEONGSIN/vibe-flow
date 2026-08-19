@@ -36,4 +36,6 @@ metadata:
 
 **Why:** 이 다섯은 문서를 읽어서가 아니라 사고로 알게 됐고, 모르면 같은 코드를 또 짠다. **How to apply:** Agent SDK를 새로 붙일 때 이 5가지를 설정 단계에서 먼저 넣고, "막았다"고 말하기 전에 실제 프롬프트로 뚫어볼 것.
 
-관련: [[assistant-chat-launcher]] · [[knowledge-vault-project]]
+**반대 사례 주의**: 5번(텍스트 블록 모으기)이 **모든 용도에 맞지는 않는다.** 우편물 판독은 JSON 하나만 필요한데 모델이 `I'll open the receipt image first.` 를 앞에 붙여, 블록을 이어붙이니 JSON이 깨졌다 — 거기선 `{`~`}` 만 잘라 읽는다([[postal-receipts-petty-cash]]).
+
+관련: [[assistant-chat-launcher]] · [[knowledge-vault-project]] · [[postal-receipts-petty-cash]]
