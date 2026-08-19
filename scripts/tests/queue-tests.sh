@@ -316,6 +316,29 @@ st_new=$(bash "$QUEUE" list --all | awk -v i="$fid" -F'\t' '$1==i{print $2}')
 echo "$out" | grep -q "$rid" && { echo "  ✓ QR.3 회수 사유 stderr 표면화"; PASS=$((PASS+1)); }   || { echo "  ✗ QR.3 silent reclaim — 사람이 알 수 없다"; FAIL=$((FAIL+1)); }
 nxt=$(bash "$QUEUE" next)
 [ "$nxt" = "$rid" ] && { echo "  ✓ QR.4 회수 후 next 가 그 entry 를 집는다"; PASS=$((PASS+1)); }   || { echo "  ✗ QR.4 next=$nxt (want $rid — 회수가 실효 없음)"; FAIL=$((FAIL+1)); }
+# F-Z05 정정: reclaim 이 **이미 완료된 작업**의 entry 를 되돌릴 수 있다. 실측(08-19) —
+# 루프가 F-Q16 을 완주해 PR #220 을 만들었고 그 안에 status-update done 이 들어 있었는데,
+# 미머지 상태라 큐에는 running 으로 남아 있었다. reclaim 이 그걸 queued 로 되돌려,
+# #220 머지 전에 다음 firing 이 돌았으면 **같은 일을 또 했을 것**이다.
+# 열린 auto-build PR 이 있으면 그 결과가 미머지로 대기 중일 수 있으므로 회수하지 않는다.
+echo "Test Q-RG: 열린 PR 있으면 회수 보류"
+stale2=$(bash "$QUEUE" add "guarded task" | sed -n 's/^queued: //p')
+printf '{"op":"status_update","id":"%s","new_status":"running","ts":"%s"}\n' "$stale2" "$old_ts" >> "$QUEUE_STORE"
+# 열린 PR 조회를 스텁으로 주입 — 실 gh 의존 없이 분기만 검증
+STUB="$RTMP/gh"; printf '#!/bin/bash\necho 1\n' > "$STUB"; chmod +x "$STUB"
+out2=$(QUEUE_OPEN_PR_CMD="$STUB" bash "$QUEUE" reclaim 6 2>&1)
+st2=$(bash "$QUEUE" list --all | awk -v i="$stale2" -F'\t' '$1==i{print $2}')
+[ "$st2" = "running" ] && { echo "  ✓ QRG.1 열린 PR 있으면 stale running 보존"; PASS=$((PASS+1)); } \
+  || { echo "  ✗ QRG.1 status=$st2 (want running — 완료작업 재큐잉 위험)"; FAIL=$((FAIL+1)); }
+echo "$out2" | grep -q "열린" && { echo "  ✓ QRG.2 보류 사유 표면화"; PASS=$((PASS+1)); } \
+  || { echo "  ✗ QRG.2 silent skip — 왜 회수 안 했는지 알 수 없다"; FAIL=$((FAIL+1)); }
+# 열린 PR 0 이면 정상 회수
+printf '#!/bin/bash\necho 0\n' > "$STUB"
+QUEUE_OPEN_PR_CMD="$STUB" bash "$QUEUE" reclaim 6 >/dev/null 2>&1
+st3=$(bash "$QUEUE" list --all | awk -v i="$stale2" -F'\t' '$1==i{print $2}')
+[ "$st3" = "queued" ] && { echo "  ✓ QRG.3 열린 PR 0 이면 정상 회수"; PASS=$((PASS+1)); } \
+  || { echo "  ✗ QRG.3 status=$st3 (want queued — 가드가 과차단)"; FAIL=$((FAIL+1)); }
+
 unset QUEUE_STORE QUEUE_LOCK_DIR
 rm -rf "$RTMP"
 
