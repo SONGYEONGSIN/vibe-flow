@@ -5,3 +5,4 @@
 {"ts":"2026-08-18T21:09:58Z","phase":"phase3","detail":"ENQUEUE 시작 — F-Z01~Z04 append 완료","base_sha":"d886fa0"}
 {"ts":"2026-08-18T21:10:06Z","phase":"phase4","detail":"IMPROVE 시작 — run-cloud.sh 호출","base_sha":"2216f28"}
 {"ts":"2026-08-19T21:02:29Z","phase":"phase0","detail":"health baseline 기록: ci_pass_rate=null ledger_health=0.523","base_sha":"6ab3dc4"}
+{"ts":"2026-08-19T21:02:59Z","phase":"phase1","detail":"VERIFY: pending-verify 없음 — 검증할 finding 없이 스킵","base_sha":"6ab3dc4"}
