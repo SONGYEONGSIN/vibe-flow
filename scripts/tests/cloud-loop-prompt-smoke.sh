@@ -36,6 +36,9 @@ have "L2.5 AUDIT"                 "/audit"
 have "L2.5b AUDIT 후 MEMORY 갱신 지시" "라운드 요약 1줄을 반드시 추가"
 have "L2.6 ENQUEUE"              "ledger.sh enqueue"
 have "L2.7 IMPROVE run-cloud"     "run-cloud.sh"
+# F-Z05: run-cloud.sh 는 인계 안내만 하고 exit 0 한다. 인계가 끊기면 entry 가 running 에
+# 영구 잔류해 큐에서 증발한다(2026-08-18 실측). Phase 4 진입 전 회수를 배선한다.
+have "L2.7b IMPROVE 전 stale running 회수" "queue.sh reclaim"
 
 echo "Test L3: 참조 스크립트 실존 + 실행가능"
 exe "L3.1 cloud-init.sh"   "core/skills/auto-build/scripts/cloud-init.sh"

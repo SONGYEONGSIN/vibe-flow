@@ -293,6 +293,32 @@ fi
 teardown
 
 # ── 결과 ───────────────────────────────────────────────────
+# F-Z05: run-cloud.sh 는 entry 를 running 으로 표시하고 "이제 네가 P0~P5 를 하라"는
+# 안내문만 stderr 로 내고 exit 0 한다. 그 인계가 이뤄지지 않으면 entry 는 running 에
+# 영구 잔류하고, running 은 queued 도 done 도 아니라 다음 firing 이 다시 집지도 않는다
+# — 작업이 큐에서 조용히 증발한다(2026-08-18 실측: 21:10:13Z 이후 계속 running).
+echo "Test Q-R: stale running 회수 (reclaim)"
+RTMP=$(mktemp -d)
+export QUEUE_STORE="$RTMP/q.jsonl"; export QUEUE_LOCK_DIR="$RTMP/.lock"
+rid=$(bash "$QUEUE" add "stale task" | sed -n 's/^queued: //p')
+fid=$(bash "$QUEUE" add "fresh task" | sed -n 's/^queued: //p')
+# stale: 24시간 전 running / fresh: 방금 running
+old_ts=$(python3 -c "import datetime;print((datetime.datetime.now(datetime.timezone.utc)-datetime.timedelta(hours=24)).strftime('%Y-%m-%dT%H:%M:%SZ'))")
+new_ts=$(python3 -c "import datetime;print(datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'))")
+printf '{"op":"status_update","id":"%s","new_status":"running","ts":"%s"}\n' "$rid" "$old_ts" >> "$QUEUE_STORE"
+printf '{"op":"status_update","id":"%s","new_status":"running","ts":"%s"}\n' "$fid" "$new_ts" >> "$QUEUE_STORE"
+
+out=$(bash "$QUEUE" reclaim 6 2>&1)
+st_old=$(bash "$QUEUE" list --all | awk -v i="$rid" -F'\t' '$1==i{print $2}')
+st_new=$(bash "$QUEUE" list --all | awk -v i="$fid" -F'\t' '$1==i{print $2}')
+[ "$st_old" = "queued" ] && { echo "  ✓ QR.1 24h 경과 running → queued 회수"; PASS=$((PASS+1)); }   || { echo "  ✗ QR.1 stale entry status=$st_old (want queued)"; FAIL=$((FAIL+1)); }
+[ "$st_new" = "running" ] && { echo "  ✓ QR.2 최근 running 은 건드리지 않음 (진행 중 보호)"; PASS=$((PASS+1)); }   || { echo "  ✗ QR.2 fresh entry status=$st_new (want running)"; FAIL=$((FAIL+1)); }
+echo "$out" | grep -q "$rid" && { echo "  ✓ QR.3 회수 사유 stderr 표면화"; PASS=$((PASS+1)); }   || { echo "  ✗ QR.3 silent reclaim — 사람이 알 수 없다"; FAIL=$((FAIL+1)); }
+nxt=$(bash "$QUEUE" next)
+[ "$nxt" = "$rid" ] && { echo "  ✓ QR.4 회수 후 next 가 그 entry 를 집는다"; PASS=$((PASS+1)); }   || { echo "  ✗ QR.4 next=$nxt (want $rid — 회수가 실효 없음)"; FAIL=$((FAIL+1)); }
+unset QUEUE_STORE QUEUE_LOCK_DIR
+rm -rf "$RTMP"
+
 echo ""
 echo "─────────────────────────────────────────"
 echo "PASS: $PASS   FAIL: $FAIL"

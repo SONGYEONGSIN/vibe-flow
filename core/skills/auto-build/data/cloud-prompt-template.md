@@ -64,9 +64,15 @@ open finding을 auto-build 큐(`auto-build-queue.jsonl`) task로 전환한다 (i
 
 ### Phase 4 — IMPROVE (PR-only)
 ```bash
+bash core/skills/auto-build/scripts/queue.sh reclaim 6
 AUTO_BUILD_QUEUE_CRON_FIRING=1 bash core/skills/auto-build/scripts/run-cloud.sh
 ```
 큐 첫 task pop → orchestrator P0~P5 (brainstorm → plan → TDD → verify → commit) → PR 생성 → PR URL stdout. queue.sh status-update done/aborted.
+
+**F-Z05 — `run-cloud.sh` 는 사이클을 실행하지 않는다.** entry 를 pop 해 `running` 으로 표시하고 "이제 네가 P0~P5 를 하라"는 안내를 낸 뒤 `exit 0` 한다. **그 다음 작업은 너의 몫이다.** 여기서 멈추면 entry 는 `running` 에 영구 잔류하고, `running` 은 queued 도 done 도 아니라 다음 firing 이 다시 집지도 않는다 — 작업이 큐에서 조용히 증발한다(2026-08-18 실측). 그래서:
+- 진입 직전 `reclaim` 으로 6시간 이상 방치된 `running` 을 되돌린다
+- **작업을 마치면 반드시 `status-update <id> done|aborted`** 로 상태를 확정한다. 확정하지 않고 종료하는 것이 가장 나쁘다
+- 중간에 abort 하면 `firing-log.sh abort "<사유>"` 를 남기고 종료한다
 
 **PR 생성 수단 (F-P02)**: `gh` 있으면 `gh pr create`, 없으면 `mcp__github__create_pull_request` (GitHub MCP). 둘 다 없을 때만 abort — gh 부재만으로 P0~P4를 무산출 소모하지 않는다.
 
