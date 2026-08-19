@@ -175,6 +175,30 @@ case "$CMD" in
     # 건드리지 않는다 — 회수 임계는 1 사이클 최대 소요보다 넉넉해야 한다.
     HOURS="${1:-6}"
     case "$HOURS" in ''|*[!0-9]*) echo "usage: reclaim [<시간, 기본 6>]" >&2; exit 1 ;; esac
+
+    # F-Z05 정정 (2026-08-19 실측): reclaim 이 **이미 완료된 작업**을 되돌릴 수 있다.
+    # 루프가 F-Q16 을 완주해 PR #220 을 만들었고 그 안에 status-update done 이 있었는데,
+    # 미머지라 큐에는 running 으로 남아 있었다 — reclaim 이 그걸 queued 로 되돌려,
+    # #220 머지 전에 다음 firing 이 돌았으면 같은 일을 또 했을 것이다.
+    # 열린 auto-build PR 이 있으면 그 결과가 미머지로 대기 중일 수 있으므로 회수를 보류한다
+    # (F-Y15 와 같은 조건 — 진행 상태가 미머지 PR 안에 갇히는 문제).
+    OPEN_PR_CMD="${QUEUE_OPEN_PR_CMD:-}"
+    if [ -z "$OPEN_PR_CMD" ] && command -v gh >/dev/null 2>&1; then
+      OPEN_PR_CMD="__gh_open_pr_count"
+    fi
+    if [ -n "$OPEN_PR_CMD" ]; then
+      if [ "$OPEN_PR_CMD" = "__gh_open_pr_count" ]; then
+        OPEN_N=$(gh api 'repos/:owner/:repo/pulls?state=open' --jq 'length' 2>/dev/null || echo 0)
+      else
+        OPEN_N=$(bash "$OPEN_PR_CMD" 2>/dev/null || echo 0)
+      fi
+      OPEN_N=$(printf '%s' "${OPEN_N:-0}" | tr -dc '0-9'); OPEN_N="${OPEN_N:-0}"
+      if [ "$OPEN_N" -gt 0 ] 2>/dev/null; then
+        echo "queue reclaim: 보류 — 열린 PR ${OPEN_N}건. 완료된 작업이 미머지 PR 에 대기 중일 수 있어 회수하지 않는다(F-Z05)" >&2
+        exit 0
+      fi
+    fi
+
     acquire_lock
     CUTOFF=$(python3 -c "import datetime,sys;print((datetime.datetime.now(datetime.timezone.utc)-datetime.timedelta(hours=int(sys.argv[1]))).strftime('%Y-%m-%dT%H:%M:%SZ'))" "$HOURS" 2>/dev/null)
     if [ -z "$CUTOFF" ]; then release_lock; echo "queue reclaim: 시각 계산 실패" >&2; exit 1; fi
