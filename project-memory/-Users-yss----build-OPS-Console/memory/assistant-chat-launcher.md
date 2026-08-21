@@ -43,4 +43,7 @@ metadata:
 - 앞서 인수인계·AI TIP 도메인은 **없는 컬럼을 조회**해 조용히 0건이었다(#1002)
 → `domain-selects.test.ts`가 두 방향(없는 컬럼 조회 / 있는 데이터 누락)을 다 본다. **새 도메인·필드를 붙일 때 여기부터 볼 것.**
 
+
+**사내 Teams 봇도 같은 큐를 쓴다**(#1051, [[teams-claude-bot]]) — `/api/assistant/bot`(CRON_SECRET + 요청자 UPN, `operators.email` 대조). 봇에 도구를 따로 붙이지 않은 이유가 곧 Gemini 를 걷어낸 이유다. 이력은 `page_context='Teams 채팅'` 으로 남아 웹에서도 보인다.
+
 관련: [[claude-agent-sdk-hardening]] — SDK 호스팅 함정 4가지(격리·상한). [[knowledge-vault-project]] — 이 화면이 그 프로젝트의 (c) 단계다. [[standard-list-inspector-design]] · [[modal-shell-standard]]

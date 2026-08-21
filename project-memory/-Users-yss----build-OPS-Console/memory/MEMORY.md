@@ -2,7 +2,7 @@
 - [경위서 양식 뷰어 기능](incident-report-form-viewer.md) — ★실운영 + 발송경로 3연속 수정 완료(2026-08-14 #976 담당자·결재라인 발송시점 확정+보관본=메일PDF·docx 제거 / #977 대장 F열 HYPERLINK 형태+미기입 노출)
 - [SmileEDI 자동화](smileedi-automation.md) — 스크래핑+조건부메일 이식(Phase1/2 머지 완료), 운영 잔여(Vercel env·GH Secrets·cron-job.org·비번 로테이션·Q2 업로드인증)
 - [서비스 마감(closing) 자동화](closing-automation.md) — ★실운영 가동으로 확인(2026-07-15): scrape.py+PC 폴러+평일 09:00 스케줄(#841~#843)까지 완료. 본문의 "Phase2 미착수"는 낡음
-- [버튼 호버 검정 규칙](button-hover-black-rule.md) — 기본 디자인 규칙: 버튼 호버 시 `hover:bg-ink hover:text-cream`
+- [버튼 호버 검정 규칙](button-hover-black-rule.md) — `hover:bg-ink hover:text-cream`. ★design.md 문서화 + 테스트 강제(#1053, 20곳 정리). 카드·행은 예외
 - [표준 모달 셸](modal-shell-standard.md) — 모든 모달은 `components/common/ModalShell` 사용(검정 헤더+boxed ×+푸터 슬롯), 인라인 모달 마크업 금지
 - [기본 목록+인스펙터 표준 디자인](standard-list-inspector-design.md) — 신규/전환 메뉴는 ListPattern+controlsRow(px-7 pt-3)+ScopeChips+표준 Section View. 커스텀 UI 금지
 - [회의록 HTML 양식 전환](meetings-html-form-migration.md) — ★사실상 완료로 확인(2026-07-15): v2 양식 문서(form-model)+MeetingForm 실운영, 최근은 폴리시 단계(#855~#857). 본문의 "2~6 남음"은 낡음
@@ -19,5 +19,7 @@
 - [Graph 워크북 세션 반영 지연](graph-workbook-session-persist-delay.md) — 엑셀 PATCH는 파일 반영에 1~2분. 직후 재조회로 성공/실패 판정하면 오진(2026-08-14 실제 사고)
 - [업무 지식망 프로젝트](knowledge-vault-project.md) — 볼트=SharePoint·전원 작성·레포 PUBLIC이라 지식 못 담음. ★(a)저장소+(b)열람+(c)어시스턴트 연결까지 실운영(#982~#989, 인덱싱 10분 cron). (d)-1 빈틈수집+초안/해결 고리까지 완료(#999·#1012~#1015). ★실측: 빈틈 8건 중 초안으로 풀리는 건 1건뿐(나머지는 사람지식·기능요청·우리버그)
 - [어시스턴트 채팅 런처](assistant-chat-launcher.md) — 우하단 런처+표준 인스펙터. ★Claude 단일 경로(구독+SDK, 볼트 직접읽기+도구) — Gemini는 #1025로 제거. 폴러 회사PC(8/18 이관, 최신 유지중). 갱신 여부는 커밋이 아니라 `assistant_requests.stage`로 확인
+- [사내 Teams 봇](teams-claude-bot.md) — ~/Downloads(git 아님). 봇은 스스로 안 생각하고 어시스턴트 큐에 위임(볼트 때문). 앱업로드·앱등록 권한은 확인됨, ②~⑥은 회사에서
 - [Agent SDK 호스팅 함정](claude-agent-sdk-hardening.md) — 실측 5건: MCP는 allowedTools로 안 막힘(개인 캘린더 유출 재현)·Bash도 disallowedTools 필요·interrupt 대신 abortController·도구 fetch 타임아웃·**m.result는 마지막 블록만(답 잘림 사고)**
 - [우편물·전도금](postal-receipts-petty-cash.md) — 등기 영수증을 Agent SDK로 판독(실측 15/15)→검토→확정 시 전도금 엑셀에 한 줄. 담당자는 총괄장 대조(대학원 표기 있을 때만 대학원 시트, 82%가 담당자 다름). 엑셀 쓰기라 중복검사·위치 재조회 필수
+- [도구 메뉴(스킬 카탈로그)](dev-tools-menu.md) — /dashboard/tools. 레포 .claude/ 를 훑은 커밋 생성물(112개), MCP·플러그인은 홈에 있어 못 봄. 토글은 `npm run tools:apply` 필요

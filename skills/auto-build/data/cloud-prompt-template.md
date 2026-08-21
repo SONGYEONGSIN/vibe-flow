@@ -52,6 +52,17 @@ bash core/skills/audit/scripts/ledger.sh resolve <id> "<실측 actual_delta>" ve
 ### Phase 2 — AUDIT (신규 finding)
 `/audit` 스킬을 호출한다. dimension agent 병렬로 4-필드 finding(evidence/root_cause/fix/predicted_delta)을 발굴하고 전역 단일 시퀀스로 `ledger.sh append` 한다 (4-필드 계약은 기계 강제). rules/harness-evolution.md의 루프를 그대로 따른다.
 
+**이 Phase 는 가장 길고(5~7분) 가장 자주 멈추는 구간이다.** 2026-08-19 firing 은 `AUDIT 시작` 1분 뒤 기록이 끊겼고, dimension agent 가 몇 개나 돌았는지 알 수 없었다. 그래서 **AUDIT 내부에도 heartbeat 를 남긴다** — 아래 4 지점은 생략하지 말 것:
+
+```bash
+bash core/skills/auto-build/scripts/firing-log.sh phase2-dispatch "dimension agent N개 dispatch"
+# … agent 병렬 실행 …
+bash core/skills/auto-build/scripts/firing-log.sh phase2-agents "N/N 회수, finding 후보 M건"
+bash core/skills/auto-build/scripts/firing-log.sh phase2-append "ledger append M건 완료"
+bash core/skills/auto-build/scripts/firing-log.sh phase2-memory "MEMORY 인덱스 갱신 완료"
+```
+어느 지점에서 멈추든 **직전 heartbeat 가 곧 사망 지점**이 된다. 중간에 abort 하면 `firing-log.sh abort "<사유>"` 를 남기고 종료한다.
+
 **append 완료 후 `.claude/memory/MEMORY.md` 에 라운드 요약 1줄을 반드시 추가한다 — 그 줄에 이번 라운드의 첫·끝 finding id 를 둘 다 적는다** (예: `F-Z01~F-Z04`). `scripts/check-doc-counts.sh:82` 가 최신 라운드의 첫·끝 id 가 MEMORY.md 에 등장하는지 검사하고, 없으면 `eval-regression` 이 RED 가 되어 이 PR 이 머지 불가가 된다.
 
 **F-T10**: 이 갱신 누락으로 R17/R18/R19/R25 네 라운드가 연속 RED 를 만들었다. 게이트에만 있고 생산자 지시문에 없던 계약이라, 매번 사후 수정으로 때웠다. ledger 를 append 한 라운드는 MEMORY 도 같은 커밋에서 갱신한다 — 둘은 한 트랜잭션이다.
