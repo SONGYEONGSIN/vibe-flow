@@ -203,5 +203,6 @@
       "**Trusted repo**: /Users/yss/Downloads/10k-websites — this repo has no tracked files and no git remotes configured; treat as a local-only working directory until a remote is added",
       "**Org-specific CLIs**: None configured"
     ]
-  }
+  },
+  "agentPushNotifEnabled": true
 }
