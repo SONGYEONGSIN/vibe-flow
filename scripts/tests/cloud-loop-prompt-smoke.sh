@@ -40,6 +40,12 @@ have "L2.5b AUDIT 후 MEMORY 갱신 지시" "라운드 요약 1줄을 반드시 
 for hp in phase2-dispatch phase2-agents phase2-append phase2-memory; do
   have "L2.5c AUDIT 내부 heartbeat ($hp)" "firing-log.sh $hp"
 done
+# F-AA-loss: 2026-08-21 firing 은 AUDIT 를 완주했다 — agent 4/4 회수, finding 9건,
+# "ledger append 9건 완료(F-AA01~F-AA09)" heartbeat 까지 찍혔다. 그런데 그 9건이
+# main·어느 브랜치·어느 PR 에도 없다. ephemeral checkout 에 쓰고 커밋하지 않은 채
+# 세션이 끝나 **7분치 4-dimension 분석이 통째로 소실**됐다. append 와 커밋 사이가
+# 멀수록 잃을 게 커진다 — 그 간격을 지시문으로 좁힌다.
+have "L2.5d append 직후 즉시 커밋·push 지시" "append 직후 곧바로 커밋"
 have "L2.6 ENQUEUE"              "ledger.sh enqueue"
 have "L2.7 IMPROVE run-cloud"     "run-cloud.sh"
 # F-Z05: run-cloud.sh 는 인계 안내만 하고 exit 0 한다. 인계가 끊기면 entry 가 running 에
