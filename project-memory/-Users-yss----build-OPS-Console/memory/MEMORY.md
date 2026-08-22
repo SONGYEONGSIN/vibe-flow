@@ -23,3 +23,4 @@
 - [Agent SDK 호스팅 함정](claude-agent-sdk-hardening.md) — 실측 5건: MCP는 allowedTools로 안 막힘(개인 캘린더 유출 재현)·Bash도 disallowedTools 필요·interrupt 대신 abortController·도구 fetch 타임아웃·**m.result는 마지막 블록만(답 잘림 사고)**
 - [우편물·전도금](postal-receipts-petty-cash.md) — 등기 영수증을 Agent SDK로 판독(실측 15/15)→검토→확정 시 전도금 엑셀에 한 줄. 담당자는 총괄장 대조(대학원 표기 있을 때만 대학원 시트, 82%가 담당자 다름). 엑셀 쓰기라 중복검사·위치 재조회 필수
 - [도구 메뉴(스킬 카탈로그)](dev-tools-menu.md) — /dashboard/tools. 레포 .claude/ 를 훑은 커밋 생성물(112개), MCP·플러그인은 홈에 있어 못 봄. 토글은 `npm run tools:apply` 필요
+- [오픈안내 자동 발송](open-notice-auto-mail.md) — 개발·테스트 탭, 토글 켜면 오픈 시각에 대학 안내메일. ★실발송 검증 완료(정렬 OK). 오픈 안 기다리고 발송 검증하는 법 + dispatch가 일일보고 사각지대인 점
