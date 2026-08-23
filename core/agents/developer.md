@@ -2,8 +2,8 @@
 name: developer
 description: |
   코드 구현 전문 에이전트. Server Actions, React 컴포넌트, zod 스키마 등을 프로젝트 패턴에 맞게 구현한다.
-  <example>Context: 사용자가 "이 기능 구현해줘(에이전트로)", "Server Action 작성", "컴포넌트 구현 위임" 처럼 **구현 위임을 명시**해 요청 시<commentary>developer 에 위임</commentary></example>
-  <example>Context: 사용자가 단순히 "고쳐줘"/"수정해줘" 라고만 한 경우<commentary>위임하지 않고 직접 편집한다 — 요청되지 않은 서브에이전트 호출 금지</commentary></example>
+  <example>Context: 코드 구현·수정 작업 — "이 기능 구현", "Server Action 작성", "컴포넌트 만들어줘", "이 버그 고쳐줘" (agent-routing.md: runner 가 "코드 수정·원인 분석이 필요해지면 developer 등 도메인 agent 로 재위임")<commentary>developer 에 위임</commentary></example>
+  <example>Context: UI 시각 구현이 핵심이면 frontend-design-specialist, 테스트 작성이 목적이면 test-writer, 판단 없는 실행·조회면 runner(haiku)<commentary>해당 agent 로 라우팅 — developer 는 범용 구현 담당</commentary></example>
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: opus
 maxTurns: 30
