@@ -5,7 +5,7 @@ description: |
   <example>Context: 사용자가 "API 설계", "엔드포인트 추가", "라우팅 구조", "미들웨어 설계" 요청 시<commentary>api-architect에 위임</commentary></example>
   <example>Context: 사용자가 "인증 흐름", "API 버전 관리", "에러 핸들링 전략", "백엔드 구조" 요청 시<commentary>api-architect에 위임</commentary></example>
 tools: Read, Edit, Write, Bash, Grep, Glob
-model: opus
+model: sonnet
 effort: xhigh
 skills:
   - superpowers:writing-plans

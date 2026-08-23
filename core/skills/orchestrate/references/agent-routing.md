@@ -19,7 +19,7 @@
   │
   ├─ 외부 리서치? ──── YES → general-purpose (sonnet) + WebSearch
   │
-  ├─ UI 구현? ──────── YES → frontend-design-specialist (sonnet)
+  ├─ UI 구현? ──────── YES → frontend-design-specialist (opus)
   │
   ├─ DB/쿼리? ──────── YES → supabase-db-specialist (sonnet)
   │
@@ -116,14 +116,14 @@ Task(subagent_type="general-purpose", model="opus", prompt="...")
 
 | 에이전트 | 전문 분야 | 기본 모델 |
 |----------|----------|:---------:|
-| frontend-design-specialist | UI/UX 구현 | sonnet |
+| frontend-design-specialist | UI/UX 구현 | opus |
 | supabase-db-specialist | DB 스키마, RLS, 쿼리 | sonnet |
 | test-writer | 테스트 코드 작성 | sonnet |
 | code-reviewer (plugin) | 코드 품질 검증 | opus |
-| project-planner | 프로젝트 기획 | sonnet |
+| project-planner | 프로젝트 기획 | opus |
 | performance-optimizer | 성능 최적화 | sonnet |
 | api-architect | API 설계 | sonnet |
-| security-specialist | 보안 감사 | sonnet |
+| security-specialist | 보안 감사 | opus |
 
 ---
 
@@ -133,7 +133,7 @@ Task(subagent_type="general-purpose", model="opus", prompt="...")
 
 ```
 Phase 1: 기획
-  project-planner (sonnet) → PRD, 요구사항
+  project-planner (opus) → PRD, 요구사항
 
 Phase 2: 설계
   general-purpose (opus) → 아키텍처 설계
@@ -141,7 +141,7 @@ Phase 2: 설계
   api-architect (sonnet) → API 설계
 
 Phase 3: 구현 (병렬)
-  frontend-design-specialist (sonnet) → UI 컴포넌트
+  frontend-design-specialist (opus) → UI 컴포넌트
   general-purpose (sonnet) → 백엔드 로직
   test-writer (sonnet) → 테스트 코드
 
