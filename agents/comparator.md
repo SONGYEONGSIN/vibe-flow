@@ -1,6 +1,8 @@
 ---
 name: comparator
-description: 두 출력을 익명 블라인드 비교하여 품질 우열을 판정하는 에이전트
+description: |
+  `/debate`·pair mode 등 **스킬 내부 전용** 오케스트레이션 에이전트 — 사용자가 직접 호출할 대상이 아니다.
+  두 출력을 익명 블라인드 비교해 우열을 판정한다. 호출 주체는 스킬이며, 사용자 요청에 반응해 직접 뜨지 않는다.
 tools: Read, Grep, Glob
 disallowedTools: Edit, Write, Bash
 model: opus

@@ -1,6 +1,9 @@
 ---
 name: developer
-description: 코드 구현 전문 에이전트. Server Actions, React 컴포넌트, zod 스키마 등을 프로젝트 패턴에 맞게 구현한다.
+description: |
+  코드 구현 전문 에이전트. Server Actions, React 컴포넌트, zod 스키마 등을 프로젝트 패턴에 맞게 구현한다.
+  <example>Context: 사용자가 "이 기능 구현해줘(에이전트로)", "Server Action 작성", "컴포넌트 구현 위임" 처럼 **구현 위임을 명시**해 요청 시<commentary>developer 에 위임</commentary></example>
+  <example>Context: 사용자가 단순히 "고쳐줘"/"수정해줘" 라고만 한 경우<commentary>위임하지 않고 직접 편집한다 — 요청되지 않은 서브에이전트 호출 금지</commentary></example>
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: opus
 maxTurns: 30
