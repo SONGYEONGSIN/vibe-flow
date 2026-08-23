@@ -151,7 +151,8 @@
     "vibe-flow@vibe-flow": true,
     "reprompt@repick-prompt": true,
     "page-commission@repick-design": true,
-    "insane-search@gptaku-plugins": true
+    "insane-search@gptaku-plugins": true,
+    "insane-design@gptaku-plugins": true
   },
   "extraKnownMarketplaces": {
     "vibe-flow": {
