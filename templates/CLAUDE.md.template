@@ -75,7 +75,7 @@ npx tsc --noEmit     # 타입 체크
 | 넓은 탐색·검색 (여러 파일 훑기) | `Explore` | haiku **(호출 시 명시)** |
 | 코드 구현·수정 | `developer` | opus |
 | UI 시각 구현 | `frontend-design-specialist` | opus |
-| 테스트 작성 | `test-writer` | opus |
+| 테스트 작성 | `test-writer` | sonnet |
 | 보안 스캔(read-only) / fix 포함 | `security` / `security-specialist` | opus |
 
 - **잡무를 opus 로 처리하지 않는다** — `runner`(haiku)가 같은 일을 1/5 비용으로 한다

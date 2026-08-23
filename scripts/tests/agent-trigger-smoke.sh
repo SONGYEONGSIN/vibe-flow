@@ -97,6 +97,50 @@ else
   fi
 fi
 
+echo "Test AT5: 라우팅 문서의 모델 컬럼 == agent frontmatter (F-AA13)"
+# frontmatter 의 `model:` 이 실효 설정이고 문서 표는 서술일 뿐이다. 둘을 잇는 게이트가
+# 없어 문서가 sonnet 이라 적은 agent 들이 전부 opus 로 떠 있었다(R-AA 실측 7건).
+# 문서를 읽고 라우팅해도 적힌 모델이 안 뜨면 비용 설계는 문서상에만 존재한다.
+ROUTING="$REPO_ROOT/core/skills/orchestrate/references/agent-routing.md"
+if [ ! -f "$ROUTING" ]; then
+  ng "AT5.0 agent-routing.md 부재"
+else
+  mism=""; checked=0
+  # 표 행 형식: | <에이전트> | <전문 분야> | <모델> |  — plugin 행은 core/agents 밖이라 제외
+  while IFS= read -r line; do
+    a=$(printf '%s' "$line" | awk -F'|' '{gsub(/^ +| +$/,"",$2); print $2}')
+    dm=$(printf '%s' "$line" | awk -F'|' '{gsub(/^ +| +$/,"",$4); print $4}')
+    case "$a" in *"(plugin)"*|""|"에이전트"|*"---"*) continue ;; esac
+    af="$AGENT_DIR/$a.md"
+    [ -f "$af" ] || continue
+    fm=$(awk 'NR==1&&/^---/{f=1;next} f&&/^---/{exit} f' "$af" | grep -E '^model:' | sed 's/^model: *//')
+    checked=$((checked + 1))
+    [ "$dm" = "$fm" ] || mism="$mism $a(문서=$dm/설정=$fm)"
+  done < "$ROUTING"
+  if [ -z "$mism" ]; then
+    ok "AT5.1 문서 모델 컬럼 == frontmatter ($checked 건 대조)"
+  else
+    ng "AT5.2 모델 불일치:$mism — 문서대로 라우팅해도 그 모델이 안 뜬다"
+  fi
+  # 표만 게이트하면 산문(`agent (sonnet) → …` 워크플로 예시)으로 드리프트가 되돌아온다.
+  # 문서 전체의 `<이름> (<모델>)` 표기도 같은 기준으로 대조한다. 내장 agent
+  # (Explore/general-purpose/Plan 등)는 frontmatter 가 없어 호출부 인자 소관 — 제외.
+  imism=""
+  while IFS= read -r pair; do
+    a=${pair%% *}; dm=$(printf '%s' "$pair" | sed 's/.*(\(.*\))/\1/')
+    af="$AGENT_DIR/$a.md"; [ -f "$af" ] || continue
+    fm=$(awk 'NR==1&&/^---/{f=1;next} f&&/^---/{exit} f' "$af" | grep -E '^model:' | sed 's/^model: *//')
+    [ "$dm" = "$fm" ] || imism="$imism $a(본문=$dm/설정=$fm)"
+  done <<EOF_INLINE
+$(grep -oE '[a-z][a-z-]+ \((haiku|sonnet|opus)\)' "$ROUTING" | sort -u)
+EOF_INLINE
+  if [ -z "$imism" ]; then
+    ok "AT5.3 본문 인라인 표기도 frontmatter 와 일치"
+  else
+    ng "AT5.4 인라인 불일치:$imism — 표만 고치고 산문에 옛 모델이 남았다"
+  fi
+fi
+
 echo
 echo "─────────────────────────────────────────"
 echo "PASS: $PASS   FAIL: $FAIL"
