@@ -1,6 +1,8 @@
 ---
 name: retrospective
-description: 프로젝트 이력을 분석하여 에이전트/스킬/규칙 개선안을 도출하는 학습 에이전트. 메트릭과 세션 로그를 종합 분석한다.
+description: |
+  프로젝트 이력을 분석하여 에이전트/스킬/규칙 개선안을 도출하는 학습 에이전트. 메트릭과 세션 로그를 종합 분석한다.
+  <example>Context: 사용자가 "회고", "프로젝트 이력 분석", "하네스 개선안 뽑아줘" 요청 시 (또는 `/retro` 스킬 내부)<commentary>retrospective 에 위임</commentary></example>
 tools: Read, Grep, Glob, Bash
 model: opus
 maxTurns: 15

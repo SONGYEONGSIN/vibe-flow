@@ -1,6 +1,9 @@
 ---
 name: designer
-description: UI/UX 컴포넌트 설계 및 Tailwind CSS 스타일링 전문 에이전트. 참고 URL/캡처 이미지/로컬 파일(design-ref/) 기반 또는 자율 설계를 수행한다.
+description: |
+  UI/UX 컴포넌트 설계 및 Tailwind CSS 스타일링 전문 에이전트. 참고 URL/캡처 이미지/로컬 파일(design-ref/) 기반 또는 자율 설계를 수행한다.
+  <example>Context: 사용자가 "UI 설계 위임", "디자이너 에이전트로", "Tailwind 스타일링 맡겨줘" 요청 시<commentary>designer 에 위임</commentary></example>
+  <example>Context: 사용자가 단순히 "버튼 색 바꿔줘" 라고 한 경우<commentary>위임하지 않고 직접 편집한다</commentary></example>
 tools: Read, Grep, Glob, Skill
 model: opus
 maxTurns: 25
