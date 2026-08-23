@@ -570,7 +570,33 @@ if [ ! -f "$PROJECT_DIR/CLAUDE.md" ]; then
   echo "  Created CLAUDE.md ({{PROJECT_NAME}} → $PROJECT_NAME)"
   echo "  {{PROJECT_DESCRIPTION}} 플레이스홀더를 수동으로 채워주세요"
 else
-  echo "  CLAUDE.md already exists, skipped"
+  # F-AA16: 기존 CLAUDE.md 는 skip 이라 템플릿 신규 섹션이 영영 도달하지 않았다.
+  # rules/agents/skills 는 safe_copy 로 전파되고 settings.local.json 은 --upgrade
+  # 탈출구라도 있는데 여기만 사각 — F-AA12(Agent Routing)가 실사용 프로젝트에
+  # 도달하지 못한 경로다. 사용자 소유 파일이므로 **덮어쓰지 않고**, 템플릿에 있고
+  # 대상에 없는 `## ` 섹션만 뒤에 덧붙인다(기존 본문은 한 글자도 건드리지 않음).
+  CM_TPL="$(mktemp)"
+  sed "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
+    "$SCRIPT_DIR/templates/CLAUDE.md.template" > "$CM_TPL"
+  cm_missing=""
+  while IFS= read -r sec; do
+    grep -qxF "$sec" "$PROJECT_DIR/CLAUDE.md" || cm_missing="${cm_missing}${sec}
+"
+  done < <(grep '^## ' "$CM_TPL")
+  if [ -n "$cm_missing" ]; then
+    cp "$PROJECT_DIR/CLAUDE.md" "$PROJECT_DIR/CLAUDE.md.bak.${TIMESTAMP}"
+    echo "  ↻ backup: CLAUDE.md.bak.${TIMESTAMP}"
+    printf '%s' "$cm_missing" | while IFS= read -r sec; do
+      [ -z "$sec" ] && continue
+      printf '\n' >> "$PROJECT_DIR/CLAUDE.md"
+      awk -v s="$sec" '$0==s{f=1} f&&/^## /&&$0!=s{exit} f' "$CM_TPL" \
+        >> "$PROJECT_DIR/CLAUDE.md"
+      echo "  + CLAUDE.md 섹션 추가: ${sec#\#\# }"
+    done
+  else
+    echo "  CLAUDE.md already exists, 누락 섹션 없음"
+  fi
+  rm -f "$CM_TPL"
 fi
 
 # Playwright config 복사 (기존 파일이 없을 때만)
