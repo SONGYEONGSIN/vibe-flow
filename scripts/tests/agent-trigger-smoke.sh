@@ -71,6 +71,32 @@ else
   ng "AT3.2 억제형 문구:$sup — agent-routing.md 트리와 충돌"
 fi
 
+echo "Test AT4: 라우팅 정책이 상시 컨텍스트에 노출 (F-AA12)"
+# agent description 은 항상 로드되지만, **비용 티어 규율**(잡무→runner/haiku 등)은
+# agent-routing.md 에만 있고 그 파일은 `/orchestrate` 스킬 reference 라 평소 로드되지
+# 않는다. 즉 라우팅은 되지만 "싼 티어로 내리기" 는 컨텍스트에 없어 일어나지 않는다.
+# 전체 트리는 /orchestrate 에 두고(leaves 분리), 요약만 프로젝트 CLAUDE.md 에 올린다.
+TPL="$REPO_ROOT/templates/CLAUDE.md.template"
+if [ ! -f "$TPL" ]; then
+  ng "AT4.0 CLAUDE.md.template 부재"
+else
+  if grep -q "Agent Routing" "$TPL"; then
+    ok "AT4.1 템플릿에 Agent Routing 섹션 존재"
+  else
+    ng "AT4.1 템플릿에 라우팅 요약 없음 — 비용 티어 규율이 상시 컨텍스트 밖"
+  fi
+  if grep -q "runner" "$TPL" && grep -q "haiku" "$TPL"; then
+    ok "AT4.2 저비용 티어(runner/haiku) 명시"
+  else
+    ng "AT4.2 저비용 티어 미명시 — 잡무가 opus 로 흘러간다"
+  fi
+  if grep -q "agent-routing.md" "$TPL"; then
+    ok "AT4.3 전체 트리 위치를 가리킴 (leaves 분리)"
+  else
+    ng "AT4.3 상세 참조 없음 — 요약만 있고 근거를 못 찾는다"
+  fi
+fi
+
 echo
 echo "─────────────────────────────────────────"
 echo "PASS: $PASS   FAIL: $FAIL"

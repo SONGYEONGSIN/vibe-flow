@@ -65,6 +65,24 @@ npx tsc --noEmit     # 타입 체크
 - `design.md` — 디자인 토큰, 색상 규칙, 공통 컴포넌트
 - `harness-evolution.md` — AHE 관찰성 기반 자기 진화(evaluate→analyze→improve, 4-필드 finding, decision-observability) *(메타 — 이 프로젝트가 harness/config 시스템일 때, `/audit` 스킬과 연계)*
 
+## Agent Routing
+
+작업 성격에 따라 적절한 에이전트로 라우팅한다 — **비용과 품질의 균형**이 목적이다.
+
+| 작업 | 라우팅 | 모델 |
+|------|--------|------|
+| 판단 불필요 잡무 (명령 실행, 로그 확인, 빌드 구동) | `runner` | haiku |
+| 넓은 탐색·검색 (여러 파일 훑기) | `Explore` | haiku |
+| 코드 구현·수정 | `developer` | opus |
+| UI 시각 구현 | `frontend-design-specialist` | sonnet |
+| 테스트 작성 | `test-writer` | sonnet |
+| 보안 스캔(read-only) / fix 포함 | `security` / `security-specialist` | — |
+
+- **잡무를 opus 로 처리하지 않는다** — `runner`(haiku)가 같은 일을 1/5 비용으로 한다
+- **fan-out 시 모델을 명시**한다 — 미지정이면 세션 모델을 상속해 요금이 배가 된다
+- 전체 의사결정 트리·대체 경로: `.claude/skills/orchestrate/references/agent-routing.md`
+- 각 에이전트의 진입 조건은 `.claude/agents/*.md` 의 `<example>` 참조
+
 ## Learning System
 
 코드 수정 시 메트릭이 자동 수집되고, 학습 내용이 `.claude/memory/`에 축적된다:
