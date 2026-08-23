@@ -37,7 +37,10 @@ have "L2.5b AUDIT 후 MEMORY 갱신 지시" "라운드 요약 1줄을 반드시 
 # F-AA01: Phase 2 는 가장 길고 가장 자주 멈추는 구간인데 heartbeat 가 진입 1건뿐이라,
 # 08-19 firing 이 "AUDIT 시작" 1분 뒤 끊겼을 때 agent 가 몇 개 돌았는지 알 수 없었다.
 # 내부 4 지점(dispatch/agents/append/memory)이 배선돼 있어야 사망 지점이 좁혀진다.
-for hp in phase2-dispatch phase2-agents phase2-append phase2-memory; do
+# F-AA09: F-Z07 이 Phase 2 를 4 구간으로 쪼갠 뒤, 이제 append→memory 가 가장 굵은
+# 미관측 구간이 됐다(3일 연속 그 자리에서 중단). 해상도를 올리면 병목이 옮겨가므로
+# 새 병목에 다시 heartbeat 를 박는다 — 추측으로 원인을 지목하면 오진을 반복한다.
+for hp in phase2-dispatch phase2-agents phase2-append phase2-commit phase2-memory-start phase2-memory; do
   have "L2.5c AUDIT 내부 heartbeat ($hp)" "firing-log.sh $hp"
 done
 # F-AA-loss: 2026-08-21 firing 은 AUDIT 를 완주했다 — agent 4/4 회수, finding 9건,

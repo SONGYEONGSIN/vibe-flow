@@ -59,6 +59,8 @@ bash core/skills/auto-build/scripts/firing-log.sh phase2-dispatch "dimension age
 # … agent 병렬 실행 …
 bash core/skills/auto-build/scripts/firing-log.sh phase2-agents "N/N 회수, finding 후보 M건"
 bash core/skills/auto-build/scripts/firing-log.sh phase2-append "ledger append M건 완료"
+bash core/skills/auto-build/scripts/firing-log.sh phase2-commit "라운드 브랜치 push 완료: <브랜치명>"
+bash core/skills/auto-build/scripts/firing-log.sh phase2-memory-start "MEMORY 인덱스 편집 착수"
 bash core/skills/auto-build/scripts/firing-log.sh phase2-memory "MEMORY 인덱스 갱신 완료"
 ```
 어느 지점에서 멈추든 **직전 heartbeat 가 곧 사망 지점**이 된다. 중간에 abort 하면 `firing-log.sh abort "<사유>"` 를 남기고 종료한다.
