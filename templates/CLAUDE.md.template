@@ -72,11 +72,11 @@ npx tsc --noEmit     # 타입 체크
 | 작업 | 라우팅 | 모델 |
 |------|--------|------|
 | 판단 불필요 잡무 (명령 실행, 로그 확인, 빌드 구동) | `runner` | haiku |
-| 넓은 탐색·검색 (여러 파일 훑기) | `Explore` | haiku |
+| 넓은 탐색·검색 (여러 파일 훑기) | `Explore` | haiku **(호출 시 명시)** |
 | 코드 구현·수정 | `developer` | opus |
-| UI 시각 구현 | `frontend-design-specialist` | sonnet |
-| 테스트 작성 | `test-writer` | sonnet |
-| 보안 스캔(read-only) / fix 포함 | `security` / `security-specialist` | — |
+| UI 시각 구현 | `frontend-design-specialist` | opus |
+| 테스트 작성 | `test-writer` | opus |
+| 보안 스캔(read-only) / fix 포함 | `security` / `security-specialist` | opus |
 
 - **잡무를 opus 로 처리하지 않는다** — `runner`(haiku)가 같은 일을 1/5 비용으로 한다
 - **fan-out 시 모델을 명시**한다 — 미지정이면 세션 모델을 상속해 요금이 배가 된다
