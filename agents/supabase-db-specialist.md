@@ -5,7 +5,7 @@ description: |
   <example>Context: 사용자가 "DB 스키마 설계", "테이블 만들어줘", "SQL 작성", "쿼리 최적화" 요청 시<commentary>supabase-db-specialist에 위임</commentary></example>
   <example>Context: 사용자가 "RLS 정책", "인덱스 추가", "마이그레이션 작성", "Supabase 설정", "데이터베이스 성능" 요청 시<commentary>supabase-db-specialist에 위임</commentary></example>
 tools: Read, Edit, Write, Bash, Grep, Glob
-model: opus
+model: sonnet
 effort: xhigh
 color: green
 skills: []

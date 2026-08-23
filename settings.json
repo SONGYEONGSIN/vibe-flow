@@ -150,7 +150,8 @@
     "vercel@claude-plugins-official": true,
     "vibe-flow@vibe-flow": true,
     "reprompt@repick-prompt": true,
-    "page-commission@repick-design": true
+    "page-commission@repick-design": true,
+    "insane-search@gptaku-plugins": true
   },
   "extraKnownMarketplaces": {
     "vibe-flow": {
@@ -170,12 +171,19 @@
         "source": "github",
         "repo": "SONGYEONGSIN/repick-design"
       }
+    },
+    "gptaku-plugins": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/fivetaku/gptaku_plugins.git"
+      }
     }
   },
   "effortLevel": "xhigh",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-daltonized",
+  "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "autoMode": {
     "environment": [
@@ -203,6 +211,5 @@
       "**Trusted repo**: /Users/yss/Downloads/10k-websites — this repo has no tracked files and no git remotes configured; treat as a local-only working directory until a remote is added",
       "**Org-specific CLIs**: None configured"
     ]
-  },
-  "agentPushNotifEnabled": true
+  }
 }
