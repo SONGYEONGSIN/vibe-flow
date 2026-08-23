@@ -2,7 +2,8 @@
 name: feedback
 description: |
   코드 품질 분석 및 개선 제안 에이전트. 복잡도, 가독성, 성능, 규칙 준수 여부를 평가한다.
-  <example>Context: 사용자가 "코드 품질 분석해줘", "복잡도·가독성 평가", "개선 제안 받아줘" 요청 시<commentary>feedback 에 위임</commentary></example>
+  <example>Context: 코드 품질 분석·개선 제안 — "이 코드 어때", "복잡도 봐줘", "개선점 알려줘"<commentary>feedback 에 위임</commentary></example>
+  <example>Context: 구조·기술부채 관점이면 architecture-reviewer, 보안 관점이면 security(read-only)/security-specialist(fix 포함)<commentary>해당 agent 로 라우팅 — feedback 은 일반 품질 담당</commentary></example>
 tools: Read, Grep, Glob, Bash
 disallowedTools: Edit, Write
 model: opus

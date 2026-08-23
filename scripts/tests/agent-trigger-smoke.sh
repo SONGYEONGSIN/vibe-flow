@@ -2,15 +2,18 @@
 # agent-trigger-smoke.sh — agent 호출 조건 명시 계약 (audit F-AA10)
 # 실행: bash scripts/tests/agent-trigger-smoke.sh
 #
-# Claude Code 는 "사용자가 요청하지 않은 서브에이전트 호출 금지" 를 규칙으로 둔다.
-# 그런데 agent description 이 호출 조건 없이 역할만 서술하면("코드 구현 전문
-# 에이전트"), 평범한 작업 요청에도 서브에이전트가 붙어 사용자가 예상 못 한
-# 병렬 dispatch 와 요금이 발생한다 — 특히 fan-out 이 세션 모델을 상속하면 배가 된다.
+# vibe-flow 는 **능동 라우팅** 하네스다 — `orchestrate/references/agent-routing.md` 의
+# 의사결정 트리가 "요청 성격에 따라 적절한 agent 로 보낸다"를 규정하고, `runner`(haiku)
+# 같은 저비용 티어는 자동 라우팅돼야 값을 한다. 따라서 계약은 **억제가 아니라 라우팅**이다.
 #
-# 계약: 모든 agent description 은 **호출 조건을 명시**해야 한다. 둘 중 하나다.
-#   (a) 사용자 요청 트리거 — "…요청 시" 예시를 포함
-#   (b) 스킬 내부 전용   — "내부 전용" 을 명시해 직접 호출 대상이 아님을 선언
-# 조건 없는 역할-only description 은 두 경우 어디에도 속하지 않아 오호출을 부른다.
+# 계약: 모든 agent description 은 **언제 이 agent 로 오는지**를 밝혀야 한다.
+#   (a) 라우팅 기준 — `<example>` 로 진입 조건 + **다른 agent 로 보낼 대조 케이스**
+#   (b) 스킬 내부 전용 — "내부 전용" 선언 (사용자 직접 호출 대상 아님, 라우팅 정밀도↑)
+# 역할만 적힌 description("코드 구현 전문 에이전트")은 둘 다 아니어서 **라우팅이 안 된다**
+# — 언제 developer 이고 언제 frontend-design-specialist 인지 구분할 근거가 없다.
+#
+# 주의(F-AA10 정정): "위임하지 말고 직접 편집" 류의 **억제형 문구는 금지**한다.
+# agent-routing.md 의 트리와 정면 충돌하며, 하네스가 존재하는 이유(자동 위임)를 없앤다.
 
 set -u
 
@@ -21,7 +24,7 @@ PASS=0; FAIL=0
 ok() { echo "  ✓ $1"; PASS=$((PASS + 1)); }
 ng() { echo "  ✗ $1"; FAIL=$((FAIL + 1)); }
 
-echo "Test AT1: agent description 이 호출 조건을 명시"
+echo "Test AT1: agent description 이 라우팅 기준을 명시"
 missing=""
 total=0
 for f in "$AGENT_DIR"/*.md; do
@@ -30,15 +33,16 @@ for f in "$AGENT_DIR"/*.md; do
   name=$(basename "$f" .md)
   # frontmatter(첫 --- ~ 두번째 ---) 안의 description 블록만 검사
   fm=$(awk 'NR==1&&/^---/{f=1;next} f&&/^---/{exit} f' "$f")
-  if printf '%s' "$fm" | grep -qE '요청 시|내부 전용'; then
+  # 라우팅 기준 = <example>Context: …</example> 로 진입 조건 서술. 또는 내부 전용 선언.
+  if printf '%s' "$fm" | grep -qE '<example>Context:|내부 전용'; then
     continue
   fi
   missing="$missing $name"
 done
 if [ -z "$missing" ]; then
-  ok "AT1.1 전 agent($total) 가 호출 조건 명시 (요청 시 / 내부 전용)"
+  ok "AT1.1 전 agent($total) 가 라우팅 기준 명시 (example / 내부 전용)"
 else
-  ng "AT1.2 조건 미표기:$missing — 요청 없이 서브에이전트가 뜰 수 있다"
+  ng "AT1.2 라우팅 기준 미표기:$missing — 언제 이 agent 로 보낼지 판단 근거가 없다"
 fi
 
 echo "Test AT2: 스킬 내부 전용 agent 는 직접 호출 대상이 아님을 선언"
@@ -54,6 +58,18 @@ for name in comparator moderator validator; do
     ng "AT2 $name — 내부 전용 미선언 (사용자 요청 없이 호출될 수 있다)"
   fi
 done
+
+echo "Test AT3: 억제형 문구 부재 (라우팅 트리와 충돌 방지)"
+sup=""
+for f in "$AGENT_DIR"/*.md; do
+  [ -f "$f" ] || continue
+  if grep -qE '위임하지 (말고|않고)' "$f"; then sup="$sup $(basename "$f" .md)"; fi
+done
+if [ -z "$sup" ]; then
+  ok "AT3.1 억제형('위임하지 말고/않고') 0건 — 능동 라우팅 설계와 정합"
+else
+  ng "AT3.2 억제형 문구:$sup — agent-routing.md 트리와 충돌"
+fi
 
 echo
 echo "─────────────────────────────────────────"
