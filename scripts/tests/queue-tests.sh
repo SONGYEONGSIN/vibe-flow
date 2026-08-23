@@ -308,7 +308,12 @@ new_ts=$(python3 -c "import datetime;print(datetime.datetime.now(datetime.timezo
 printf '{"op":"status_update","id":"%s","new_status":"running","ts":"%s"}\n' "$rid" "$old_ts" >> "$QUEUE_STORE"
 printf '{"op":"status_update","id":"%s","new_status":"running","ts":"%s"}\n' "$fid" "$new_ts" >> "$QUEUE_STORE"
 
-out=$(bash "$QUEUE" reclaim 6 2>&1)
+# F-AA14: 열린 PR 조회를 반드시 스텁한다. 미스텁이면 기본값 __gh_open_pr_count 가
+# 실 `gh api` 를 때려 **실행 시점 repo 상태**(열린 PR 유무)에 결과가 좌우된다.
+# CI 는 smoke 잡에 GH_TOKEN 이 없어 조회가 실패→0 으로 떨어지므로 늘 통과했고,
+# 로컬은 PR 이 하나라도 열려 있으면 회수가 보류돼 QR.1/3/4 가 깨졌다 — 거짓 PASS 경로.
+ZSTUB="$RTMP/gh0"; printf '#!/bin/bash\necho 0\n' > "$ZSTUB"; chmod +x "$ZSTUB"
+out=$(QUEUE_OPEN_PR_CMD="$ZSTUB" bash "$QUEUE" reclaim 6 2>&1)
 st_old=$(bash "$QUEUE" list --all | awk -v i="$rid" -F'\t' '$1==i{print $2}')
 st_new=$(bash "$QUEUE" list --all | awk -v i="$fid" -F'\t' '$1==i{print $2}')
 [ "$st_old" = "queued" ] && { echo "  ✓ QR.1 24h 경과 running → queued 회수"; PASS=$((PASS+1)); }   || { echo "  ✗ QR.1 stale entry status=$st_old (want queued)"; FAIL=$((FAIL+1)); }
