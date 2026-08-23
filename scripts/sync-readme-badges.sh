@@ -12,7 +12,12 @@ set -u
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 cd "$REPO_ROOT" || exit 1
 
-CORE=$(find core/skills -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+# F-AA19: ~/.claude/skills 심볼릭 링크로 유입된 외부 스킬을 세지 않는다 (추적 대상만)
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  CORE=$(git ls-files core/skills | awk -F/ 'NF>2 {print $3}' | sort -u | wc -l | tr -d ' ')
+else
+  CORE=$(find core/skills -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+fi
 EXT=$(find extensions -mindepth 3 -maxdepth 3 -type d -path '*/skills/*' 2>/dev/null | wc -l | tr -d ' ')
 HOOKS=$(find core/hooks -name "*.sh" -type f 2>/dev/null | wc -l | tr -d ' ')
 AGENTS_CORE=$(find core/agents -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')

@@ -111,5 +111,18 @@ make_fixture "$TMP/insync"
 add_ledger "$TMP/insync" "감사 F-X01~F-X02 등록"
 bash "$CHK" "$TMP/insync" >/dev/null 2>&1; assert_exit "index-insync-exit0" "0" "$?"
 
+echo "Test D-U: 미추적 스킬 디렉토리는 카운트에서 제외 (F-AA19)"
+# ~/.claude/skills 가 core/skills 의 심볼릭 링크라 전역 설치된 외부 스킬이 작업트리에
+# 나타난다. find 기반 카운트는 그걸 세어 로컬(48)과 CI 깨끗한 체크아웃(45)이 갈렸다 —
+# 같은 게이트가 환경에 따라 다른 것을 센다. 실측 대상은 **추적되는 것**이어야 한다.
+make_fixture "$TMP/untracked"
+(cd "$TMP/untracked" && git init -q \
+   && git add -A >/dev/null 2>&1 \
+   && git -c user.email=t@t -c user.name=t commit -qm init >/dev/null 2>&1)
+mkdir -p "$TMP/untracked/core/skills/foreign-global"
+echo "---" > "$TMP/untracked/core/skills/foreign-global/SKILL.md"
+bash "$CHK" "$TMP/untracked" >/dev/null 2>&1
+assert_exit "untracked-skill-무시" "0" "$?"
+
 echo ""; echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

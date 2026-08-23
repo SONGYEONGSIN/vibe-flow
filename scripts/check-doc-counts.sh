@@ -18,7 +18,15 @@ for f in README.md .claude-plugin/plugin.json .claude-plugin/marketplace.json; d
 done
 
 # 실측 카운트 (core/hooks의 _common.sh 헬퍼, core/agents의 README.md 제외)
-ACT_SKILLS=$(find core/skills -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+# F-AA19: ~/.claude/skills 가 core/skills 의 심볼릭 링크라 **전역 설치된 외부 스킬**이
+# 작업트리에 나타난다(실측 3건). find 는 그걸 세어 로컬 48 / CI 깨끗한 체크아웃 45 로
+# 갈렸다 — 같은 게이트가 환경에 따라 다른 것을 센다(F-AA14 와 같은 계열). 카탈로그의
+# 실측 대상은 **추적되는 것**이다. 비-git 경로(설치된 target project)는 find 폴백.
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  ACT_SKILLS=$(git ls-files core/skills | awk -F/ 'NF>2 {print $3}' | sort -u | wc -l | tr -d ' ')
+else
+  ACT_SKILLS=$(find core/skills -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+fi
 ACT_AGENTS=$(find core/agents -maxdepth 1 -name '*.md' ! -name 'README.md' 2>/dev/null | wc -l | tr -d ' ')
 # F-L05 (audit R12): validate.sh taxonomy(REQUIRED_HOOKS 26 + REQUIRED_UTILITIES)와 통일 —
 # message-bus.sh 는 CLI 유틸(F-I03), git-post-commit.sh 는 git 훅이라 Claude hook 카운트에서 제외.

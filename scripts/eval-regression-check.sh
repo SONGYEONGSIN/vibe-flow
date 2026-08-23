@@ -202,13 +202,22 @@ else
 fi
 
 # ─── E. Core/Extension 카운트 ───
-CORE_SKILLS=$(find core/skills -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+# F-AA19: ~/.claude/skills 심볼릭 링크로 유입된 외부 스킬을 세지 않는다 (추적 대상만)
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  CORE_SKILLS=$(git ls-files core/skills | awk -F/ 'NF>2 {print $3}' | sort -u | wc -l | tr -d ' ')
+else
+  CORE_SKILLS=$(find core/skills -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+fi
 EXT_SKILLS=$(find extensions -mindepth 3 -maxdepth 3 -type d -path '*/skills/*' 2>/dev/null | wc -l | tr -d ' ')
 
 # F-L08 (audit R12): 플로어는 디렉토리 수를 세고 section A 는 부재 파일을 iterate-skip
 # 하므로, SKILL.md 없는 스킬 dir 이 두 fail-open 합성으로 게이트를 통과했다.
 # dir 수 ↔ SKILL.md 파일 수 일치를 강제해 manifest 없는 깨진 스킬을 차단.
-CORE_SKILL_MDS=$(find core/skills -mindepth 2 -maxdepth 2 -name SKILL.md 2>/dev/null | wc -l | tr -d ' ')
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  CORE_SKILL_MDS=$(git ls-files 'core/skills/*/SKILL.md' | wc -l | tr -d ' ')
+else
+  CORE_SKILL_MDS=$(find core/skills -mindepth 2 -maxdepth 2 -name SKILL.md 2>/dev/null | wc -l | tr -d ' ')
+fi
 EXT_SKILL_MDS=$(find extensions -mindepth 4 -maxdepth 4 -path '*/skills/*/SKILL.md' 2>/dev/null | wc -l | tr -d ' ')
 if [ "$CORE_SKILLS" -ne "$CORE_SKILL_MDS" ] || [ "$EXT_SKILLS" -ne "$EXT_SKILL_MDS" ]; then
   err "스킬 dir ↔ SKILL.md 불일치 (core ${CORE_SKILL_MDS}/${CORE_SKILLS}, ext ${EXT_SKILL_MDS}/${EXT_SKILLS}) — SKILL.md 없는 스킬 dir 존재"
