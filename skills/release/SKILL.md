@@ -73,18 +73,40 @@ Chops release 스킬 패턴 적용. Conventional Commits 기반 semver 자동 �
 3. `## [Unreleased]`를 `## [{VERSION}] - {YYYY-MM-DD}`로 변경
 4. 최상단에 빈 `## [Unreleased]` 섹션 추가
 
-### 5. 태그 및 푸시
+### 5. 선언 버전 동기화
+
+`.claude-plugin/` 의 버전 필드를 CHANGELOG 와 같은 값으로 올린다. **여기를 빼면 태그만 오르고 설치자가 보는 버전은 직전 릴리즈에 머문다.**
+
+```bash
+# plugin.json 1곳 + marketplace.json 2곳 (.plugins[].version, .version) = 총 3곳
+```
+
+v2.4.0·v2.5.0 두 번 다 절차에 없어 릴리즈 커밋에서 손으로 메웠다. `scripts/tests/release-skill-smoke.sh` 의 RS4 가 3곳 일치를 검사한다.
+
+### 6. 릴리즈 커밋 → PR → 태그
+
+**main 은 보호 브랜치다 — 직접 push 는 remote 가 거부한다**(`protected branch hook declined`). 릴리즈 커밋도 PR 을 타야 하고, 태그는 **머지 후** 단다.
 
 `--dry-run`이면 여기서 결과만 보여주고 종료.
 
 ```bash
-git add CHANGELOG.md
+git checkout -b "chore/release-v{VERSION}"
+git add CHANGELOG.md .claude-plugin/plugin.json .claude-plugin/marketplace.json
 git commit -m "chore: release v{VERSION}"
+git push -u origin "chore/release-v{VERSION}"
+gh pr create --title "chore: release v{VERSION}" --body-file <본문>
+
+# CI green 확인 후
+gh pr merge --squash --delete-branch
+git checkout main && git pull
+
+# 태그는 머지된 main 에 단다 (태그만 push — 브랜치는 이미 PR 로 반영됨)
 git tag -a "v{VERSION}" -m "Release v{VERSION}"
-git push origin main --tags
+git push origin "v{VERSION}"
+gh release create "v{VERSION}" --title "v{VERSION} — {요약}" --notes-file <CHANGELOG 해당 섹션>
 ```
 
-### 6. 완료 보고
+### 7. 완료 보고
 
 ```markdown
 ## Release v{VERSION} 완료
@@ -92,10 +114,11 @@ git push origin main --tags
 - 태그: v{VERSION}
 - 커밋: {N}개 포함
 - CHANGELOG: 갱신됨
-- 푸시: origin/main + tags
+- 선언 버전: plugin.json + marketplace.json = {VERSION}
+- 릴리즈: GitHub Releases 발행
 ```
 
-### 7. events.jsonl 기록
+### 8. events.jsonl 기록
 
 ```bash
 echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"release\",\"version\":\"$VERSION\",\"semver_type\":\"$SEMVER_TYPE\",\"commits\":$N}" >> .claude/events.jsonl
@@ -106,6 +129,8 @@ echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"release\",\"version\
 ## 규칙
 
 - 사용자 확인 없이 태그/푸시 절대 금지
+- **main 직접 push 금지** — 보호 브랜치가 거부한다. 릴리즈 커밋도 PR 경로
+- **선언 버전 3곳(plugin.json 1 + marketplace.json 2)을 CHANGELOG 와 함께 올린다** — 태그만 올리면 설치자가 보는 버전이 어긋난다
 - CHANGELOG 항목은 사용자 관점으로 재작성 (커밋 메시지 복사 붙여넣기 금지)
 - `--dry-run`은 파일 수정 없이 미리보기만
 - 릴리즈 커밋은 `chore: release v{VERSION}` 형식
