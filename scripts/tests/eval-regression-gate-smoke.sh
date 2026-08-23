@@ -21,7 +21,16 @@ trap 'rm -rf "$TMP"' EXIT INT TERM
 
 PRISTINE="$TMP/pristine"
 mkdir -p "$PRISTINE"
-(cd "$REPO_ROOT" && tar --exclude=.git --exclude=node_modules -cf - . 2>/dev/null) \
+# F-AA19: `tar .` 는 **미추적 파일까지** fixture 에 복사한다. ~/.claude/skills 가
+# core/skills 의 심볼릭 링크라 전역 설치된 외부 스킬이 작업트리에 상주하고, 그것이
+# fixture 로 넘어가 대조군(온전한 fixture)이 이미 실패했다 — 워킹트리 오염이 게이트
+# 결과를 좌우한다. 추적분은 제외 없이, **미추적 항목만** 빼서 CI 와 같은 트리를 만든다.
+# (working-tree 수정분은 남겨야 한다 — 커밋 전 스크립트를 검증하는 것이 이 스모크의 목적)
+UNTRACKED_EXC=()
+while IFS= read -r u; do
+  [ -n "$u" ] && UNTRACKED_EXC+=(--exclude="./${u%/}")
+done < <(cd "$REPO_ROOT" && git ls-files --others --exclude-standard --directory 2>/dev/null)
+(cd "$REPO_ROOT" && tar --exclude=.git --exclude=node_modules "${UNTRACKED_EXC[@]}" -cf - . 2>/dev/null) \
   | (cd "$PRISTINE" && tar -xf -) || { echo "fixture 생성 실패"; exit 1; }
 
 new_case() { # $1=케이스 dir 이름 → 경로 echo
