@@ -1,6 +1,8 @@
 ---
 name: moderator
-description: 에이전트 간 토론을 관리하고 합의를 도출하는 중재 에이전트
+description: |
+  `/debate` **스킬 내부 전용** 중재 에이전트 — 사용자가 직접 호출할 대상이 아니다.
+  에이전트 간 토론을 관리하고 합의를 도출한다. 호출 주체는 스킬이며, 사용자 요청에 반응해 직접 뜨지 않는다.
 tools: Read, Grep, Glob, Bash
 model: opus
 maxTurns: 20

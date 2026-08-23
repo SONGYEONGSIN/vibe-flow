@@ -1,6 +1,8 @@
 ---
 name: feedback
-description: 코드 품질 분석 및 개선 제안 에이전트. 복잡도, 가독성, 성능, 규칙 준수 여부를 평가한다.
+description: |
+  코드 품질 분석 및 개선 제안 에이전트. 복잡도, 가독성, 성능, 규칙 준수 여부를 평가한다.
+  <example>Context: 사용자가 "코드 품질 분석해줘", "복잡도·가독성 평가", "개선 제안 받아줘" 요청 시<commentary>feedback 에 위임</commentary></example>
 tools: Read, Grep, Glob, Bash
 disallowedTools: Edit, Write
 model: opus
