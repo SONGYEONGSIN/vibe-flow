@@ -14,3 +14,4 @@
 {"ts":"2026-08-24T21:25:46Z","phase":"phase4-corrected","detail":"Phase3/4 재정리: PR #237(enqueue 재정리) + PR #236(F-Q18 fix, EXPECTED_SMOKE CI fix 포함)","base_sha":"6b79b13"}
 {"ts":"2026-08-24T21:26:21Z","phase":"phase7-graduation","detail":"disarmed — tick no-op (기존 정책 그대로)","base_sha":"6b79b13"}
 {"ts":"2026-08-24T21:26:23Z","phase":"phase8-skip","detail":"tier=off (generative 아님) — Phase 8 skip","base_sha":"6b79b13"}
+{"ts":"2026-08-24T21:26:26Z","phase":"cycle-done","detail":"1 firing = 1 cycle 완료. PR #236(F-Q18 fix, CI 수정 포함, HOLD_TIER) + PR #237(큐 정리) 오픈. 사람 대기","base_sha":"6b79b13"}
