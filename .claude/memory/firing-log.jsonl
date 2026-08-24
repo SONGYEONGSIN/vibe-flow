@@ -10,3 +10,4 @@
 {"ts":"2026-08-24T21:06:34Z","phase":"phase3-enqueue","detail":"15건 enqueue, 7건 safety-core skip. branch chore/audit-verify-enqueue-20260824 push 완료","base_sha":"91efb5c"}
 {"ts":"2026-08-24T21:07:12Z","phase":"phase4-pop","detail":"F-Q18 pop: plan_completed emit 에 source 필드 추가","base_sha":"15f6899"}
 {"ts":"2026-08-24T21:24:00Z","phase":"phase5-mergegate","detail":"PR #236 DECISION=HOLD_TIER(tier=generative(3)>graduated=off(0)) — 머지 안 함, 사람 대기","base_sha":"792c46d"}
+{"ts":"2026-08-24T21:24:03Z","phase":"phase6-selfupdate","detail":"머지 미발생(HOLD_TIER) — self-update skip","base_sha":"792c46d"}
