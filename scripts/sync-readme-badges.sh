@@ -18,28 +18,45 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 else
   CORE=$(find core/skills -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
 fi
-EXT=$(find extensions -mindepth 3 -maxdepth 3 -type d -path '*/skills/*' 2>/dev/null | wc -l | tr -d ' ')
-HOOKS=$(find core/hooks -name "*.sh" -type f 2>/dev/null | wc -l | tr -d ' ')
-AGENTS_CORE=$(find core/agents -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-AGENTS_EXT=$(find extensions -path '*/agents/*.md' -type f 2>/dev/null | wc -l | tr -d ' ')
-AGENTS_TOTAL=$((AGENTS_CORE + AGENTS_EXT))
+# F-AA20: 카운트·배제 규칙을 check-doc-counts.sh 의 ACT_* 와 **1:1로 유지**한다.
+# 두 계기가 각자 규칙을 정의하면 생성기 산출을 게이트가 거부한다 — 실측(2026-08-23):
+#   hooks  30 vs 27  (생성기는 하위 디렉토리 + _common/message-bus/git-post-commit 포함)
+#   agents 25 vs 23  (생성기는 core+extensions, 게이트는 core 만)
+# Extensions 배지는 **팩 수**(7)지 스킬 수(12)가 아니다 — 세는 대상이 다르므로 별도 식.
+EXT_PACKS=$(find extensions -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+AGENTS=$(find core/agents -maxdepth 1 -name '*.md' ! -name 'README.md' 2>/dev/null | wc -l | tr -d ' ')
+HOOKS=$(find core/hooks -maxdepth 1 -name '*.sh' ! -name '_common.sh' ! -name 'message-bus.sh' ! -name 'git-post-commit.sh' 2>/dev/null | wc -l | tr -d ' ')
 
 if [ ! -f README.md ]; then
   echo "ERROR: README.md 없음" >&2
   exit 1
 fi
 
-# README 배지 수치 sed 갱신 (shields.io 정적 배지 패턴)
+# README 배지 수치 sed 갱신.
+# F-AA20: 기존 패턴 `Core-[0-9]*_skills-` / `Extensions-[0-9]*_skills-` 는 현 README
+# 형식(`badge/Skills-45-blue`)과 매치조차 안 돼 **조용히 갱신되지 않았다**. 실제 형식에
+# 맞춘다 — 배지 형식이 또 바뀌면 BS1 이 미복원 건수로 잡는다.
 sed -i.tmp \
-  -e "s|Core-[0-9]*_skills-|Core-${CORE}_skills-|" \
-  -e "s|Extensions-[0-9]*_skills-|Extensions-${EXT}_skills-|" \
-  -e "s|Hooks-[0-9]*-|Hooks-${HOOKS}-|" \
-  -e "s|Agents-[0-9]*-|Agents-${AGENTS_TOTAL}-|" \
+  -e "s|badge/Skills-[0-9]*-|badge/Skills-${CORE}-|" \
+  -e "s|badge/Extensions-[0-9]*-|badge/Extensions-${EXT_PACKS}-|" \
+  -e "s|badge/Hooks-[0-9]*-|badge/Hooks-${HOOKS}-|" \
+  -e "s|badge/Agents-[0-9]*-|badge/Agents-${AGENTS}-|" \
   README.md
 rm -f README.md.tmp
 
 echo "✓ Badges synced:"
-echo "  Core skills:       ${CORE}"
-echo "  Extension skills:  ${EXT}"
-echo "  Hooks:             ${HOOKS}"
-echo "  Agents (총):       ${AGENTS_TOTAL} (Core ${AGENTS_CORE} + Ext ${AGENTS_EXT})"
+echo "  Skills:      ${CORE}"
+echo "  Extensions:  ${EXT_PACKS} (팩 수 — 스킬 수 아님)"
+echo "  Hooks:       ${HOOKS}"
+echo "  Agents:      ${AGENTS}"
+
+# F-AA20: 자기 산출을 게이트로 검증한다. 생성기와 게이트가 갈라지면 여기서 즉시 드러난다
+# (본문 카운트 'N skills' 등 배지 밖 drift 도 같이 보고된다 — 그건 손으로 고칠 몫).
+GATE="$(dirname "$0")/check-doc-counts.sh"
+if bash "$GATE" >/dev/null 2>&1; then
+  echo "✓ check-doc-counts 통과"
+else
+  echo "✗ 산출이 게이트를 통과하지 못했다:" >&2
+  bash "$GATE" 2>&1 | grep '✗' >&2
+  exit 1
+fi
