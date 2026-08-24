@@ -6,3 +6,4 @@
 {"ts":"2026-08-18T21:10:06Z","phase":"phase4","detail":"IMPROVE 시작 — run-cloud.sh 호출","base_sha":"2216f28"}
 {"ts":"2026-08-24T21:03:01Z","phase":"phase0","detail":"health baseline 기록: ci_pass_rate=null ledger_health=0.481","base_sha":"792c46d"}
 {"ts":"2026-08-24T21:04:03Z","phase":"phase1-verify","detail":"3건 pending 반증: F-AA12/F-AA13/F-AA14 전부 verified (실측 근거 첨부)","base_sha":"792c46d"}
+{"ts":"2026-08-24T21:06:07Z","phase":"phase2-skip","detail":"open PR #235(chore/round-AB-complete, round AB)이 아직 미머지 — 신규 라운드 개설 시 ledger next_num 이 main 기준으로 재계산되어 F-AB01 이 PR#235 와 충돌한다(F-Y16 재발 위험). 신규 AUDIT 라운드 개설을 이번 firing 에서 보류하고 Phase 3(기존 open F-AA* enqueue)로 직행","base_sha":"792c46d"}
