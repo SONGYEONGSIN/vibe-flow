@@ -160,7 +160,10 @@ echo "{\"ts\":\"...\",\"type\":\"plan_step_complete\",\"plan_id\":\"...\",\"step
 # 모든 단계 완료 시 frontmatter status: completed로 변경 +
 # F-G08 (audit R7): plan_completed 이벤트 emit — plan_created(위 96행)와 페어링되어
 # telemetry plan 완료율 추적의 단일 진실원. (과거엔 미계측 → 매 감사 라운드 수동 백필 부채)
-echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"plan_completed\",\"plan_id\":\"$PLAN_ID\",\"steps_done\":${N}}" >> .claude/events.jsonl
+# F-Q18 (audit round Q): source 필드로 producer 구분 — 이 이벤트를 사람의 `/plan complete`와
+# auto-build orchestrator(P3 ad-hoc 완료 마킹)가 공유해 구분 필드 없이는 누가 냈는지 추적 불가했다.
+# 사람 `/plan complete` 호출은 기본값 manual, orchestrator 는 EVENT_SOURCE=auto-build 를 명시 설정한다.
+echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"plan_completed\",\"plan_id\":\"$PLAN_ID\",\"steps_done\":${N},\"source\":\"${EVENT_SOURCE:-manual}\"}" >> .claude/events.jsonl
 ```
 
 ### 7. 이탈 처리 — `/plan revise <plan-id>`
