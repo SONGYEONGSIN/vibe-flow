@@ -201,7 +201,10 @@ abort 시 exit_reason: `deployment_missing`. run-log helper 부재로 jsonl 기�
 4. 테스트 실행 → **실패 확인**
 5. **GREEN**: 최소 구현으로 테스트 통과
 6. 테스트 재실행 → **통과 확인**
-7. plan 파일에서 해당 단계 `상태: pending → done`
+7. plan 파일에서 해당 단계 `상태: pending → done`. **모든 단계가 done 이 되면** plan skill(`core/skills/plan/SKILL.md` §6)의 `plan_completed` 이벤트 emit 규칙을 그대로 따르되, `EVENT_SOURCE=auto-build`를 먼저 export 해 producer 를 명시한다 (F-Q18 — 사람의 `/plan complete` 와 이 ad-hoc 마킹을 telemetry 조인에서 구분하기 위함, 기본값 `manual` 과 대비):
+   ```bash
+   export EVENT_SOURCE=auto-build
+   ```
 8. `run-log.sh start ${run_id} phase=P3 step=Tn_done`
 
 #### P3b — ambiguity 발생 (Phase 2 신규)
