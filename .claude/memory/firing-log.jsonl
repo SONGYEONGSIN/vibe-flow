@@ -9,3 +9,4 @@
 {"ts":"2026-08-25T21:04:24Z","phase":"phase2-dispatch","detail":"dimension agent 4개 dispatch 완료 (D1 memory/prompts, D2 architecture, D3 dogfooding, D4 meta-verification)","base_sha":"0c52d55"}
 {"ts":"2026-08-25T21:08:54Z","phase":"phase2-append","detail":"ledger append 4건 완료","base_sha":"6a12286"}
 {"ts":"2026-08-25T21:08:57Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-AC","base_sha":"6a12286"}
+{"ts":"2026-08-25T21:09:00Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"6a12286"}
