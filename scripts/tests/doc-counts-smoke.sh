@@ -124,5 +124,19 @@ echo "---" > "$TMP/untracked/core/skills/foreign-global/SKILL.md"
 bash "$CHK" "$TMP/untracked" >/dev/null 2>&1
 assert_exit "untracked-skill-무시" "0" "$?"
 
+echo "Test D-U2: 미추적 agent/rule 도 카운트에서 제외 (F-AC03)"
+# F-AA19 는 core/skills 만 추적 기준으로 바꿨다. 실측(08-26): `~/.claude/agents`·
+# `~/.claude/rules` 도 리포 core/ 의 심볼릭 링크라 **같은 오염 경로가 열려 있다**
+# (readlink 확인). 지금은 외부 설치분이 없어 잠복 중일 뿐, 하나라도 깔리면 로컬 게이트가
+# CI 와 다른 값을 센다 — F-AA19 와 동일한 결함이 두 디렉토리에 남아 있었다.
+make_fixture "$TMP/untracked2"
+(cd "$TMP/untracked2" && git init -q \
+   && git add -A >/dev/null 2>&1 \
+   && git -c user.email=t@t -c user.name=t commit -qm init >/dev/null 2>&1)
+printf 'name: foreign\n' > "$TMP/untracked2/core/agents/foreign-global.md"
+printf '# foreign rule\n'  > "$TMP/untracked2/core/rules/foreign-global.md"
+bash "$CHK" "$TMP/untracked2" >/dev/null 2>&1
+assert_exit "untracked-agent-rule-무시" "0" "$?"
+
 echo ""; echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

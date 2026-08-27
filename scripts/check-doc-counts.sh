@@ -18,6 +18,18 @@ for f in README.md .claude-plugin/plugin.json .claude-plugin/marketplace.json; d
 done
 
 # 실측 카운트 (core/hooks의 _common.sh 헬퍼, core/agents의 README.md 제외)
+# F-AC03: core/{skills,agents,rules} 는 `~/.claude/*` 심볼릭 링크 대상이라 전역 설치된
+# 외부 자산이 작업트리에 상주한다(readlink 실측). F-AA19 가 skills 만 추적 기준으로
+# 바꿨고 agents·rules 는 평문 find 로 남아 같은 결함이 잠복해 있었다 — 하나만 깔려도
+# 로컬이 CI 와 다른 값을 센다. core/hooks 는 링크 대상이 아니라 그대로 둔다.
+tracked_names() {  # $1=서브디렉토리 $2=확장자 → basename 목록 (비-git 은 find 폴백)
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git ls-files "core/$1" | awk -F/ -v e="$2" 'NF==3 && $3 ~ ("\\." e "$") {print $3}'
+  else
+    find "core/$1" -maxdepth 1 -name "*.$2" -exec basename {} \; 2>/dev/null
+  fi
+}
+
 # F-AA19: ~/.claude/skills 가 core/skills 의 심볼릭 링크라 **전역 설치된 외부 스킬**이
 # 작업트리에 나타난다(실측 3건). find 는 그걸 세어 로컬 48 / CI 깨끗한 체크아웃 45 로
 # 갈렸다 — 같은 게이트가 환경에 따라 다른 것을 센다(F-AA14 와 같은 계열). 카탈로그의
@@ -27,11 +39,11 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 else
   ACT_SKILLS=$(find core/skills -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
 fi
-ACT_AGENTS=$(find core/agents -maxdepth 1 -name '*.md' ! -name 'README.md' 2>/dev/null | wc -l | tr -d ' ')
+ACT_AGENTS=$(tracked_names agents md | grep -vxF 'README.md' | grep -c . || true)
 # F-L05 (audit R12): validate.sh taxonomy(REQUIRED_HOOKS 26 + REQUIRED_UTILITIES)와 통일 —
 # message-bus.sh 는 CLI 유틸(F-I03), git-post-commit.sh 는 git 훅이라 Claude hook 카운트에서 제외.
 ACT_HOOKS=$(find core/hooks -maxdepth 1 -name '*.sh' ! -name '_common.sh' ! -name 'message-bus.sh' ! -name 'git-post-commit.sh' 2>/dev/null | wc -l | tr -d ' ')
-ACT_RULES=$(find core/rules -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+ACT_RULES=$(tracked_names rules md | grep -c . || true)
 
 # 파일에서 regex 매치들의 숫자가 전부 expect와 같은지 (배지 ↔ 본문 divergence까지 포착)
 assert_all() {
