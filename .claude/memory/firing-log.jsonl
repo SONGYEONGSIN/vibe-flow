@@ -8,3 +8,4 @@
 {"ts":"2026-08-27T21:03:57Z","phase":"phase1","detail":"VERIFY: pending-verify 0건, reconcile no-op(gh 부재)","base_sha":"94dbb92"}
 {"ts":"2026-08-27T21:04:47Z","phase":"phase2-dispatch","detail":"dimension agent 4개 dispatch (D1~D4, round AD)","base_sha":"3841902"}
 {"ts":"2026-08-27T21:12:16Z","phase":"phase2-agents","detail":"4/4 회수, finding 후보 5건 (F-AD01~F-AD05)","base_sha":"63fbb3c"}
+{"ts":"2026-08-27T21:12:21Z","phase":"phase2-append","detail":"ledger append 5건 완료 (F-AD01~F-AD05)","base_sha":"63fbb3c"}
