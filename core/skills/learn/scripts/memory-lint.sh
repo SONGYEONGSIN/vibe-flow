@@ -29,6 +29,13 @@ if [ -f "$INDEX" ]; then
   LINES=$(wc -l < "$INDEX" | tr -d ' ')
   [ "$LINES" -le 200 ] || err "MEMORY.md ${LINES}줄 — 200줄 cap 초과 (leaf 분리 필요)"
 
+  # 2b. FAIL — 32KB 바이트 cap (F-AC05). 줄 수 cap 은 대리 지표로 실패한다: 실측
+  #     2026-08-26 의 MEMORY.md 는 139줄(cap 통과)인데 **64KB**, 최장 줄 3,550자였다.
+  #     한 줄에 서사를 쓰면 줄 수는 그대로고 바이트만 폭증해, cap 이 막으려던
+  #     컨텍스트 손실(karpathy §5)이 게이트 밑을 통과한다. 인덱스는 인덱스여야 한다.
+  BYTES=$(wc -c < "$INDEX" | tr -d ' ')
+  [ "$BYTES" -le 32768 ] || err "MEMORY.md ${BYTES}바이트 — 32KB cap 초과 (서사는 leaf 로 분리)"
+
   # 5. WARN — 고아 leaf: 디렉토리 직하 *.md 중 인덱스가 파일명을 언급하지 않는 것.
   #    brainstorms/ 등 하위 디렉토리는 제외 (개별 미등재가 정책 — F-I08 카운트 drift 방지).
   for f in "$DIR"/*.md; do
