@@ -71,5 +71,22 @@ bash "$LINT" "$TMP/nodir" >/dev/null 2>&1; assert_exit "missing-dir-exit2" "2" "
 echo "Test L8: 실 repo .claude/memory — FAIL 축 clean (live 게이트)"
 bash "$LINT" "$REPO_ROOT/.claude/memory" >/dev/null 2>&1; assert_exit "live-repo-exit0" "0" "$?"
 
+echo "Test L9: 인덱스 바이트 cap — 줄 수만 재는 cap 은 비대를 놓친다 (F-AC05)"
+# 실측(2026-08-26): MEMORY.md 가 139줄(200줄 cap 통과)인데 **64KB**, 최장 줄 3,550자였다.
+# cap 이 막으려던 것은 "컨텍스트 윈도우 손실"(karpathy §5)인데 줄 수는 그 대리 지표로
+# 실패한다 — 한 줄에 서사를 쓰면 줄 수는 그대로고 바이트만 폭증한다.
+BIG="$TMP/bigbytes"; make_clean "$BIG"
+python3 -c "
+import sys
+p=sys.argv[1]
+open(p,'a').write('- ' + 'x'*40000 + '\n')" "$BIG/MEMORY.md"
+out9=$(bash "$LINT" "$BIG" 2>&1); rc9=$?
+assert_exit "byte-cap-exit1" "1" "$rc9"
+assert_out "byte-cap-사유" "cap" "$out9"
+
+echo "Test L10: 정상 크기는 통과 (과차단 아님)"
+OKD="$TMP/okbytes"; make_clean "$OKD"
+bash "$LINT" "$OKD" >/dev/null 2>&1; assert_exit "byte-ok-exit0" "0" "$?"
+
 echo ""; echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
