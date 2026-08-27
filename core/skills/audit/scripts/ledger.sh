@@ -252,8 +252,64 @@ case "$cmd" in
       'select(.status=="fixed") | select((.actual_delta // "")=="") | select($r=="" or .round==$r) | "\(.id)\t\(.dimension)\t\(.predicted_delta // "-")\t\(.fix)"' \
       "$LEDGER" 2>/dev/null
     ;;
+  reconcile)
+    # F-AA03: fix PR 머지와 mark-fixed 가 분리돼 있어 사람이 빠뜨리면 finding 이 open 으로
+    # 남고, 다음 firing 의 Phase 3 가 **이미 끝난 일을 다시 큐에 넣는다**. 실사고(08-24):
+    # F-AA10/F-AA11 이 #226/#227 머지 후에도 open 이라 재-enqueue 됐고, F-AA10 은 #227 이
+    # 뒤집은 억제형이라 재적용되면 안 되는 건이었다.
+    #
+    # 세 가지 안전장치가 있다.
+    # (1) **머지 기준** — F-AA03 원 처방(run-cloud 의 status-update done 직전)은 PR *생성*
+    #     시점이라, 머지 안 된 PR 의 finding 이 fixed 로 굳어 재큐잉이 영원히 막힌다.
+    #     lifecycle(F-H07)은 mark-fixed 를 머지 시점으로 규정한다.
+    # (2) **제목만** — 본문은 다른 finding 을 참조로 인용한다. 실측(08-26): 본문까지 훑으면
+    #     현재 open 36건이 거짓 전이 대상이 된다(전날 등록된 F-AB01~03 포함). 고친 것과
+    #     언급한 것을 구분할 유일한 신호가 제목이다.
+    # (3) **기본 report-only** — 제목만 봐도 잔여 오탐이 있다(예: "…오검증 사고 등록
+    #     (F-T09/V07/V08)" 처럼 *등록*한 id 가 제목에 실린 경우). 증거 없는 상태 전이를
+    #     막기 위해 전이는 --apply 로만 한다.
+    #
+    # 조회 실패(gh 부재·비인증·오프라인)는 빈 목록이 아니라 **no-op** 이다 — 조회가 죽었는데
+    # 성공으로 치면 계기가 거짓 신호를 준다(F-AA14 교훈).
+    APPLY=0; [ "${1:-}" = "--apply" ] && APPLY=1
+    MERGED_CMD="${LEDGER_MERGED_PR_CMD:-__gh_merged_prs}"
+    if [ "$MERGED_CMD" = "__gh_merged_prs" ]; then
+      TITLES=$(gh pr list --state merged --limit 50 --json title --jq '.[].title' 2>/dev/null) || TITLES=""
+    else
+      [ -x "$MERGED_CMD" ] || { echo "reconcile: 머지 PR 조회 불가 — no-op" >&2; exit 0; }
+      TITLES=$(bash "$MERGED_CMD" 2>/dev/null) || TITLES=""
+    fi
+    [ -z "$TITLES" ] && { echo "reconcile: 머지 PR 조회 결과 없음 — no-op" >&2; exit 0; }
+
+    n=0
+    while IFS= read -r title; do
+      [ -z "$title" ] && continue
+      # fix/feat 제목만 — `chore(audit): round X … AUDIT(F-X01~F-X10)` 류는 finding 을
+      # **등록**한 PR 이지 고친 PR 이 아니다. 실측(08-26): 필터 없이 28건 중 16건이 이
+      # 등록 PR 발 오탐이었고, 필터 후 12건은 전부 fix/feat 제목이다.
+      case "$title" in fix*|feat*) ;; *) continue ;; esac
+      for fid in $(printf '%s' "$title" | grep -oE 'F-[A-Z]+[0-9]+' | sort -u); do
+        cur=$(jq -r --arg i "$fid" 'select(.id==$i) | .status' "$LEDGER" 2>/dev/null | head -1)
+        # open 에서만 전이 — mark-fixed 와 동일한 단방향 가드(F-H08)
+        [ "$cur" = "open" ] || continue
+        if [ "$APPLY" = "1" ]; then
+          bash "$0" mark-fixed "$fid" >/dev/null 2>&1 && {
+            echo "reconcile: $fid open → fixed — \"$title\""; n=$((n + 1)); }
+        else
+          echo "reconcile[report]: $fid open — 머지된 PR 제목에 등장: \"$title\""; n=$((n + 1))
+        fi
+      done
+    done <<EOF_TITLES
+$TITLES
+EOF_TITLES
+    if [ "$APPLY" = "1" ]; then
+      echo "reconcile: ${n}건 전이" >&2
+    else
+      echo "reconcile: 후보 ${n}건 (전이하려면 --apply — 각 PR 이 실제로 그 finding 을 고쳤는지 확인 후)" >&2
+    fi
+    ;;
   *)
-    echo "usage: ledger.sh {append|resolve|correct|open|round|next-num|enqueue|mark-fixed|pending-verify}" >&2
+    echo "usage: ledger.sh {append|resolve|correct|open|round|next-num|enqueue|mark-fixed|pending-verify|reconcile}" >&2
     exit 2
     ;;
 esac
