@@ -80,7 +80,13 @@ git push -u origin HEAD
 ```
 **PR 은 나중에 만들어도 되지만 커밋은 지금 한다.** 2026-08-21 firing 이 AUDIT 를 완주하고(agent 4/4, finding 9건, `ledger append 9건 완료(F-AA01~F-AA09)` heartbeat 까지) **그 9건을 통째로 잃었다** — ephemeral checkout 에 쓰고 커밋하지 않은 채 세션이 끝났다. 7분치 4-dimension 분석이 사라졌고 복구는 불가능하다. append 와 커밋 사이가 멀수록 잃을 게 커진다.
 
-**커밋한 뒤 `.claude/memory/MEMORY.md` 에 라운드 요약 1줄을 반드시 추가한다 — 그 줄에 이번 라운드의 첫·끝 finding id 를 둘 다 적는다** (예: `F-Z01~F-Z04`). `scripts/check-doc-counts.sh:82` 가 최신 라운드의 첫·끝 id 가 MEMORY.md 에 등장하는지 검사하고, 없으면 `eval-regression` 이 RED 가 되어 이 PR 이 머지 불가가 된다.
+**커밋한 뒤 인덱스를 갱신한다 — 손으로 편집하지 말고 스크립트를 호출한다 (F-AD09):**
+```bash
+bash core/skills/audit/scripts/memory-index.sh add-round <ROUND> <첫ID> <끝ID> "<요약 1~3문장>"
+```
+헤더 갱신 · `최근 = 라운드` 줄 1개 유지(이전 것은 leaf 로 이월) · 32KB cap 검사를 한 번에 한다. `scripts/check-doc-counts.sh` 가 최신 라운드의 첫·끝 id 가 MEMORY.md 에 등장하는지 검사하고, 없으면 `eval-regression` 이 RED 가 되어 이 PR 이 머지 불가가 된다 — 스크립트가 그 계약을 대신 지킨다.
+
+**왜 스크립트인가**: 이 단계에서 **4회 연속** 사이클이 끊겼다(08-23 AB / 08-25 AC / 08-27 AD / 08-28 AD). 같은 사이클의 ledger append·브랜치 push 는 4회 전건 성공했고, 08-24 는 이 단계를 건너뛰어 1 사이클을 완주했다. 유력 가설(인덱스 비대)은 F-AC05 로 반증됐고, 남은 공통점은 **이 단계만 자유 편집이라는 것**이다. 스크립트 호출은 실패해도 exit 코드로 드러난다.
 
 **F-T10**: 이 갱신 누락으로 R17/R18/R19/R25 네 라운드가 연속 RED 를 만들었다. 게이트에만 있고 생산자 지시문에 없던 계약이라, 매번 사후 수정으로 때웠다. ledger 를 append 한 라운드는 MEMORY 도 같은 커밋에서 갱신한다 — 둘은 한 트랜잭션이다.
 

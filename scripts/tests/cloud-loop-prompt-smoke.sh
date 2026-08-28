@@ -33,7 +33,7 @@ have "L2.4 VERIFY resolve"        "ledger.sh resolve"
 have "L2.5 AUDIT"                 "/audit"
 # F-T10: Phase 2 가 ledger append 후 MEMORY 인덱스를 갱신하지 않아 R17/R18/R19/R25
 # 네 라운드가 연속 RED. 게이트(check-doc-counts:82)에만 있고 생산자 지시문에 없던 계약.
-have "L2.5b AUDIT 후 MEMORY 갱신 지시" "라운드 요약 1줄을 반드시 추가"
+have "L2.5b AUDIT 후 MEMORY 갱신 지시 (F-AD09: 자유 편집 아닌 스크립트 호출)" "memory-index.sh add-round"
 # F-AA01: Phase 2 는 가장 길고 가장 자주 멈추는 구간인데 heartbeat 가 진입 1건뿐이라,
 # 08-19 firing 이 "AUDIT 시작" 1분 뒤 끊겼을 때 agent 가 몇 개 돌았는지 알 수 없었다.
 # 내부 4 지점(dispatch/agents/append/memory)이 배선돼 있어야 사망 지점이 좁혀진다.
