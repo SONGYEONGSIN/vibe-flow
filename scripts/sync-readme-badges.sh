@@ -18,13 +18,25 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 else
   CORE=$(find core/skills -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
 fi
+# F-AC03: core/{skills,agents,rules} 는 `~/.claude/*` 심볼릭 링크 대상이라 전역 설치된
+# 외부 자산이 작업트리에 상주한다(readlink 실측). F-AA19 가 skills 만 추적 기준으로
+# 바꿨고 agents·rules 는 평문 find 로 남아 같은 결함이 잠복해 있었다 — 하나만 깔려도
+# 로컬이 CI 와 다른 값을 센다. core/hooks 는 링크 대상이 아니라 그대로 둔다.
+tracked_names() {  # $1=서브디렉토리 $2=확장자 → basename 목록 (비-git 은 find 폴백)
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git ls-files "core/$1" | awk -F/ -v e="$2" 'NF==3 && $3 ~ ("\\." e "$") {print $3}'
+  else
+    find "core/$1" -maxdepth 1 -name "*.$2" -exec basename {} \; 2>/dev/null
+  fi
+}
+
 # F-AA20: 카운트·배제 규칙을 check-doc-counts.sh 의 ACT_* 와 **1:1로 유지**한다.
 # 두 계기가 각자 규칙을 정의하면 생성기 산출을 게이트가 거부한다 — 실측(2026-08-23):
 #   hooks  30 vs 27  (생성기는 하위 디렉토리 + _common/message-bus/git-post-commit 포함)
 #   agents 25 vs 23  (생성기는 core+extensions, 게이트는 core 만)
 # Extensions 배지는 **팩 수**(7)지 스킬 수(12)가 아니다 — 세는 대상이 다르므로 별도 식.
 EXT_PACKS=$(find extensions -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
-AGENTS=$(find core/agents -maxdepth 1 -name '*.md' ! -name 'README.md' 2>/dev/null | wc -l | tr -d ' ')
+AGENTS=$(tracked_names agents md | grep -vxF 'README.md' | grep -c . || true)
 HOOKS=$(find core/hooks -maxdepth 1 -name '*.sh' ! -name '_common.sh' ! -name 'message-bus.sh' ! -name 'git-post-commit.sh' 2>/dev/null | wc -l | tr -d ' ')
 
 if [ ! -f README.md ]; then
