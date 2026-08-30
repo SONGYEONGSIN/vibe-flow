@@ -55,12 +55,16 @@ bash core/skills/audit/scripts/ledger.sh reconcile      # 후보 보고 (상태 
 ```
 후보는 **머지된 `fix`/`feat` PR 제목에 등장하는 open finding** 이다. 각 후보에 대해 **그 PR 이 실제로 그 finding 을 고쳤는지 확인**한 뒤에만 `mark-fixed` 한다 — 제목 등장만으로는 부족하다(같은 PR 이 다른 finding 을 *등록*만 했을 수 있다). 일괄 적용(`--apply`)은 확인 후에만.
 
+**한 firing 당 최대 3건만 확인한다.** 나머지는 다음 firing 으로 미루고 `phase1` heartbeat 의 detail 에 남은 후보 수를 적는다. 이유: 후보가 13건까지 쌓여 있고, PR 1건 확인은 read 여러 번이다 — **상한 없는 판단 작업이 Phase 1 을 통째로 삼키면 Phase 2 이후가 아예 실행되지 않는다.** 정합은 여러 밤에 걸쳐 수렴하면 된다.
+
 ### Phase 2 — AUDIT (신규 finding)
 `/audit` 스킬을 호출한다. dimension agent 병렬로 4-필드 finding(evidence/root_cause/fix/predicted_delta)을 발굴하고 전역 단일 시퀀스로 `ledger.sh append` 한다 (4-필드 계약은 기계 강제). rules/harness-evolution.md의 루프를 그대로 따른다.
 
 **이 Phase 는 가장 길고(5~7분) 가장 자주 멈추는 구간이다.** 2026-08-19 firing 은 `AUDIT 시작` 1분 뒤 기록이 끊겼고, dimension agent 가 몇 개나 돌았는지 알 수 없었다. 그래서 **AUDIT 내부에도 heartbeat 를 남긴다** — 아래 4 지점은 생략하지 말 것:
 
 ```bash
+bash core/skills/auto-build/scripts/firing-log.sh phase1-start "VERIFY 진입 — pending N건, reconcile 후보 M건"
+bash core/skills/auto-build/scripts/firing-log.sh phase1 "VERIFY 완료 — verified A / refuted B / 보류 C"
 bash core/skills/auto-build/scripts/firing-log.sh phase2-dispatch "dimension agent N개 dispatch"
 # … agent 병렬 실행 …
 bash core/skills/auto-build/scripts/firing-log.sh phase2-agents "N/N 회수, finding 후보 M건"
