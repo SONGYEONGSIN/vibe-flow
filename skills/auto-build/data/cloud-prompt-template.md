@@ -55,12 +55,16 @@ bash core/skills/audit/scripts/ledger.sh reconcile      # 후보 보고 (상태 
 ```
 후보는 **머지된 `fix`/`feat` PR 제목에 등장하는 open finding** 이다. 각 후보에 대해 **그 PR 이 실제로 그 finding 을 고쳤는지 확인**한 뒤에만 `mark-fixed` 한다 — 제목 등장만으로는 부족하다(같은 PR 이 다른 finding 을 *등록*만 했을 수 있다). 일괄 적용(`--apply`)은 확인 후에만.
 
+**한 firing 당 최대 3건만 확인한다.** 나머지는 다음 firing 으로 미루고 `phase1` heartbeat 의 detail 에 남은 후보 수를 적는다. 이유: 후보가 13건까지 쌓여 있고, PR 1건 확인은 read 여러 번이다 — **상한 없는 판단 작업이 Phase 1 을 통째로 삼키면 Phase 2 이후가 아예 실행되지 않는다.** 정합은 여러 밤에 걸쳐 수렴하면 된다.
+
 ### Phase 2 — AUDIT (신규 finding)
 `/audit` 스킬을 호출한다. dimension agent 병렬로 4-필드 finding(evidence/root_cause/fix/predicted_delta)을 발굴하고 전역 단일 시퀀스로 `ledger.sh append` 한다 (4-필드 계약은 기계 강제). rules/harness-evolution.md의 루프를 그대로 따른다.
 
 **이 Phase 는 가장 길고(5~7분) 가장 자주 멈추는 구간이다.** 2026-08-19 firing 은 `AUDIT 시작` 1분 뒤 기록이 끊겼고, dimension agent 가 몇 개나 돌았는지 알 수 없었다. 그래서 **AUDIT 내부에도 heartbeat 를 남긴다** — 아래 4 지점은 생략하지 말 것:
 
 ```bash
+bash core/skills/auto-build/scripts/firing-log.sh phase1-start "VERIFY 진입 — pending N건, reconcile 후보 M건"
+bash core/skills/auto-build/scripts/firing-log.sh phase1 "VERIFY 완료 — verified A / refuted B / 보류 C"
 bash core/skills/auto-build/scripts/firing-log.sh phase2-dispatch "dimension agent N개 dispatch"
 # … agent 병렬 실행 …
 bash core/skills/auto-build/scripts/firing-log.sh phase2-agents "N/N 회수, finding 후보 M건"
@@ -80,7 +84,13 @@ git push -u origin HEAD
 ```
 **PR 은 나중에 만들어도 되지만 커밋은 지금 한다.** 2026-08-21 firing 이 AUDIT 를 완주하고(agent 4/4, finding 9건, `ledger append 9건 완료(F-AA01~F-AA09)` heartbeat 까지) **그 9건을 통째로 잃었다** — ephemeral checkout 에 쓰고 커밋하지 않은 채 세션이 끝났다. 7분치 4-dimension 분석이 사라졌고 복구는 불가능하다. append 와 커밋 사이가 멀수록 잃을 게 커진다.
 
-**커밋한 뒤 `.claude/memory/MEMORY.md` 에 라운드 요약 1줄을 반드시 추가한다 — 그 줄에 이번 라운드의 첫·끝 finding id 를 둘 다 적는다** (예: `F-Z01~F-Z04`). `scripts/check-doc-counts.sh:82` 가 최신 라운드의 첫·끝 id 가 MEMORY.md 에 등장하는지 검사하고, 없으면 `eval-regression` 이 RED 가 되어 이 PR 이 머지 불가가 된다.
+**커밋한 뒤 인덱스를 갱신한다 — 손으로 편집하지 말고 스크립트를 호출한다 (F-AD09):**
+```bash
+bash core/skills/audit/scripts/memory-index.sh add-round <ROUND> <첫ID> <끝ID> "<요약 1~3문장>"
+```
+헤더 갱신 · `최근 = 라운드` 줄 1개 유지(이전 것은 leaf 로 이월) · 32KB cap 검사를 한 번에 한다. `scripts/check-doc-counts.sh` 가 최신 라운드의 첫·끝 id 가 MEMORY.md 에 등장하는지 검사하고, 없으면 `eval-regression` 이 RED 가 되어 이 PR 이 머지 불가가 된다 — 스크립트가 그 계약을 대신 지킨다.
+
+**왜 스크립트인가**: 이 단계에서 **4회 연속** 사이클이 끊겼다(08-23 AB / 08-25 AC / 08-27 AD / 08-28 AD). 같은 사이클의 ledger append·브랜치 push 는 4회 전건 성공했고, 08-24 는 이 단계를 건너뛰어 1 사이클을 완주했다. 유력 가설(인덱스 비대)은 F-AC05 로 반증됐고, 남은 공통점은 **이 단계만 자유 편집이라는 것**이다. 스크립트 호출은 실패해도 exit 코드로 드러난다.
 
 **F-T10**: 이 갱신 누락으로 R17/R18/R19/R25 네 라운드가 연속 RED 를 만들었다. 게이트에만 있고 생산자 지시문에 없던 계약이라, 매번 사후 수정으로 때웠다. ledger 를 append 한 라운드는 MEMORY 도 같은 커밋에서 갱신한다 — 둘은 한 트랜잭션이다.
 
