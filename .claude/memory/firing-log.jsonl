@@ -6,3 +6,4 @@
 {"ts":"2026-08-18T21:10:06Z","phase":"phase4","detail":"IMPROVE 시작 — run-cloud.sh 호출","base_sha":"2216f28"}
 {"ts":"2026-08-31T21:02:26Z","phase":"phase0","detail":"health baseline 기록: ci_pass_rate=null ledger_health=0.490","base_sha":"b542969"}
 {"ts":"2026-08-31T21:05:09Z","phase":"phase1-start","detail":"VERIFY 진입 — pending 3건, reconcile 후보 0건(gh 미가용으로 no-op)","base_sha":"b542969"}
+{"ts":"2026-08-31T21:05:12Z","phase":"phase1","detail":"VERIFY 완료 — verified 1(F-AC03) / refuted 1(F-AD01) / 보류 1(F-AD09, Phase2 완료 후 재판정)","base_sha":"b542969"}
