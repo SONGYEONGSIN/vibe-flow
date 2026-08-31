@@ -18,13 +18,13 @@
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AE)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AF)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AE (F-AE01~F-AE01)** — 08-29·08-30 발화가 연속으로 `phase0` 만 찍고 끊겼다(08-28 은 phase2-memory-start 까지 도달). **F-AE01** — Phase 1 은 pending-verify 3건 + reconcile 후보 13건(각각 PR 확인 요구)을 지는데 진입 heartbeat 가 없어, 그 안에서 죽는 것과 Phase 0 직후 죽는 것이 구별되지 않는다. F-AA03 fix 로 작업량만 늘리고 계기는 안 늘린 결과. fix: phase1-start/phase1 heartbeat + 확인 건수 firing 당 3건 상한.
+- **최근 = 라운드 AF (F-AF01~F-AF08)** — D1 컨텍스트(CLAUDE.md.template 범위 오기술/라운드 라벨 AA-계승 미문서화), D2 아키텍처(heartbeat 4→8지점 문구drift/merge-gate generative tier가 기존파일 수정까지 오분류), D3 dogfooding(pair·eval-skill NL트리거 검사 우회), D4 메타검증(evolution-guard smoke가 cp/mv 자기파일 덮어쓰기 미검출 + Test E1 ambient AUTO_BUILD_MODE 오염으로 거짓FAIL) — dimension agent 4개 병렬 위임, F-AC03 verified/F-AD01 refuted.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
