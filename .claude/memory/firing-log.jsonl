@@ -8,3 +8,4 @@
 {"ts":"2026-08-31T21:05:09Z","phase":"phase1-start","detail":"VERIFY 진입 — pending 3건, reconcile 후보 0건(gh 미가용으로 no-op)","base_sha":"b542969"}
 {"ts":"2026-08-31T21:05:12Z","phase":"phase1","detail":"VERIFY 완료 — verified 1(F-AC03) / refuted 1(F-AD01) / 보류 1(F-AD09, Phase2 완료 후 재판정)","base_sha":"b542969"}
 {"ts":"2026-08-31T21:05:47Z","phase":"phase2-dispatch","detail":"AUDIT 라운드 AF — dimension agent 4개(D1/D2/D3/D4) dispatch 준비, main CI green(b542969) 확인","base_sha":"b542969"}
+{"ts":"2026-08-31T21:15:13Z","phase":"phase2-agents","detail":"4/4 회수, finding 후보 8건(D1×2 D2×2 D3×2 D4×2)","base_sha":"bce47a5"}
