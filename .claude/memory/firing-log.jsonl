@@ -15,3 +15,4 @@
 {"ts":"2026-09-01T22:10:38Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"9e2b8fd"}
 {"ts":"2026-09-01T22:11:12Z","phase":"phase3","detail":"enqueue 완료 — F-AF01/F-AF04/F-AF05 큐잉, F-AF02/F-AF03/F-AF06 안전코어 SKIP","base_sha":"d889121"}
 {"ts":"2026-09-01T22:16:12Z","phase":"phase4","detail":"F-R04 fix → PR #247 (fix/eval-regression-smoke-vacuous-control), 큐 entry done. 검증 중 F-AF07 신규 발견+큐잉.","base_sha":"212359c"}
+{"ts":"2026-09-01T22:16:29Z","phase":"phase5","detail":"merge-gate PR#247 → DECISION=HOLD_TIER (tier=docs>graduated=off) — 머지 안 함, 사람 대기","base_sha":"212359c"}
