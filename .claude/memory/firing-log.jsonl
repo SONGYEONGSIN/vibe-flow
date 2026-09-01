@@ -4,3 +4,4 @@
 {"ts":"2026-08-18T21:09:17Z","phase":"phase2","detail":"AUDIT 완료 — D1~D4 4건 신규 finding 확보, ledger append 시작","base_sha":"78fc34f"}
 {"ts":"2026-08-18T21:09:58Z","phase":"phase3","detail":"ENQUEUE 시작 — F-Z01~Z04 append 완료","base_sha":"d886fa0"}
 {"ts":"2026-08-18T21:10:06Z","phase":"phase4","detail":"IMPROVE 시작 — run-cloud.sh 호출","base_sha":"2216f28"}
+{"ts":"2026-09-01T21:02:10Z","phase":"phase0","detail":"health baseline 기록: ci_pass_rate=null(gh 부재) ledger_health=0.490","base_sha":"b542969"}
