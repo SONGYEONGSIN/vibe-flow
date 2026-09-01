@@ -19,3 +19,4 @@
 {"ts":"2026-09-01T22:16:36Z","phase":"phase6","detail":"SKIP — Phase 5 가 AUTO_MERGE 하지 않음(HOLD_TIER), self-update.sh 판정 대상 없음","base_sha":"212359c"}
 {"ts":"2026-09-01T22:17:18Z","phase":"phase7","detail":"graduation tick clean — disarmed no-op, tier=off 유지","base_sha":"212359c"}
 {"ts":"2026-09-01T22:17:25Z","phase":"phase8","detail":"SKIP — graduation tier=off (generative 아님)","base_sha":"212359c"}
+{"ts":"2026-09-01T22:18:13Z","phase":"cycle-complete","detail":"PR#247(fix F-R04) + PR#248(chore round AF) 생성·구독 완료. 둘 다 merge-gate HOLD(사람 대기). 1 firing 종료.","base_sha":"212359c"}
