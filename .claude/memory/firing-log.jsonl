@@ -11,3 +11,4 @@
 {"ts":"2026-09-01T22:07:32Z","phase":"phase2-agents","detail":"4/4 회수, finding 후보 5건","base_sha":"5b8cde9"}
 {"ts":"2026-09-01T22:07:34Z","phase":"phase2-append","detail":"ledger append 5건 완료(F-AF01~F-AF05) — F-AF02/F-AF03 은 안전코어 결함이라 SKIP 처리(사람 review 전용)","base_sha":"5b8cde9"}
 {"ts":"2026-09-01T22:10:20Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-AF","base_sha":"8f9d45c"}
+{"ts":"2026-09-01T22:10:22Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"8f9d45c"}
