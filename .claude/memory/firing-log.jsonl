@@ -20,3 +20,4 @@
 {"ts":"2026-09-01T22:17:18Z","phase":"phase7","detail":"graduation tick clean — disarmed no-op, tier=off 유지","base_sha":"212359c"}
 {"ts":"2026-09-01T22:17:25Z","phase":"phase8","detail":"SKIP — graduation tier=off (generative 아님)","base_sha":"212359c"}
 {"ts":"2026-09-01T22:18:13Z","phase":"cycle-complete","detail":"PR#247(fix F-R04) + PR#248(chore round AF) 생성·구독 완료. 둘 다 merge-gate HOLD(사람 대기). 1 firing 종료.","base_sha":"212359c"}
+{"ts":"2026-09-01T22:19:37Z","phase":"post-hoc","detail":"PR#248 CI(check) RED — MEMORY 인덱스 F-AF07 누락, 정정 push 완료(68ec62e)","base_sha":"68ec62e"}
