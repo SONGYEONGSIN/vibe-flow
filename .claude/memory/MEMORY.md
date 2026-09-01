@@ -24,7 +24,7 @@
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AF (F-AF01~F-AF06)** — Phase1 VERIFY 2 verified(F-AC03/F-AD09)/1 refuted(F-AD01)/reconcile mark-fixed 3건. Phase2 AUDIT 6건 신규(F-AF01~06): D1 SKILL.md 경로버그, D2 evolution-protected denylist에 settings.json 배포본 누락 + cloud-init teardown 부재(둘다 안전코어 결함, 사람 review 전용), D2 auto-build-safety.sh 오탐(실행문/인용텍스트 미구분, 안전코어), D3 retrospective agent 설명 불일치, D4 badge-sync-smoke Extensions 커버리지 누락.
+- **최근 = 라운드 AF (F-AF01~F-AF07)** — Phase1 VERIFY 2 verified(F-AC03/F-AD09)/1 refuted(F-AD01)/reconcile mark-fixed 3건. Phase2 AUDIT 6건(F-AF01~06): D1 SKILL.md 경로버그, D2 evolution-protected denylist에 settings.json 배포본 누락 + cloud-init teardown 부재 + auto-build-safety.sh 오탐(전부 안전코어 결함, 사람 review 전용), D3 retrospective agent 설명 불일치, D4 badge-sync-smoke Extensions 커버리지 누락. Phase4 F-R04 fix→PR#247, 검증 중 F-AF07(eval-regression-check.sh yq 배포판 미판별) 추가 발견.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
