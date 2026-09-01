@@ -43,7 +43,7 @@ echo "=== 양성 대조: 온전한 fixture 는 exit 0 ==="
 C0="$(new_case c0-intact)"
 (cd "$C0" && bash scripts/eval-regression-check.sh >/dev/null 2>&1)
 [ $? -eq 0 ] && ok "온전한 fixture exit 0" \
-             || ng "온전한 fixture 가 이미 실패 — 대조군 무효"
+             || { ng "온전한 fixture 가 이미 실패 — 대조군 무효 — 이후 변이 단언 vacuous"; exit 1; }
 
 echo "=== F-L08: SKILL.md 없는 스킬 dir 은 통과가 아니라 실패여야 ==="
 C1="$(new_case c1-missing-skillmd)"

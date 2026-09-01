@@ -35,7 +35,7 @@ seed_count=$(find "$TMP" -name evals.json | wc -l | tr -d ' ')
 [ "$seed_count" -gt 0 ] || { echo "fixture 에 evals.json 이 없음 — 테스트 전제 붕괴"; exit 1; }
 (cd "$TMP" && bash scripts/eval-regression-check.sh >/dev/null 2>&1)
 [ $? -eq 0 ] && ok "온전한 fixture (evals=${seed_count}) exit 0" \
-             || ng "온전한 fixture 가 이미 실패 — 대조군 무효"
+             || { ng "온전한 fixture 가 이미 실패 — 대조군 무효 — 이후 변이 단언 vacuous"; exit 1; }
 
 echo "=== F-K10: evals.json 0건은 통과가 아니라 실패여야 ==="
 find "$TMP" -name evals.json -delete
