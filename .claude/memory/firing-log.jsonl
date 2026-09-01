@@ -18,3 +18,4 @@
 {"ts":"2026-09-01T22:16:29Z","phase":"phase5","detail":"merge-gate PR#247 → DECISION=HOLD_TIER (tier=docs>graduated=off) — 머지 안 함, 사람 대기","base_sha":"212359c"}
 {"ts":"2026-09-01T22:16:36Z","phase":"phase6","detail":"SKIP — Phase 5 가 AUTO_MERGE 하지 않음(HOLD_TIER), self-update.sh 판정 대상 없음","base_sha":"212359c"}
 {"ts":"2026-09-01T22:17:18Z","phase":"phase7","detail":"graduation tick clean — disarmed no-op, tier=off 유지","base_sha":"212359c"}
+{"ts":"2026-09-01T22:17:25Z","phase":"phase8","detail":"SKIP — graduation tier=off (generative 아님)","base_sha":"212359c"}
