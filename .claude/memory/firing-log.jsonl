@@ -17,3 +17,4 @@
 {"ts":"2026-09-07T21:17:34Z","phase":"phase5","detail":"merge-gate 대상 없음(Phase4 중복 abort로 PR 미생성) — PR#249(round AG) 는 사람 머지 대기","base_sha":"e9d15e7"}
 {"ts":"2026-09-07T21:17:49Z","phase":"phase6","detail":"머지 없음 — self-update.sh 판정 skip","base_sha":"e9d15e7"}
 {"ts":"2026-09-07T21:17:52Z","phase":"phase7","detail":"graduation tick clean — disarmed no-op(정상)","base_sha":"e9d15e7"}
+{"ts":"2026-09-07T21:17:55Z","phase":"phase8","detail":"tier=off(≠generative) — skip","base_sha":"e9d15e7"}
