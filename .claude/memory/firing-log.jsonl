@@ -14,3 +14,4 @@
 {"ts":"2026-09-07T21:14:03Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"526cc08"}
 {"ts":"2026-09-07T21:14:27Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"3329a21"}
 {"ts":"2026-09-07T21:14:50Z","phase":"phase3","detail":"ENQUEUE 완료 — F-AG01~03 큐 3건, F-AG04/05 사람 review","base_sha":"8efec2a"}
+{"ts":"2026-09-07T21:17:34Z","phase":"phase5","detail":"merge-gate 대상 없음(Phase4 중복 abort로 PR 미생성) — PR#249(round AG) 는 사람 머지 대기","base_sha":"e9d15e7"}
