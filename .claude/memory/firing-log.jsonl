@@ -11,3 +11,4 @@
 {"ts":"2026-09-07T21:11:14Z","phase":"phase2-agents","detail":"4/4 회수, finding 후보 5건(D1x1/D2x1/D3x1/D4x1 + 오케스트레이터 메타 1건) — round 라벨 AF 대신 AG 사용(PR#247/#248 6일째 미머지, AF 충돌 회피)","base_sha":"c847e58"}
 {"ts":"2026-09-07T21:13:51Z","phase":"phase2-append","detail":"ledger append 5건 완료 (F-AG01~F-AG05)","base_sha":"526cc08"}
 {"ts":"2026-09-07T21:14:00Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-AG","base_sha":"526cc08"}
+{"ts":"2026-09-07T21:14:03Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"526cc08"}
