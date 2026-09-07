@@ -20,3 +20,4 @@
 {"ts":"2026-09-07T21:17:55Z","phase":"phase8","detail":"tier=off(≠generative) — skip","base_sha":"e9d15e7"}
 {"ts":"2026-09-07T21:17:58Z","phase":"done","detail":"라운드 AG 완료 — PR#249 생성, F-R04 중복 abort, PR#247/#248 백로그 사람 통보 완료","base_sha":"e9d15e7"}
 {"ts":"2026-09-07T21:31:02Z","phase":"phase7","detail":"graduation tick clean — disarmed no-op (tier=off 유지)","base_sha":"b542969"}
+{"ts":"2026-09-07T21:31:05Z","phase":"cycle-complete","detail":"1 firing = 1 cycle: PR #249 (round AG) 생성, CI green(check/smoke ubuntu/smoke windows 전부 success), mergeable_state=clean, 사람 머지 대기. Phase4 IMPROVE 는 큐 중복(F-R04, PR #247 선점) 확인 후 abort. Phase5~6 skip(신규 fix PR 없음). Phase8 skip(tier=off).","base_sha":"b542969"}
