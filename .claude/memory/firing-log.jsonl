@@ -9,3 +9,4 @@
 {"ts":"2026-09-07T21:04:31Z","phase":"phase1","detail":"VERIFY 완료 — verified 3 / refuted 0 / 보류 0","base_sha":"b542969"}
 {"ts":"2026-09-07T21:04:37Z","phase":"phase2-dispatch","detail":"dimension agent 4개 dispatch (D1/D2/D3/D4)","base_sha":"b542969"}
 {"ts":"2026-09-07T21:11:14Z","phase":"phase2-agents","detail":"4/4 회수, finding 후보 5건(D1x1/D2x1/D3x1/D4x1 + 오케스트레이터 메타 1건) — round 라벨 AF 대신 AG 사용(PR#247/#248 6일째 미머지, AF 충돌 회피)","base_sha":"c847e58"}
+{"ts":"2026-09-07T21:13:51Z","phase":"phase2-append","detail":"ledger append 5건 완료 (F-AG01~F-AG05)","base_sha":"526cc08"}
