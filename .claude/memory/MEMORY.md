@@ -24,7 +24,7 @@
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AF (F-AF01~F-AF10)** — D1/D2/D3/D4 4-dim 병렬 감사. D4 는 evolution-guard 훅의 symlink 우회(F-AF01)·auto-build-safety 훅의 rm-rf 플래그순서 우회(F-AF02) 등 안전코어 자체 결함 2건을 사람 review 전용으로 표면화(자율 미수정). D1 은 cloud 세션에서 gh 부재로 reconcile 이 항상 no-op 되며 stale open finding 14건 이상 누적됨을 실증(F-AF03). D3 는 skill_invoked_auto 라벨 오분류·cloud-commit 계측 0% 매치·SKILL.md 트리거 인용 8건 신규 미등재(F-AF07~09). F-AF10 은 머지 판정 스크립트도 동일 gh 부재로 HOLD_NO_FILES 조기종료됨을 실증(F-AF03 계보). VERIFY: F-AC03 verified / F-AD01 refuted(제안된 fix 미구현 확인) / F-AE01 verified(본 발화가 반증) / F-AD09 실사용 성공.
+- **최근 = 라운드 AF (F-AF01~F-AF11)** — D1/D2/D3/D4 4-dim 병렬 감사. D4 는 evolution-guard 훅의 symlink 우회(F-AF01)·auto-build-safety 훅의 삭제 플래그순서 우회(F-AF02)·evolution-guard 훅 Bash 벡터의 산문 인용 오탐(F-AF11, 이 finding 작성 자체에서 재현) 등 안전코어 결함 3건을 사람 review 전용으로 표면화(자율 미수정). D1 은 cloud 세션에서 gh 부재로 reconcile 이 항상 no-op 되며 stale open finding 14건 이상 누적됨을 실증(F-AF03). D3 는 skill_invoked_auto 라벨 오분류·cloud-commit 계측 0% 매치·SKILL.md 트리거 인용 8건 신규 미등재(F-AF07~09). F-AF10 은 머지 판정 스크립트도 동일 gh 부재 문제를 겪음을 실증(F-AF03 계보). VERIFY: F-AC03 verified / F-AD01 refuted(제안된 fix 미구현 확인) / F-AE01 verified(본 발화가 반증) / F-AD09 실사용 성공.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
