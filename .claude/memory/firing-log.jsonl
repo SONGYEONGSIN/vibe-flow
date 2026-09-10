@@ -8,3 +8,4 @@
 {"ts":"2026-09-10T21:04:55Z","phase":"phase1","detail":"VERIFY 완료 — verified 1(F-AC03) / refuted 1(F-AD01, fix 미적용) / 보류 1(F-AD09, Phase2 이후 재측정). reconcile: gh CLI 부재로 no-op(후보 조회 불가 — MCP fallback 없음, D3 finding 후보로 Phase2 에 전달 예정)","base_sha":"b542969"}
 {"ts":"2026-09-10T21:05:29Z","phase":"phase1-start","detail":"VERIFY 진입 — pending 3건(F-AC03/F-AD01/F-AD09), reconcile 후보 0건(gh 부재)","base_sha":"b542969"}
 {"ts":"2026-09-10T21:06:08Z","phase":"phase2-dispatch","detail":"dimension agent 4개 dispatch (D1/D2/D3/D4), round AE 계속","base_sha":"b542969"}
+{"ts":"2026-09-10T21:16:57Z","phase":"phase2-append","detail":"ledger append 11건 완료(F-AE02~F-AE12)","base_sha":"2c90083"}
