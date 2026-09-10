@@ -24,7 +24,7 @@
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AE (F-AE01~F-AE01)** — 08-29·08-30 발화가 연속으로 `phase0` 만 찍고 끊겼다(08-28 은 phase2-memory-start 까지 도달). **F-AE01** — Phase 1 은 pending-verify 3건 + reconcile 후보 13건(각각 PR 확인 요구)을 지는데 진입 heartbeat 가 없어, 그 안에서 죽는 것과 Phase 0 직후 죽는 것이 구별되지 않는다. F-AA03 fix 로 작업량만 늘리고 계기는 안 늘린 결과. fix: phase1-start/phase1 heartbeat + 확인 건수 firing 당 3건 상한.
+- **최근 = 라운드 AE (F-AE01~F-AE12)** — D1 heartbeat 순서/memory 위생 3건, D2 architecture-reviewer 프롬프트 미부합+memory-index cap 순서버그+evolution-guard Bash-vector 우회(안전장치 결함, 사람 review) 3건, D3 gh-less reconcile/reclaim 가드 무음 비활성 3건, D4 capability-gate dedup 대소문자+merge-gate SKIPPED 오분류 2건. 총 12건, 4-dim 병렬.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
