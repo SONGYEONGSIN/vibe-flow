@@ -16,3 +16,4 @@
 {"ts":"2026-09-11T21:17:39Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료 (round AH)","base_sha":"52a29a9"}
 {"ts":"2026-09-11T21:18:02Z","phase":"phase4","detail":"IMPROVE 진입 — run-cloud.sh 호출","base_sha":"42223c6"}
 {"ts":"2026-09-11T21:22:52Z","phase":"phase5","detail":"merge-gate PR#253 → DECISION=HOLD_TIER (tier=structural > graduated=off) — 사람 대기, 머지 없음. Phase6 SELF-UPDATE skip(머지 미발생)","base_sha":"550f85b"}
+{"ts":"2026-09-11T21:23:07Z","phase":"phase7","detail":"graduation tick clean — disarmed, no-op(기본). Phase8 GENERATIVE skip(tier≠generative). 사이클 종료 — PR #253","base_sha":"550f85b"}
