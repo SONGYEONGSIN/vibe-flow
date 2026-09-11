@@ -24,7 +24,7 @@
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AE (F-AE01~F-AE12)** — D1 heartbeat 순서/memory 위생 3건, D2 architecture-reviewer 프롬프트 미부합+memory-index cap 순서버그+evolution-guard Bash-vector 우회(안전장치 결함, 사람 review) 3건, D3 gh-less reconcile/reclaim 가드 무음 비활성 3건, D4 capability-gate dedup 대소문자+merge-gate SKIPPED 오분류 2건. 총 12건, 4-dim 병렬.
+- **최근 = 라운드 AE (F-AE01~F-AE12)** — 루프가 09-10 발화에서 발굴 — **phase2-memory 를 처음 통과한 라운드**(F-AD09 fix 검증). 절반이 **직전 주에 사람이 넣은 코드를 겨냥**한다: **F-AE03** memory-index.sh 의 이월 로직이 audit-rounds.md 에 AC/AD 서사를 2회씩 중복시킴 / **F-AE04** 인덱스 포인터가 'R1~AC, 26 라운드' 로 stale / **F-AE06** memory-index.sh:54 의 mv 처리 결함 / **F-AE07** ledger reconcile 의 gh 조회 분기 / **F-AE08** reconcile 3건 상한 지시의 모호성. 그 외 **F-AE05** audit SKILL 의 D2 dispatch 대상 불일치, **F-AE09** queue.sh 의 gh 존재 검사, **F-AE10/11** capability-gate·merge-gate 판정 경로, **F-AE12** evolution-guard 의 Bash 벡터 정규식.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
