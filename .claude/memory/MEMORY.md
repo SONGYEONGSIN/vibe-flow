@@ -24,7 +24,7 @@
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AE (F-AE01~F-AE01)** — 08-29·08-30 발화가 연속으로 `phase0` 만 찍고 끊겼다(08-28 은 phase2-memory-start 까지 도달). **F-AE01** — Phase 1 은 pending-verify 3건 + reconcile 후보 13건(각각 PR 확인 요구)을 지는데 진입 heartbeat 가 없어, 그 안에서 죽는 것과 Phase 0 직후 죽는 것이 구별되지 않는다. F-AA03 fix 로 작업량만 늘리고 계기는 안 늘린 결과. fix: phase1-start/phase1 heartbeat + 확인 건수 firing 당 3건 상한.
+- **최근 = 라운드 AE (F-AE01~F-AE01)** — 08-29·08-30 발화가 연속으로 `phase0` 만 찍고 끊겼다(08-28 은 phase2-memory-start 까지 도달). **F-AE01** — Phase 1 은 pending-verify 3건 + reconcile 후보 13건(각각 PR 확인 요구)을 지는데 진입 heartbeat 가 없어, 그 안에서 죽는 것과 Phase 0 직후 죽는 것이 구별되지 않는다. F-AA03 fix 로 작업량만 늘리고 계기는 안 늘린 결과. fix: phase1-start/phase1 heartbeat + 확인 건수 firing 당 3건 상한. **F-AC01 fix 적용(2026-08-30)** — live 트리거 bootstrap 에서 거짓 단락("F-R01 미해결 — hook 이 막아주지 못하니 자제하라")을 제거하고 "안전 상태는 프롬프트가 아니라 원장·설정에서 조회하라"로 교체. 그 단락은 F-R01 이 08-09 verified 된 뒤에도 **3주 넘게 매일 밤 주입**됐다. 같은 조회에서 확인된 것 둘: 루프는 **`claude-sonnet-5`** 로 돌고(트리거 session_context), 08-30 실행이 조회 시점까지 **`ROUTINE_RUN_STATUS_PENDING`** 이었다 — 논리적 abort 가 아니라 **완료 보고 자체가 없는 형태**의 중단이다. phase0-only 두 밤의 성격을 시사하나 원인 단정은 보류.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
