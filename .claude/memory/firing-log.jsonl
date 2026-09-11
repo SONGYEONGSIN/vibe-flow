@@ -10,3 +10,4 @@
 {"ts":"2026-09-11T21:04:53Z","phase":"phase1-start","detail":"VERIFY 완료 — phase2 AUDIT 진입","base_sha":"dcd93b8"}
 {"ts":"2026-09-11T21:05:23Z","phase":"phase2-dispatch","detail":"dimension agent 4개 dispatch (D1~D4)","base_sha":"f497deb"}
 {"ts":"2026-09-11T21:10:20Z","phase":"phase2-agents","detail":"4/4 회수, finding 후보 6건","base_sha":"5c431b1"}
+{"ts":"2026-09-11T21:11:32Z","phase":"phase2-append","detail":"ledger append 6건 완료(F-AF01~F-AF06)","base_sha":"4ecd330"}
