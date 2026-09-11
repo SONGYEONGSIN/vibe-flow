@@ -18,13 +18,13 @@
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AE)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AF)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AE (F-AE01~F-AE01)** — 08-29·08-30 발화가 연속으로 `phase0` 만 찍고 끊겼다(08-28 은 phase2-memory-start 까지 도달). **F-AE01** — Phase 1 은 pending-verify 3건 + reconcile 후보 13건(각각 PR 확인 요구)을 지는데 진입 heartbeat 가 없어, 그 안에서 죽는 것과 Phase 0 직후 죽는 것이 구별되지 않는다. F-AA03 fix 로 작업량만 늘리고 계기는 안 늘린 결과. fix: phase1-start/phase1 heartbeat + 확인 건수 firing 당 3건 상한. **F-AC01 fix 적용(2026-08-30)** — live 트리거 bootstrap 에서 거짓 단락("F-R01 미해결 — hook 이 막아주지 못하니 자제하라")을 제거하고 "안전 상태는 프롬프트가 아니라 원장·설정에서 조회하라"로 교체. 그 단락은 F-R01 이 08-09 verified 된 뒤에도 **3주 넘게 매일 밤 주입**됐다. 같은 조회에서 확인된 것 둘: 루프는 **`claude-sonnet-5`** 로 돌고(트리거 session_context), 08-30 실행이 조회 시점까지 **`ROUTINE_RUN_STATUS_PENDING`** 이었다 — 논리적 abort 가 아니라 **완료 보고 자체가 없는 형태**의 중단이다. phase0-only 두 밤의 성격을 시사하나 원인 단정은 보류.
+- **최근 = 라운드 AF (F-AF01~F-AF07)** — 루프가 08-31 발화에서 발굴(머지 정체로 12일 지연). 주제 "보호·게이트가 가리키는 대상이 실제와 어긋남" — **F-AF02** `.claude/evolution-protected` 가 소스 settings 만 등재하고 런타임 파일은 비보호 / **F-AF03** cloud-init 이 각인하는 env 와 denylist 대상 불일치 / **F-AF06** auto-build-safety 의 destructive-op 정규식이 `rm -r -f` 변형을 놓침 / **F-AF05** badge-sync BS1 변이가 3 배지를 한꺼번에 오염시켜 개별 검출력 없음 / **F-AF07** eval-regression 이 아무 `yq` 나 수용(mikefarah 아닌 것 포함) / **F-AF01** audit SKILL 의 memory-lint 경로 오기 / **F-AF04** retrospective example 이 스킬 내부 호출과 사용자 호출을 뭉갬.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
