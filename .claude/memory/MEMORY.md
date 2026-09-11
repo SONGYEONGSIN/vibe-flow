@@ -24,7 +24,7 @@
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AG (F-AG01~F-AG05)** — PR#247/#248(2026-09-01 firing, 6일째 미머지) 발견 — round=AF/F-AF01 선점 충돌로 AG 사용. Phase1: F-AC03 verified/F-AD01 refuted(헤더텍스트 축 미검사 재확인)/F-AD09 verified. Phase2: 문서 캡션 desync(F-AG01), firing-log.sh 문서 누락(F-AG02), onboard grep-w 불일치(F-AG03), self-update.sh fail-open 안전코어(F-AG04, human-review), round/id 채번이 미머지 PR 선점을 모르는 구조적 결함(F-AG05, human-review) — PR#247/#248 의 안전코어 findings(F-AF02/03/06)와 함께 사람에게 별도 통보함.
+- **최근 = 라운드 AG (F-AG01~F-AG05)** — 루프가 09-07 발화에서 발굴(cycle-complete 라운드). **F-AG05** 가 자기 채번을 지적했다 — firing 이 라운드 라벨을 직전 ledger 라운드의 다음 글자로 잡는데, 미머지 브랜치가 쌓이면 main 기준 재계산으로 같은 라벨이 반복된다(실제로 AF 가 3 PR 에 중복). 그 외 **F-AG01** audit-rounds.md 제목이 R1~AC 로 stale / **F-AG02** auto-build SKILL 의 관련 파일 목록이 실제 스크립트와 어긋남 / **F-AG03** onboard 의 CORE_SKILL_TYPES 하드코딩 / **F-AG04** self-update 가 git add·commit 을 무조건 수행.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
