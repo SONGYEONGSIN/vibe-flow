@@ -18,13 +18,13 @@
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AF)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AG)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AF (F-AF01~F-AF07)** — 루프가 08-31 발화에서 발굴(머지 정체로 12일 지연). 주제 "보호·게이트가 가리키는 대상이 실제와 어긋남" — **F-AF02** `.claude/evolution-protected` 가 소스 settings 만 등재하고 런타임 파일은 비보호 / **F-AF03** cloud-init 이 각인하는 env 와 denylist 대상 불일치 / **F-AF06** auto-build-safety 의 destructive-op 정규식이 `rm -r -f` 변형을 놓침 / **F-AF05** badge-sync BS1 변이가 3 배지를 한꺼번에 오염시켜 개별 검출력 없음 / **F-AF07** eval-regression 이 아무 `yq` 나 수용(mikefarah 아닌 것 포함) / **F-AF01** audit SKILL 의 memory-lint 경로 오기 / **F-AF04** retrospective example 이 스킬 내부 호출과 사용자 호출을 뭉갬.
+- **최근 = 라운드 AG (F-AG01~F-AG05)** — 루프가 09-07 발화에서 발굴(cycle-complete 라운드). **F-AG05** 가 자기 채번을 지적했다 — firing 이 라운드 라벨을 직전 ledger 라운드의 다음 글자로 잡는데, 미머지 브랜치가 쌓이면 main 기준 재계산으로 같은 라벨이 반복된다(실제로 AF 가 3 PR 에 중복). 그 외 **F-AG01** audit-rounds.md 제목이 R1~AC 로 stale / **F-AG02** auto-build SKILL 의 관련 파일 목록이 실제 스크립트와 어긋남 / **F-AG03** onboard 의 CORE_SKILL_TYPES 하드코딩 / **F-AG04** self-update 가 git add·commit 을 무조건 수행.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
