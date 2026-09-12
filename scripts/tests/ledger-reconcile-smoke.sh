@@ -103,6 +103,17 @@ fi
 echo "$rep8" | grep -q 'F-ZZ01' && ok "LR8.3 fix 제목은 여전히 후보" \
   || ng "LR8.4 fix 제목까지 걸러졌다 — 필터가 과차단"
 
+echo "Test LR9: gh 부재를 '머지 PR 0건'과 구분해 보고 (F-AH05)"
+# 실측(F-AI03): cloud 세션에 gh 가 없어 reconcile 이 상시 no-op 이었다. report-only 라
+# 상태는 안 바뀌지만, "머지 PR 이 없다" 와 "확인할 방법이 없다" 가 같은 메시지로 나오면
+# 정합이 안 돌고 있다는 사실 자체가 가려진다 — F-AA14 와 같은 계열의 계기 무효.
+reset_ledger
+out9=$(LEDGER="$L" LEDGER_GH_BIN="$TMP/nonexistent-gh" bash "$LEDGER_SH" reconcile 2>&1)
+echo "$out9" | grep -q 'gh' && ok "LR9.1 gh 부재를 사유로 명시" \
+  || ng "LR9.2 '조회 결과 없음' 과 구별 불가 — 정합 미작동이 무증상"
+st9=$(jq -r 'select(.id=="F-ZZ01")|.status' "$L")
+[ "$st9" = "open" ] && ok "LR9.3 상태 무변경" || ng "LR9.4 status=$st9"
+
 echo ""
 echo "─────────────────────────────────────────"
 echo "PASS: $PASS   FAIL: $FAIL"

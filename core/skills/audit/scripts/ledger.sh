@@ -272,9 +272,16 @@ case "$cmd" in
     # 조회 실패(gh 부재·비인증·오프라인)는 빈 목록이 아니라 **no-op** 이다 — 조회가 죽었는데
     # 성공으로 치면 계기가 거짓 신호를 준다(F-AA14 교훈).
     APPLY=0; [ "${1:-}" = "--apply" ] && APPLY=1
+    # F-AH05: gh 부재를 "머지 PR 0건" 과 **구분해서** 보고한다. 실측(F-AI03) — cloud
+    # 세션에 gh 가 없어 reconcile 이 상시 no-op 이었는데, 메시지가 같으면 정합이 안
+    # 돌고 있다는 사실 자체가 가려진다(F-AA14 와 같은 계열의 계기 무효).
+    GH_BIN="${LEDGER_GH_BIN:-gh}"
     MERGED_CMD="${LEDGER_MERGED_PR_CMD:-__gh_merged_prs}"
     if [ "$MERGED_CMD" = "__gh_merged_prs" ]; then
-      TITLES=$(gh pr list --state merged --limit 50 --json title --jq '.[].title' 2>/dev/null) || TITLES=""
+      command -v "$GH_BIN" >/dev/null 2>&1 || {
+        echo "reconcile: gh 부재 — 머지 PR 조회 불가로 no-op. '머지 PR 0건' 이 아니라 **확인할 수단이 없는 것**이다(F-AH05)" >&2
+        exit 0; }
+      TITLES=$("$GH_BIN" pr list --state merged --limit 50 --json title --jq '.[].title' 2>/dev/null) || TITLES=""
     else
       [ -x "$MERGED_CMD" ] || { echo "reconcile: 머지 PR 조회 불가 — no-op" >&2; exit 0; }
       TITLES=$(bash "$MERGED_CMD" 2>/dev/null) || TITLES=""
