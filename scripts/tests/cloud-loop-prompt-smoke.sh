@@ -33,6 +33,7 @@ have "L2.4 VERIFY resolve"        "ledger.sh resolve"
 have "L2.5 AUDIT"                 "/audit"
 # F-T10: Phase 2 가 ledger append 후 MEMORY 인덱스를 갱신하지 않아 R17/R18/R19/R25
 # 네 라운드가 연속 RED. 게이트(check-doc-counts:82)에만 있고 생산자 지시문에 없던 계약.
+have "L2.3d dimension 로테이션 (F-AJ02)" "dimension 은 매 밤 2개만 돈다"
 have "L2.3c 오래된 open 재검토 지시 (F-AJ01)" "ledger.sh stale 3"
 have "L2.4a Phase1 진입 heartbeat (F-AE01)" "phase1-start"
 have "L2.4b reconcile 확인 건수 상한 (F-AE01)" "최대 3건만 확인"
