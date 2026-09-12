@@ -288,6 +288,19 @@ case "$cmd" in
     release_lock
     echo "$id → fixed"
     ;;
+  stale)
+    # F-AJ01: Phase 1 VERIFY 는 `status=fixed` 만 본다(pending-verify). **open 은 재검토
+    # 경로가 없다** — 한 번 등록되면 누가 집지 않는 한 영원히 open 이다. 실측(09-12):
+    # open 161건 중 89건이 R~Z(한 달 이상), 최근 9라운드 발굴 78 대 소비 14 로 순증한다.
+    #
+    # **판정하지 않고 워크리스트만 낸다.** 같은 날 시도한 기계적 선별이 evidence 경로
+    # 미해석 20건을 "파일 삭제됨=폐기"로 오독할 뻔했다(실제로는 `telemetry/SKILL.md`
+    # 처럼 `core/skills/` 접두사 누락). 증거를 본 뒤에 resolve 하는 것이 순서다.
+    n="${1:-5}"
+    jq -r 'select(.status=="open") | select(.id != null) |
+           "\(.id)\t\(.round)\t\(.dimension)\t\(.component)\t\(.ts // "-")\t\(.evidence[0:110])"' \
+      "$LEDGER" 2>/dev/null | head -n "$n"
+    ;;
   pending-verify)
     # decision-observability reconcile 워크리스트: fix 가 머지(status=fixed)됐으나
     # actual_delta 미기록인 finding. /audit Phase 0 가 측정 후 resolve 로 verify/refute.
@@ -360,7 +373,7 @@ EOF_TITLES
     fi
     ;;
   *)
-    echo "usage: ledger.sh {append|resolve|correct|open|round|next-num|next-round|enqueue|mark-fixed|pending-verify|reconcile}" >&2
+    echo "usage: ledger.sh {append|resolve|correct|open|round|next-num|next-round|enqueue|mark-fixed|pending-verify|reconcile|stale}" >&2
     exit 2
     ;;
 esac
