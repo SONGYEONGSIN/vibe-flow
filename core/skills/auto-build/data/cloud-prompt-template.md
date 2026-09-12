@@ -69,6 +69,14 @@ bash core/skills/audit/scripts/ledger.sh reconcile      # 후보 보고 (상태 
 
 `/audit` 스킬을 호출한다. dimension agent 병렬로 4-필드 finding(evidence/root_cause/fix/predicted_delta)을 발굴하고 전역 단일 시퀀스로 `ledger.sh append` 한다 (4-필드 계약은 기계 강제). rules/harness-evolution.md의 루프를 그대로 따른다.
 
+**dimension 은 매 밤 2개만 돈다 (F-AJ02).** 그날 몫은 UTC 일자로 결정한다 — 임의로 고르지 마라:
+```bash
+case $(( 10#$(date -u +%j) % 4 )) in
+  0) DIMS="D1 D2" ;; 1) DIMS="D3 D4" ;; 2) DIMS="D1 D3" ;; 3) DIMS="D2 D4" ;;
+esac
+```
+**커버리지를 줄이는 게 아니라 밤당 부하를 나누는 것이다** — 각 dimension 은 이틀에 한 번 돌고 4일이면 모든 조합을 지난다. 이유: 최근 9라운드(12일) 실측이 **발굴 78 대 닫힘 14**(순증 5.6배)였다. 한 밤의 소비는 fix 1건 + `stale` 재검토 3건 ≈ 4건인데 발굴이 5~12건이면 원장은 영원히 커지고, **행동으로 이어지지 않는 finding 은 신호가 아니라 소음**이다. 이 Phase 가 가장 오래 걸리는 구간이라(5~7분) 절반으로 줄면 뒤 Phase 들의 완주 확률도 올라간다.
+
 **이 Phase 는 가장 길고(5~7분) 가장 자주 멈추는 구간이다.** 2026-08-19 firing 은 `AUDIT 시작` 1분 뒤 기록이 끊겼고, dimension agent 가 몇 개나 돌았는지 알 수 없었다. 그래서 **AUDIT 내부에도 heartbeat 를 남긴다** — 아래 4 지점은 생략하지 말 것:
 
 ```bash
