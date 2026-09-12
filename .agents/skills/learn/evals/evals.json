@@ -1,0 +1,32 @@
+{
+  "skill_name": "learn",
+  "description": "학습 메모리 관리 품질 평가",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "최근 세션에서 Supabase RLS 관련 TypeScript 에러를 3번 해결한 상황이다. /learn save error 를 실행해라.",
+      "expectations": [
+        { "description": ".claude/memory/patterns.md의 '에러 해결' 섹션에 추가한다", "type": "must_pass" },
+        { "description": "에러 메시지 + 원인 + 해결법 형식을 따른다", "type": "must_pass" },
+        { "description": "타임스탬프와 출처(커밋 해시)를 기록한다", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": ".claude/memory/ 디렉토리에 아무 파일도 없는 상황이다. /learn show 를 실행해라.",
+      "expectations": [
+        { "description": "학습된 내용이 없음을 안내한다", "type": "must_pass" },
+        { "description": "/learn save pattern 으로 시작하라는 가이드를 제공한다", "type": "must_pass" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "세션에서 createClient → supabase.from('todos').select() 패턴을 5번 이상 사용했다. /learn save pattern 을 실행해라.",
+      "expectations": [
+        { "description": ".claude/memory/patterns.md의 '코드 패턴' 섹션에 추가한다", "type": "must_pass" },
+        { "description": "기존 항목과 중복 시 업데이트(새로 추가하지 않음)한다", "type": "should_pass" },
+        { "description": "항목당 5줄 이내로 간결하게 작성한다", "type": "should_pass" }
+      ]
+    }
+  ]
+}
