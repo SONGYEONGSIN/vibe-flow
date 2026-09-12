@@ -1,0 +1,168 @@
+#!/bin/bash
+set -u
+# auto-build-safety.sh — PreToolUse 안전 hook for /auto-build 자율 사이클
+#
+# AUTO_BUILD_MODE=1 일 때만 활성. 비-자율 모드(env 미설정)에는 영향 0.
+# 차단 규약: stderr에 사유 출력 + exit 2 (Claude Code PreToolUse 차단).
+# 통과 규약: 자율 모드에서는 stderr에 PASS 1줄 출력 + exit 0 (wire 명시 — F14).
+#   AUTO_BUILD_SAFETY_QUIET=1 로 PASS 로그 무음화 가능 (default verbose).
+#
+# 차단 카테고리:
+#   1. destructive op  — rm -rf, git reset --hard, git push --force, --no-verify, chmod 777, fork bomb
+#   2. token cap       — (T4)
+#   3. file count cap  — (T4)
+#
+# Cloud session 호환 (Phase 3.1 PR-C3):
+#   cloud Claude Code remote agent session에서 본 hook이 PreToolUse로 자동
+#   inherit되는지는 **R8 dogfooding 검증 필요**. 실 firing 1회로 다음 확인:
+#     (a) cloud session 진입 시 settings.template.json PreToolUse 등록 → destructive cmd 차단
+#     (b) AUTO_BUILD_MODE=1 env가 cloud session에 전파됨 (cloud-prompt-template 명시 가정)
+#     (c) auto-build-runs.jsonl 같은 local jsonl은 cloud의 ephemeral checkout이라
+#         user 머신 도달 X — cloud agent가 git commit/push 필수 (queue-commit.sh 패턴)
+#   R8 실패 시 A3.3 fallback: orchestrator가 vote confidence floor 1.0 강제 +
+#   safety 비활성 가정 추가 보수 처리.
+
+# F-U06: stdin 을 먼저 비운다 (evolution-guard.sh 동일 사유 — 조기 exit 분기가
+# 사람 세션 기본 경로에서 writer EPIPE 를 냈다, 실측 writer exit 141).
+INPUT=$(cat)
+
+# 자율 모드 아니면 즉시 통과 (비-자율 영향 0 — silent)
+if [ "${AUTO_BUILD_MODE:-}" != "1" ]; then
+  exit 0
+fi
+
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
+
+pass() {
+  # F14: 자율 모드 통과 시 wire 명시 — AUTO_BUILD_SAFETY_QUIET=1 로 무음화 가능
+  if [ "${AUTO_BUILD_SAFETY_QUIET:-0}" != "1" ]; then
+    echo "[auto-build-safety] PASS — tool=${TOOL_NAME:-<unknown>} reason=$1" >&2
+  fi
+}
+
+# Bash 외에는 destructive 패턴 검증 X (Write/Edit는 결과 파일 검증이 security-lint 책임)
+if [ "$TOOL_NAME" != "Bash" ]; then
+  pass "non-Bash-tool"
+  exit 0
+fi
+
+CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null)
+if [ -z "$CMD" ]; then
+  pass "empty-command"
+  exit 0
+fi
+
+block() {
+  local reason="$1"
+  echo "[auto-build-safety] BLOCKED — ${reason}" >&2
+  echo "[auto-build-safety] command: ${CMD}" >&2
+  echo "[auto-build-safety] 자율 사이클은 destructive op 금지. 수동 사이클로 전환 후 재시도." >&2
+  exit 2
+}
+
+# 1. rm -rf (root, home, 임의 절대 경로)
+if echo "$CMD" | grep -qE '\brm\s+(-[a-zA-Z]*r[a-zA-Z]*f|--recursive\s+--force|--force\s+--recursive|-fr|-rf)\b'; then
+  block "rm -rf 패턴 — 자율 모드에서 destructive 삭제 금지"
+fi
+
+# 2. git reset --hard
+if echo "$CMD" | grep -qE '\bgit\s+reset\s+(--hard|--mixed.*--hard)'; then
+  block "git reset --hard — uncommitted 변경 손실 위험"
+fi
+
+# 3. git push --force (--force-with-lease 포함, 자율 모드는 모두 차단)
+if echo "$CMD" | grep -qE '\bgit\s+push\b.*(--force(-with-lease)?|-f\b)'; then
+  block "git push --force — remote 히스토리 덮어쓰기 위험"
+fi
+
+# 4. --no-verify (commit/push hook bypass)
+if echo "$CMD" | grep -qE '\bgit\s+(commit|push)\b.*--no-verify'; then
+  block "git commit/push --no-verify — pre-commit hook bypass 금지"
+fi
+
+# 5. chmod 777 (권한 과다 부여)
+if echo "$CMD" | grep -qE '\bchmod\s+(-R\s+)?777\b'; then
+  block "chmod 777 — 과도한 권한 부여 금지"
+fi
+
+# 6. fork bomb
+if echo "$CMD" | grep -qE ':\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:'; then
+  block "fork bomb 패턴 — 시스템 리소스 고갈 위험"
+fi
+
+# 7. dd 디스크 직접 쓰기 (보너스 — destructive)
+if echo "$CMD" | grep -qE '\bdd\s+.*\bof=/dev/(sda|nvme|disk|hda)'; then
+  block "dd 디스크 직접 쓰기 — 데이터 파괴 위험"
+fi
+
+# 8. mkfs / 포맷
+if echo "$CMD" | grep -qE '\bmkfs\.[a-z0-9]+\b|\bformat\s+(/dev/|[A-Z]:)'; then
+  block "mkfs / format — 파일시스템 파괴 위험"
+fi
+
+# ──────────────────────────────────────────────────────────────
+# T4: token cap (현재 사이클 누적 토큰 초과 시 차단)
+# ──────────────────────────────────────────────────────────────
+TOKEN_CAP="${AUTO_BUILD_TOKEN_CAP:-200000}"
+RUNS_LOG=".claude/memory/auto-build-runs.jsonl"
+
+if [ -f "$RUNS_LOG" ] && [ -n "${AUTO_BUILD_RUN_ID:-}" ]; then
+  # 현재 run_id의 모든 라인 중 가장 최근 tokens_in/tokens_out 합산
+  CUR_TOKENS=$(jq -r --arg rid "$AUTO_BUILD_RUN_ID" '
+      select(.run_id == $rid) | (.tokens_in // 0) + (.tokens_out // 0)
+    ' "$RUNS_LOG" 2>/dev/null | awk '{s+=$1} END {print s+0}')
+
+  if [ -n "$CUR_TOKENS" ] && [ "$CUR_TOKENS" -gt "$TOKEN_CAP" ] 2>/dev/null; then
+    echo "[auto-build-safety] BLOCKED — token cap 초과" >&2
+    echo "[auto-build-safety] 누적: ${CUR_TOKENS} / cap: ${TOKEN_CAP}" >&2
+    echo "[auto-build-safety] exit_reason=token_cap_exceeded — 사이클 abort 권장" >&2
+    exit 2
+  fi
+fi
+
+# ──────────────────────────────────────────────────────────────
+# T4: file count cap (HARD-GATE 20+ 자율 차단)
+# ──────────────────────────────────────────────────────────────
+FILE_CAP="${AUTO_BUILD_FILE_CAP:-19}"
+
+# 현재 branch가 auto-build branch(feat/sleep-*)일 때만 검사
+CUR_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+if echo "$CUR_BRANCH" | grep -qE '^feat/sleep-'; then
+  # main과의 diff 파일 수 (merge-base 기준 — main으로부터 분기 시점)
+  BASE=$(git merge-base HEAD main 2>/dev/null || echo "")
+  if [ -n "$BASE" ]; then
+    CHANGED=$(git diff --name-only "$BASE"..HEAD 2>/dev/null | wc -l | tr -d ' ')
+    # uncommitted 변경 (tracked modified + untracked) 모두 합산 — porcelain 사용
+    UNCOMMITTED=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+    TOTAL=$((CHANGED + UNCOMMITTED))
+
+    if [ "$TOTAL" -gt "$FILE_CAP" ] 2>/dev/null; then
+      echo "[auto-build-safety] BLOCKED — file count cap 초과" >&2
+      echo "[auto-build-safety] 변경 파일: ${TOTAL} / cap: ${FILE_CAP} (HARD-GATE 20+ 진입 직전)" >&2
+      echo "[auto-build-safety] exit_reason=file_cap_exceeded — 사이클 abort, 수동 plan 분할 권장" >&2
+      exit 2
+    fi
+  fi
+fi
+
+# ──────────────────────────────────────────────────────────────
+# Phase 2: max_iterations cap (Ralph wrapper iter 카운트 초과 시 차단)
+# jsonl에서 가장 큰 iteration 값 jq 추출 → cap 초과 시 abort
+# ──────────────────────────────────────────────────────────────
+MAX_ITER="${AUTO_BUILD_MAX_ITERATIONS:-30}"
+
+if [ -f "$RUNS_LOG" ] && [ -n "${AUTO_BUILD_RUN_ID:-}" ]; then
+  CUR_ITER=$(jq -r --arg rid "$AUTO_BUILD_RUN_ID" '
+      select(.run_id == $rid) | (.iteration // 0)
+    ' "$RUNS_LOG" 2>/dev/null | sort -rn | head -1)
+
+  if [ -n "$CUR_ITER" ] && [ "$CUR_ITER" -gt "$MAX_ITER" ] 2>/dev/null; then
+    echo "[auto-build-safety] BLOCKED — max iterations 초과" >&2
+    echo "[auto-build-safety] 현재 iter: ${CUR_ITER} / cap: ${MAX_ITER}" >&2
+    echo "[auto-build-safety] exit_reason=max_iterations_exceeded — Ralph wrapper 종료" >&2
+    exit 2
+  fi
+fi
+
+pass "all-checks-ok"
+exit 0

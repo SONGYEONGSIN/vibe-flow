@@ -67,6 +67,13 @@ assert_exit "S1.2 valid cron DRYRUN exit 0" 0 "$EC"
 OUT=$(SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "0 */6 * * *" 2>&1 || true)
 assert_contains "S1.2 stdout 'would register'" "would register: 0 \\*/6 \\* \\* \\*" "$OUT"
 
+# S1.3 (F-R05): payload body.name 에 cloud-prompt-template.md 의 커밋 SHA 접미 —
+# 라이브 트리거가 어느 프롬프트 세대로 등록됐는지 저장소에서 관측 가능해야 한다.
+TEMPLATE_SHA_EXPECTED=$(git -C "$REPO_ROOT" log -1 --format=%h -- "$REPO_ROOT/core/skills/auto-build/data/cloud-prompt-template.md")
+NAME_JSON=$(SCHEDULE_REGISTER_DRYRUN=1 bash "$REGISTER" "0 */6 * * *" 2>/dev/null | grep '^{')
+NAME_VALUE=$(echo "$NAME_JSON" | jq -r '.body.name')
+assert_contains "S1.3 body.name 에 template SHA 접미(@$TEMPLATE_SHA_EXPECTED)" "@${TEMPLATE_SHA_EXPECTED}\$" "$NAME_VALUE"
+
 # ── Test S2: run-queue MAX_FIRINGS_PER_DAY cap ─────────────
 echo "Test S2: run-queue MAX_FIRINGS_PER_DAY cap"
 setup_fixture

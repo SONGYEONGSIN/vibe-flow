@@ -1,0 +1,150 @@
+#!/bin/bash
+set -u
+# PostToolUseFailure hook: 도구 실행 실패 시 구조화된 에러 분류 + 복구 힌트
+#
+# Hermes Agent error_classifier 패턴 적용.
+# 14개 에러 클래스로 분류하고 재시도 가능 여부 + 복구 제안을 제공한다.
+# 기존 dual-write (JSON + SQLite + JSONL) 패턴 유지.
+
+INPUT=$(cat)
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
+ERROR=$(echo "$INPUT" | jq -r '.error // empty' 2>/dev/null)
+
+PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
+[ -z "$PROJECT_ROOT" ] && exit 0
+
+METRICS_DIR="${PROJECT_ROOT}/.claude/metrics"
+mkdir -p "$METRICS_DIR" 2>/dev/null || true
+
+# ── 에러 분류 함수 ──────────────────────────────────────────
+# 입력: error_string, tool_name
+# 출력: error_class|retryable|recovery (파이프 구분)
+
+classify_error() {
+  local error="$1"
+  local tool="$2"
+  local error_lower
+  error_lower=$(echo "$error" | tr '[:upper:]' '[:lower:]')
+
+  # 파일 경로/파일명 substring 매칭으로 인한 오분류 회피 (F-D3 R3-3).
+  # 예: "/users/.../build/.../test.md: no such file" 가 build_error로 잡히는 문제.
+  # 경로(/x/y/z) + 흔한 확장자 파일명을 분류 전에 제거하여 에러 키워드만 매칭한다.
+  # macOS/BSD sed는 \b 워드 바운더리 미지원 → ([^a-z0-9_]|$) 패턴으로 대체.
+  local error_signal
+  error_signal=$(echo "$error_lower" | sed -E '
+    s#/[^[:space:]]+# #g
+    s#[a-z0-9_.-]+\.(md|ts|tsx|js|jsx|json|sh|html|css|scss|py|yml|yaml|txt|log)([^a-z0-9_]|$)# \2#g
+  ')
+
+  local error_class="unknown"
+  local retryable="false"
+  local recovery="에러 내용을 확인하고 수동으로 대응하세요."
+
+  case "$error_signal" in
+    # F-G09 (audit R7): 탐색/진단성 비정상 종료(grep no-match, subshell sourcing 등)는
+    # 실 도구 실패가 아니므로 'diagnostic' 으로 분리 — failure 스트림 신호 희석 방지.
+    # F-Q07 (audit round Q): "===" 2회 이상(다중 섹션 헤더)은 조사/진단 스크립트 출력의
+    # 시그니처 — 26/72건(36%) 중 23건이 이 신호 부재로 unknown/build_error/auth 로 오분류.
+    *"no matches found"*|*"read-only variable"*|*"==="*"==="*)
+      error_class="diagnostic"; retryable="false"
+      recovery="진단/탐색성 비정상 종료 (실 실패 아님). 분석 제외 가능." ;;
+    # F-M07 (audit R13): genuine 런타임 예외(Python traceback)가 키워드 부재로 unknown 유실
+    # 또는 하위 브랜치에 오분류되던 것을 결정적 시그니처로 최상단 포착. bare "assertionerror"
+    # 는 vitest assertion 출력과 충돌해 test_error 를 탈취하므로 제외 (traceback 한정).
+    *"traceback (most recent call last)"*)
+      error_class="runtime_error"; retryable="false"
+      recovery="런타임 예외 — 스택 트레이스 최하단 프레임부터 원인 분석." ;;
+    *"401"*|*"403"*|*"unauthorized"*|*"eauth"*|*"invalid api key"*|*"authentication"*)
+      error_class="auth"; retryable="false"
+      recovery="인증 토큰 확인. 환경변수 또는 .env 파일 점검." ;;
+    *"429"*|*"rate limit"*|*"too many requests"*|*"quota"*)
+      error_class="rate_limit"; retryable="true"
+      recovery="잠시 대기 후 재시도. 요청 빈도를 줄이세요." ;;
+    *"etimedout"*|*"timeout"*|*"esockettimedout"*|*"request timed out"*)
+      error_class="timeout"; retryable="true"
+      recovery="네트워크 상�� 확인. 타임아웃 값 증가 고려." ;;
+    *"context_length"*|*"context window"*|*"maximum context"*|*"token limit"*)
+      error_class="context_overflow"; retryable="false"
+      recovery="컨텍스트 축소 필요. /compact 실행 권장." ;;
+    *"json"*|*"parse error"*|*"syntaxerror"*|*"unexpected token"*|*"malformed"*)
+      error_class="format_error"; retryable="false"
+      recovery="입출력 JSON 포맷 확인. jq로 검증." ;;
+    # F-I06 (audit R9): bare "build" 제거 — repo 경로(/개발/build/vibe-flow)의 부분문자열이
+    # git log 등 stdout 에 섞여 build_error 오분류. "build error/failed", "next build" 문맥만 매치.
+    # F-L12 (audit R12): bare "vite" 는 "vitest" 의 부분문자열 — 이 브랜치가 test_error 보다
+    # 앞이라 vitest 출력 전체가 build_error 로 오분류됐다. 공백/콜론 문맥만 매치.
+    *"build error"*|*"build failed"*|*"webpack"*|*"vite "*|*"vite:"*|*"esbuild"*|*"rollup"*|*"next build"*)
+      error_class="build_error"; retryable="false"
+      recovery="빌드 설정 확인. 의존성 설치 상태 점검." ;;
+    # F-L06 (audit R12): bare "fail" 제거 — "tool-failure"/"failure" 산문의 부분문자열이
+    # test_error 오분류 (F-I06 과 동일 클래스가 다른 키워드로 잔존). failed/failing 문맥만 매치.
+    *"failed"*|*"failing"*|*"fail:"*|*"test fail"*|*"vitest"*|*"jest"*|*"assert"*|*"expected"*|*"received"*)
+      error_class="test_error"; retryable="false"
+      recovery="실패 테스트 로그 분석. 예상값과 실제값 비교." ;;
+    *"eslint"*|*"lint"*|*"prettier"*|*"formatting"*)
+      error_class="lint_error"; retryable="false"
+      recovery="린트 규칙 확인. --fix 옵션 시도." ;;
+    *"ts"[0-9]*|*"typescript"*|*"type error"*|*"tsc"*|*"type '"*"' is not"*)
+      error_class="type_error"; retryable="false"
+      recovery="타입 정의 확인. 타입 선언 파일 점검." ;;
+    *"econnrefused"*|*"enotfound"*|*"network"*|*"fetch failed"*|*"dns"*)
+      error_class="network"; retryable="true"
+      recovery="네트워크 연결 확인. URL/포트 점검." ;;
+    *"eacces"*|*"permission denied"*|*"eperm"*|*"access denied"*)
+      error_class="permission"; retryable="false"
+      recovery="파일 권한 확인. chmod/chown 필요." ;;
+    *"enoent"*|*"no such file"*|*"not found"*|*"module_not_found"*|*"cannot find"*)
+      error_class="not_found"; retryable="false"
+      recovery="파일/모듈 경로 확인. 존재 여부 점검." ;;
+  esac
+
+  echo "${error_class}|${retryable}|${recovery}"
+}
+
+# ── 에러 분류 실행 ──────────────────────────────────────────
+
+CLASSIFIED=$(classify_error "$ERROR" "$TOOL_NAME")
+ERROR_CLASS=$(echo "$CLASSIFIED" | cut -d'|' -f1)
+RETRYABLE=$(echo "$CLASSIFIED" | cut -d'|' -f2)
+RECOVERY=$(echo "$CLASSIFIED" | cut -d'|' -f3)
+
+# ── EVENT JSON 생성 ─────────────────────────────────────────
+
+DATE=$(date +%Y-%m-%d)
+METRICS_FILE="${METRICS_DIR}/daily-${DATE}.json"
+
+EVENT=$(jq -n \
+  --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  --arg tool "$TOOL_NAME" \
+  --arg error "$ERROR" \
+  --arg ec "$ERROR_CLASS" \
+  --arg retry "$RETRYABLE" \
+  --arg rec "$RECOVERY" \
+  '{timestamp: $ts, type: "tool_failure", tool: $tool, error: $error,
+   error_class: $ec, retryable: ($retry == "true"), recovery: $rec}')
+
+# ── JSON 메트릭 기록 ───────────────────────────────────────
+
+if [ -f "$METRICS_FILE" ]; then
+  jq --argjson evt "$EVENT" '.events += [$evt]' "$METRICS_FILE" > "${METRICS_FILE}.tmp" && mv "${METRICS_FILE}.tmp" "$METRICS_FILE"
+else
+  echo "{\"date\": \"${DATE}\", \"events\": [${EVENT}]}" > "$METRICS_FILE"
+fi
+
+# ── SQLite 이중 기록 (best-effort) ─────────────────────────
+
+STORE_JS="${PROJECT_ROOT}/.claude/scripts/store.js"
+if [ -f "$STORE_JS" ] && command -v node &>/dev/null; then
+  echo "$EVENT" | node "$STORE_JS" append-failure 2>/dev/null || true
+fi
+
+# ── events.jsonl 실시간 스트림 기록 ────────────────────────
+
+EVENTS_FILE="${PROJECT_ROOT}/.claude/events.jsonl"
+echo "$EVENT" | jq -c '. + {status: "error", ts: .timestamp}' >> "$EVENTS_FILE" 2>/dev/null || true
+
+# ── 복구 힌트 제공 ─────────────────────────────────────────
+
+echo "{\"additionalContext\": \"[tool-failure] [${ERROR_CLASS}] ${RECOVERY}\"}"
+
+exit 0

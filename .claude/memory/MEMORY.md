@@ -18,13 +18,13 @@
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AF)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AI)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AF (F-AF01~F-AF11)** — D1/D2/D3/D4 4-dim 병렬 감사. D4 는 evolution-guard 훅의 symlink 우회(F-AF01)·auto-build-safety 훅의 삭제 플래그순서 우회(F-AF02)·evolution-guard 훅 Bash 벡터의 산문 인용 오탐(F-AF11, 이 finding 작성 자체에서 재현) 등 안전코어 결함 3건을 사람 review 전용으로 표면화(자율 미수정). D1 은 cloud 세션에서 gh 부재로 reconcile 이 항상 no-op 되며 stale open finding 14건 이상 누적됨을 실증(F-AF03). D3 는 skill_invoked_auto 라벨 오분류·cloud-commit 계측 0% 매치·SKILL.md 트리거 인용 8건 신규 미등재(F-AF07~09). F-AF10 은 머지 판정 스크립트도 동일 gh 부재 문제를 겪음을 실증(F-AF03 계보). VERIFY: F-AC03 verified / F-AD01 refuted(제안된 fix 미구현 확인) / F-AE01 verified(본 발화가 반증) / F-AD09 실사용 성공.
+- **최근 = 라운드 AI (F-AI01~F-AI11)** — 루프가 09-09 발화에서 발굴 — **머지 정체 탓에 라벨이 AF 로 중복 부여됐던 라운드를 사람이 AI 로 재채번해 살린 것**(F-AG05 가 지적한 채번 결함의 실제 사례, F-Y15 재발). 주제 **"안전장치가 환경에 따라 조용히 꺼진다"** — **F-AI03** reconcile 이 cloud 세션에서 항상 no-op(본 firing 실측) / **F-AI01·F-AI02** evolution-guard 는 격리 fixture 에서 BLOCKED 확인되나 auto-build-safety 정규식이 `rm -r -f` 변형을 놓침 / **F-AI10** merge-gate 를 PR #250 에 실행한 실측 / **F-AI11** memory-index.sh 인자 요약 산문에서 2회 재현된 결함. 그 외 F-AI04 인덱스 헤더가 아직 200줄 cap 서술, F-AI05 reconcile 후보 수 미표기, F-AI07 skill-tracker 가 Skill 툴 전량 게이트, F-AI09 SKILL description 22개 중 8개에 자연어 트리거 인용구 0개.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)

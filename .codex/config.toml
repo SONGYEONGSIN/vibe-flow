@@ -1,0 +1,8 @@
+[shell_environment_policy]
+inherit = "core"
+
+[shell_environment_policy.set]
+NODE_ENV = "development"
+CLAUDE_AUTOCOMPACT_PCT_OVERRIDE = "50"
+PORT = "3000"
+CLAUDE_TDD_ENFORCE = "strict"

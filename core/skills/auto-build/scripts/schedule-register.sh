@@ -90,6 +90,12 @@ if [ ! -f "$TEMPLATE_PATH" ]; then
   exit 3
 fi
 
+# F-R05: 라이브 트리거 payload 의 name 에 템플릿 파일의 커밋 SHA를 접미한다 — 등록된
+# routine 이 어느 프롬프트 세대를 발화 중인지 재등록 없이는 저장소에서 관측할 수
+# 없었다(트리거는 등록 시점 문자열을 frozen 상태로 들고 있고, 이후 템플릿이 바뀌어도
+# 재등록 전까지는 옛 세대를 계속 발화). git 이력이 없는 파일이면 빈 값 — 접미 생략.
+TEMPLATE_SHA=$(git -C "$PROJECT_ROOT" log -1 --format=%h -- "$TEMPLATE_PATH" 2>/dev/null)
+
 # 실 등록(DRYRUN=0)에서만 RT_ENVIRONMENT_ID 필수 — dryrun은 smoke 호환 위해 placeholder 허용
 RT_ENVIRONMENT_ID_VALUE="${RT_ENVIRONMENT_ID:-}"
 if [ "$DRYRUN" != "1" ] && [ -z "$RT_ENVIRONMENT_ID_VALUE" ]; then
@@ -100,6 +106,7 @@ RT_ENVIRONMENT_ID_VALUE="${RT_ENVIRONMENT_ID_VALUE:-env_REPLACE_WITH_YOUR_ID}"
 
 # defaults
 RT_ROUTINE_NAME_VALUE="${RT_ROUTINE_NAME:-vibe-flow auto-build}"
+[ -n "$TEMPLATE_SHA" ] && RT_ROUTINE_NAME_VALUE="${RT_ROUTINE_NAME_VALUE}@${TEMPLATE_SHA}"
 RT_MODEL_VALUE="${RT_MODEL:-claude-sonnet-4-6}"
 REPO_URL_RAW="${REPO_URL:-$(git remote get-url origin 2>/dev/null || echo '<unknown>')}"
 # sources[].git_repository.url은 .git suffix 없는 형태 사용 (R8/R9 routine 패턴)
