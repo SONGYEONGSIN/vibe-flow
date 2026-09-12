@@ -10,3 +10,4 @@
 {"ts":"2026-09-12T21:10:10Z","phase":"phase2-dispatch","detail":"dimension agent 2개 dispatch (D2 D4, round AK)","base_sha":"65ddf04"}
 {"ts":"2026-09-12T21:17:46Z","phase":"phase2-agents","detail":"2/2 회수, finding 후보 2건 (D2 1건, D4 1건)","base_sha":"fe50c63"}
 {"ts":"2026-09-12T21:19:15Z","phase":"phase2-append","detail":"ledger append 2건 완료 (F-AK01~F-AK02) [재시도]","base_sha":"9c427f3"}
+{"ts":"2026-09-12T21:19:25Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"9c427f3"}
