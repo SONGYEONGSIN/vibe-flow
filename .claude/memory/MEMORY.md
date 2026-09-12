@@ -18,13 +18,13 @@
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AE)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AH)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AE (F-AE01~F-AE12)** — 루프가 09-10 발화에서 발굴 — **phase2-memory 를 처음 통과한 라운드**(F-AD09 fix 검증). 절반이 **직전 주에 사람이 넣은 코드를 겨냥**한다: **F-AE03** memory-index.sh 의 이월 로직이 audit-rounds.md 에 AC/AD 서사를 2회씩 중복시킴 / **F-AE04** 인덱스 포인터가 'R1~AC, 26 라운드' 로 stale / **F-AE06** memory-index.sh:54 의 mv 처리 결함 / **F-AE07** ledger reconcile 의 gh 조회 분기 / **F-AE08** reconcile 3건 상한 지시의 모호성. 그 외 **F-AE05** audit SKILL 의 D2 dispatch 대상 불일치, **F-AE09** queue.sh 의 gh 존재 검사, **F-AE10/11** capability-gate·merge-gate 판정 경로, **F-AE12** evolution-guard 의 Bash 벡터 정규식.
+- **최근 = 라운드 AH (F-AH01~F-AH06)** — 루프가 09-11 발화에서 발굴(phase7 도달). 주제 **"gh 부재 환경의 조용한 무력화"** — **F-AH05** ledger reconcile 과 **F-AH06** queue 의 열린-PR 가드가 모두 `gh` 없으면 조용히 no-op 이 되고, 이 실행 환경에서 실제로 그렇다(실측). 안전·정합 장치가 도구 부재 하나로 동시에 꺼진다. 그 외 **F-AH01** git.md 의 Planner 호출 표기 / **F-AH02** CLAUDE.md.template 의 patterns.md 안내 / **F-AH03** audit SKILL 의 D2 dispatch 대상(F-AE05 와 동일 지점 재지적) / **F-AH04** telemetry 의 BSD `date -j` 의존.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
