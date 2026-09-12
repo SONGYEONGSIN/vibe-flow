@@ -1,0 +1,121 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/command-guard.sh'",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/smart-guard.sh'",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/auto-build-safety.sh'",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/metrics-collector.sh'",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/pattern-check.sh'",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/security-lint.sh'",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/debate-trigger.sh'",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/readme-sync.sh'",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Skill|Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/tool-invocation-tracker.sh'",
+            "timeout": 3000
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/context-prune.sh'",
+            "timeout": 8000
+          },
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/pre-compact.sh'",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/skill-tracker.sh'",
+            "timeout": 3000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/uncommitted-warn.sh'",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/session-review.sh'",
+            "timeout": 10000
+          },
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/session-log.sh'",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "'/Users/yss/개발/build/vibe-flow/.codex/hooks/session-memory-sync.sh'",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "skill_name": "review-pr",
+  "description": "GitHub PR 코드 리뷰 품질 평가",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "PR #42에서 새로운 Server Action이 추가되었다. 인증 체크 없이 데이터를 수정하고, console.log가 남아있으며, 테스트 파일은 없다. /review-pr 42 를 실행해라.",
+      "expectations": [
+        { "description": "인증/인가 미확인을 보안 문제로 지적한다", "type": "must_pass" },
+        { "description": "console.log 잔존을 코드 품질 문제로 지적한다", "type": "must_pass" },
+        { "description": "테스트 파일 미존재를 지적한다", "type": "must_pass" },
+        { "description": "종합 의견(승인/수정 요청/논의 필요)을 제시한다", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "PR #100에서 기존 함수의 타입만 수정했다. diff가 5줄 이하이며, any를 구체적 타입으로 교체한 변경이다. /review-pr 100 을 실행해라.",
+      "expectations": [
+        { "description": "코드 품질 점수를 높게(8/10 이상) 부여한다", "type": "must_pass" },
+        { "description": "변경 규모에 비례한 간결한 리뷰를 제공한다", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "PR #75에 API 키가 하드코딩되어 있다. /review-pr 75 를 실행해라.",
+      "expectations": [
+        { "description": "시크릿 노출을 보안 WARN으로 판정한다", "type": "must_pass" },
+        { "description": "환경변수로 이동을 제안한다", "type": "must_pass" }
+      ]
+    }
+  ]
+}
