@@ -24,7 +24,7 @@
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AH (F-AH01~F-AH06)** — D1~D4 신규 6건: git.md 존재하지않는 subagent_type:Plan, CLAUDE.md.template SessionStart 거짓 주장, architecture-reviewer.md 출력포맷 충돌, telemetry/inbox GNU date 파싱 버그(Linux 배포환경 실측), ledger.sh reconcile/queue.sh reclaim 의 gh 부재 시 fail-open 2건
+- **최근 = 라운드 AH (F-AH01~F-AH06)** — 루프가 09-11 발화에서 발굴(phase7 도달). 주제 **"gh 부재 환경의 조용한 무력화"** — **F-AH05** ledger reconcile 과 **F-AH06** queue 의 열린-PR 가드가 모두 `gh` 없으면 조용히 no-op 이 되고, 이 실행 환경에서 실제로 그렇다(실측). 안전·정합 장치가 도구 부재 하나로 동시에 꺼진다. 그 외 **F-AH01** git.md 의 Planner 호출 표기 / **F-AH02** CLAUDE.md.template 의 patterns.md 안내 / **F-AH03** audit SKILL 의 D2 dispatch 대상(F-AE05 와 동일 지점 재지적) / **F-AH04** telemetry 의 BSD `date -j` 의존.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
