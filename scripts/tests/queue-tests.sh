@@ -344,6 +344,26 @@ st3=$(bash "$QUEUE" list --all | awk -v i="$stale2" -F'\t' '$1==i{print $2}')
 [ "$st3" = "queued" ] && { echo "  ✓ QRG.3 열린 PR 0 이면 정상 회수"; PASS=$((PASS+1)); } \
   || { echo "  ✗ QRG.3 status=$st3 (want queued — 가드가 과차단)"; FAIL=$((FAIL+1)); }
 
+echo "Test Q-FC: 조회 불가는 '0건'이 아니라 보류 (F-AH06 fail-closed)"
+# 실측(F-AI03): cloud 세션에 gh 가 없어 이 가드가 상시 no-op 이었다. 조회 실패를 "열린 PR
+# 0건"으로 읽으면, 완료됐지만 미머지 PR 에 갇힌 작업을 회수해 **같은 일을 두 번 한다**.
+# 안전장치는 도구가 없을 때 열리는 게 아니라 닫혀야 한다.
+stale3=$(bash "$QUEUE" add "fail-closed task" | sed -n 's/^queued: //p')
+printf '{"op":"status_update","id":"%s","new_status":"running","ts":"%s"}\n' "$stale3" "$old_ts" >> "$QUEUE_STORE"
+
+out_fc=$(QUEUE_GH_BIN="$RTMP/nonexistent-gh" bash "$QUEUE" reclaim 6 2>&1)
+st_fc=$(bash "$QUEUE" list --all | awk -v i="$stale3" -F'\t' '$1==i{print $2}')
+[ "$st_fc" = "running" ] && { echo "  ✓ QFC.1 gh 부재 시 회수 보류 (fail-closed)"; PASS=$((PASS+1)); } \
+  || { echo "  ✗ QFC.2 status=$st_fc — gh 없다고 가드가 열렸다(fail-open)"; FAIL=$((FAIL+1)); }
+echo "$out_fc" | grep -q '보류' && { echo "  ✓ QFC.3 보류 사유 표면화"; PASS=$((PASS+1)); } \
+  || { echo "  ✗ QFC.4 조용한 통과 — 가드가 왜 안 돌았는지 알 수 없다"; FAIL=$((FAIL+1)); }
+
+FSTUB="$RTMP/ghfail"; printf '#!/bin/bash\nexit 1\n' > "$FSTUB"; chmod +x "$FSTUB"
+QUEUE_OPEN_PR_CMD="$FSTUB" bash "$QUEUE" reclaim 6 >/dev/null 2>&1
+st_fc2=$(bash "$QUEUE" list --all | awk -v i="$stale3" -F'\t' '$1==i{print $2}')
+[ "$st_fc2" = "running" ] && { echo "  ✓ QFC.5 조회 실패도 보류"; PASS=$((PASS+1)); } \
+  || { echo "  ✗ QFC.6 status=$st_fc2 — 조회 실패를 0건으로 읽었다"; FAIL=$((FAIL+1)); }
+
 unset QUEUE_STORE QUEUE_LOCK_DIR
 rm -rf "$RTMP"
 

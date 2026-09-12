@@ -182,15 +182,29 @@ case "$CMD" in
     # #220 머지 전에 다음 firing 이 돌았으면 같은 일을 또 했을 것이다.
     # 열린 auto-build PR 이 있으면 그 결과가 미머지로 대기 중일 수 있으므로 회수를 보류한다
     # (F-Y15 와 같은 조건 — 진행 상태가 미머지 PR 안에 갇히는 문제).
+    # F-AH06 (fail-closed): 조회 불가를 "열린 PR 0건"으로 읽지 않는다. 실측(F-AI03) —
+    # cloud 세션에 gh 가 없어 이 가드가 상시 no-op 이었다. 조회가 죽었는데 통과시키면
+    # 완료됐지만 미머지 PR 에 갇힌 작업을 회수해 **같은 일을 두 번 한다**(F-Z05 의 원인).
+    # 안전장치는 도구가 없을 때 열리는 게 아니라 닫혀야 한다.
+    GH_BIN="${QUEUE_GH_BIN:-gh}"
     OPEN_PR_CMD="${QUEUE_OPEN_PR_CMD:-}"
-    if [ -z "$OPEN_PR_CMD" ] && command -v gh >/dev/null 2>&1; then
-      OPEN_PR_CMD="__gh_open_pr_count"
+    if [ -z "$OPEN_PR_CMD" ]; then
+      if command -v "$GH_BIN" >/dev/null 2>&1; then
+        OPEN_PR_CMD="__gh_open_pr_count"
+      else
+        echo "queue reclaim: 보류 — gh 부재로 열린 PR 확인 불가. 조회 불가는 '0건'이 아니다(F-AH06)" >&2
+        exit 0
+      fi
     fi
     if [ -n "$OPEN_PR_CMD" ]; then
       if [ "$OPEN_PR_CMD" = "__gh_open_pr_count" ]; then
-        OPEN_N=$(gh api 'repos/:owner/:repo/pulls?state=open' --jq 'length' 2>/dev/null || echo 0)
+        OPEN_N=$("$GH_BIN" api 'repos/:owner/:repo/pulls?state=open' --jq 'length' 2>/dev/null) || {
+          echo "queue reclaim: 보류 — 열린 PR 조회 실패(인증·네트워크). 실패를 '0건'으로 읽지 않는다(F-AH06)" >&2
+          exit 0; }
       else
-        OPEN_N=$(bash "$OPEN_PR_CMD" 2>/dev/null || echo 0)
+        OPEN_N=$(bash "$OPEN_PR_CMD" 2>/dev/null) || {
+          echo "queue reclaim: 보류 — 열린 PR 조회 명령 실패(F-AH06)" >&2
+          exit 0; }
       fi
       OPEN_N=$(printf '%s' "${OPEN_N:-0}" | tr -dc '0-9'); OPEN_N="${OPEN_N:-0}"
       if [ "$OPEN_N" -gt 0 ] 2>/dev/null; then
