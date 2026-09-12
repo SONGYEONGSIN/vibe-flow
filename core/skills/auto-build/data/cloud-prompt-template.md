@@ -58,6 +58,9 @@ bash core/skills/audit/scripts/ledger.sh reconcile      # 후보 보고 (상태 
 **한 firing 당 최대 3건만 확인한다.** 나머지는 다음 firing 으로 미루고 `phase1` heartbeat 의 detail 에 남은 후보 수를 적는다. 이유: 후보가 13건까지 쌓여 있고, PR 1건 확인은 read 여러 번이다 — **상한 없는 판단 작업이 Phase 1 을 통째로 삼키면 Phase 2 이후가 아예 실행되지 않는다.** 정합은 여러 밤에 걸쳐 수렴하면 된다.
 
 ### Phase 2 — AUDIT (신규 finding)
+
+**라운드 라벨은 `bash core/skills/audit/scripts/ledger.sh next-round` 로 구한다** — 직접 "다음 글자"를 세지 마라. 미머지 라운드 브랜치가 선점한 라벨까지 반영된다(F-AG05: 손 계산이 AF 를 3중 부여한 실사고).
+
 `/audit` 스킬을 호출한다. dimension agent 병렬로 4-필드 finding(evidence/root_cause/fix/predicted_delta)을 발굴하고 전역 단일 시퀀스로 `ledger.sh append` 한다 (4-필드 계약은 기계 강제). rules/harness-evolution.md의 루프를 그대로 따른다.
 
 **이 Phase 는 가장 길고(5~7분) 가장 자주 멈추는 구간이다.** 2026-08-19 firing 은 `AUDIT 시작` 1분 뒤 기록이 끊겼고, dimension agent 가 몇 개나 돌았는지 알 수 없었다. 그래서 **AUDIT 내부에도 heartbeat 를 남긴다** — 아래 4 지점은 생략하지 말 것:

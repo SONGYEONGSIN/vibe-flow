@@ -184,7 +184,7 @@ L pending-verify | grep -q 'F-G01' && ng "open finding 이 pending-verify 에 �
 L resolve F-H03 "+0.2 confirmed" verified >/dev/null
 [ "$(L pending-verify | grep -c 'F-H03')" = "0" ] && ok "resolve(verified) 후 pending-verify 제거" || ng "여전히 pending"
 
-mkf() { jq -nc '{round:"Z",component:"x",dimension:"D1",evidence:"e",root_cause:"r",fix:"f",predicted_delta:"p"}'; }
+mkf() { jq -nc '{round:"Z",component:"skills",dimension:"D1",evidence:"e",root_cause:"r",fix:"f",predicted_delta:"p"}'; }
 
 echo "=== R8 hardening: resolve 빈 actual_delta 거부 (F-H03) ==="
 zid=$(mkf | L append)          # F-Z01
@@ -338,6 +338,25 @@ else
   else
     ng "변이 미검출 — 실 ledger 통과가 공허함: $mv"
   fi
+fi
+
+echo "=== component 는 7-component 정규 이름만 (F-AG05 동반 정리) ==="
+# 실측(09-12): 같은 컴포넌트가 11개 이름으로 흩어져 있었다 — implementations/impl,
+# hooks/middleware-hooks, prompts/system prompts, agents/sub-agents, descriptions/
+# tool-skill descriptions. 7-component 관찰성(harness-evolution.md §2)이 데이터에서
+# 갈라지면 컴포넌트별 집계가 무의미해진다.
+CPL="$TMP/cp-ledger.jsonl"; : > "$CPL"
+mkfinding ZZ impl D1 | LEDGER="$CPL" bash "$SCRIPT" append >/dev/null 2>&1
+if [ "$?" != "0" ]; then
+  echo "  ✓ 비정규 component('impl') 거부"; PASS=$((PASS+1))
+else
+  echo "  ✗ 비정규 component 통과 — 이름 분열이 다시 쌓인다"; FAIL=$((FAIL+1))
+fi
+mkfinding ZZ implementations D1 | LEDGER="$CPL" bash "$SCRIPT" append >/dev/null 2>&1
+if [ "$?" = "0" ]; then
+  echo "  ✓ 정규 component 는 통과 (과차단 아님)"; PASS=$((PASS+1))
+else
+  echo "  ✗ 정규 component 인데 거부됨"; FAIL=$((FAIL+1))
 fi
 
 echo
