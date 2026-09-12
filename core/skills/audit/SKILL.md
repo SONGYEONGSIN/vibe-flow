@@ -30,7 +30,11 @@ bash "$LEDGER_SH" pending-verify
 
 **먼저** `pending-verify` 목록(직전 라운드 fix 머지됐으나 미검증)을 측정한다. 각 finding의 `predicted_delta`가 실제로 움직였는지 telemetry/점수로 확인 → `ledger.sh resolve <id> "<actual>" verified|refuted`. 움직이지 않았으면 `refuted`(오진 또는 무효 fix → 메타-학습). 이 단계가 AHE의 "decision observability" — 예측이 자동 반증된다. (`open`은 아직 미해결 finding, `pending-verify`는 해결됐으나 미검증 finding.)
 
-라운드 라벨은 직전 라운드의 다음 글자(R1=A … R7=G → 다음 H).
+라운드 라벨은 **반드시 스크립트로 구한다** — 직접 "다음 글자"를 계산하지 않는다:
+```bash
+bash "$LEDGER_SH" next-round        # 예: AJ
+```
+원장 최신 라운드뿐 아니라 **미머지 `chore/audit-round-*` 브랜치가 선점한 라벨**까지 최대값에 포함한다. 손으로 계산하면 머지 정체 시 같은 라벨이 반복 부여된다 — 실사고(09-12): 라운드 AF 가 3개 PR 에 중복 부여됐고 내용이 달라 11건을 AI 로 재채번해야 했다(F-AG05/F-Y15).
 
 ## Phase 1. evaluate — trace 수집 (병렬)
 
