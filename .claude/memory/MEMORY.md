@@ -18,13 +18,13 @@
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AG)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AE)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AG (F-AG01~F-AG05)** — 루프가 09-07 발화에서 발굴(cycle-complete 라운드). **F-AG05** 가 자기 채번을 지적했다 — firing 이 라운드 라벨을 직전 ledger 라운드의 다음 글자로 잡는데, 미머지 브랜치가 쌓이면 main 기준 재계산으로 같은 라벨이 반복된다(실제로 AF 가 3 PR 에 중복). 그 외 **F-AG01** audit-rounds.md 제목이 R1~AC 로 stale / **F-AG02** auto-build SKILL 의 관련 파일 목록이 실제 스크립트와 어긋남 / **F-AG03** onboard 의 CORE_SKILL_TYPES 하드코딩 / **F-AG04** self-update 가 git add·commit 을 무조건 수행.
+- **최근 = 라운드 AE (F-AE01~F-AE12)** — 루프가 09-10 발화에서 발굴 — **phase2-memory 를 처음 통과한 라운드**(F-AD09 fix 검증). 절반이 **직전 주에 사람이 넣은 코드를 겨냥**한다: **F-AE03** memory-index.sh 의 이월 로직이 audit-rounds.md 에 AC/AD 서사를 2회씩 중복시킴 / **F-AE04** 인덱스 포인터가 'R1~AC, 26 라운드' 로 stale / **F-AE06** memory-index.sh:54 의 mv 처리 결함 / **F-AE07** ledger reconcile 의 gh 조회 분기 / **F-AE08** reconcile 3건 상한 지시의 모호성. 그 외 **F-AE05** audit SKILL 의 D2 dispatch 대상 불일치, **F-AE09** queue.sh 의 gh 존재 검사, **F-AE10/11** capability-gate·merge-gate 판정 경로, **F-AE12** evolution-guard 의 Bash 벡터 정규식.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
