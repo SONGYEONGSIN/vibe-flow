@@ -49,6 +49,12 @@ bash core/skills/audit/scripts/ledger.sh resolve <id> "<실측 actual_delta>" ve
 
 **계기 유효성 (F-T09/F-V07)**: 브랜치 보호·권한 계열 반증에 **`git push --dry-run` 을 쓰지 마라.** dry-run 은 ref 를 갱신하지 않아 remote 의 pre-receive 가 돌지 않고, **보호가 켜져 있어도 항상 accept 로 보인다.** 실측 사고: R20/V 가 이 도구로 `F-S10` 을 거짓 refuted 처리했으나, 같은 시점 실 push 는 `! [remote rejected] (protected branch hook declined)` 로 거부됐다. 보호 계열은 (a) `gh api .../branches/main/protection` 설정 재조회 (b) 실 push 시도의 remote 응답으로만 판정한다. **측정 수단이 없으면 `verified`/`refuted` 어느 쪽으로도 닫지 말고 pending 으로 남겨라** — 모르는 것을 닫는 것이 가장 나쁘다.
 
+**오래된 open 재검토 (F-AJ01)**: `pending-verify` 는 `status=fixed` 만 본다 — **open 은 재검토 경로가 없어** 한 번 등록되면 영원히 남는다(실측 09-12: open 161 중 89건이 한 달 이상, 발굴 78 대 소비 14 로 순증). 매 firing **가장 오래된 open 3건**을 다시 본다:
+```bash
+bash core/skills/audit/scripts/ledger.sh stale 3
+```
+각 건의 evidence 를 **지금 코드에서 재현 시도**한 뒤에만 판정한다 — 여전히 재현되면 그대로 두고, 이미 해소됐으면 `resolve <id> "<실측>" verified`, 대상이 사라졌거나 전제가 틀렸으면 `refuted`. **기계적 일괄 폐기 금지**: 09-12 에 경로 미해석 20건을 "파일 삭제=폐기"로 오독할 뻔했다(`telemetry/SKILL.md` 처럼 `core/skills/` 접두사 누락이었다). evidence 가 루트에서 해석 불가하면 판정하지 말고 그 사실을 `refuted` 사유로 남겨라 — 재현 불가한 evidence 는 4-필드 계약 위반이다.
+
 **머지-원장 정합 (F-AA03)**: fix PR 머지와 `mark-fixed` 가 분리돼 있어 사람이 빠뜨리면 finding 이 `open` 으로 남고, **Phase 3 가 이미 끝난 일을 다시 큐에 넣는다.** 실사고(08-24): `F-AA10`/`F-AA11` 이 #226/#227 머지 후에도 open 이라 재-enqueue 됐고, `F-AA10` 은 #227 이 뒤집은 방향이라 재적용되면 안 되는 건이었다. Phase 3 로 넘어가기 전에:
 ```bash
 bash core/skills/audit/scripts/ledger.sh reconcile      # 후보 보고 (상태 변경 없음)
@@ -58,6 +64,9 @@ bash core/skills/audit/scripts/ledger.sh reconcile      # 후보 보고 (상태 
 **한 firing 당 최대 3건만 확인한다.** 나머지는 다음 firing 으로 미루고 `phase1` heartbeat 의 detail 에 남은 후보 수를 적는다. 이유: 후보가 13건까지 쌓여 있고, PR 1건 확인은 read 여러 번이다 — **상한 없는 판단 작업이 Phase 1 을 통째로 삼키면 Phase 2 이후가 아예 실행되지 않는다.** 정합은 여러 밤에 걸쳐 수렴하면 된다.
 
 ### Phase 2 — AUDIT (신규 finding)
+
+**라운드 라벨은 `bash core/skills/audit/scripts/ledger.sh next-round` 로 구한다** — 직접 "다음 글자"를 세지 마라. 미머지 라운드 브랜치가 선점한 라벨까지 반영된다(F-AG05: 손 계산이 AF 를 3중 부여한 실사고).
+
 `/audit` 스킬을 호출한다. dimension agent 병렬로 4-필드 finding(evidence/root_cause/fix/predicted_delta)을 발굴하고 전역 단일 시퀀스로 `ledger.sh append` 한다 (4-필드 계약은 기계 강제). rules/harness-evolution.md의 루프를 그대로 따른다.
 
 **이 Phase 는 가장 길고(5~7분) 가장 자주 멈추는 구간이다.** 2026-08-19 firing 은 `AUDIT 시작` 1분 뒤 기록이 끊겼고, dimension agent 가 몇 개나 돌았는지 알 수 없었다. 그래서 **AUDIT 내부에도 heartbeat 를 남긴다** — 아래 4 지점은 생략하지 말 것:

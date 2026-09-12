@@ -83,6 +83,17 @@ case "$cmd" in
         exit 1
       fi
     done
+    # F-AG05 동반 정리: component 를 **7-component 정규 이름**으로 못박는다. 실측(09-12)
+    # 같은 컴포넌트가 11개 이름으로 흩어져 있었다(implementations/impl,
+    # hooks/middleware-hooks, prompts/system prompts, agents/sub-agents,
+    # descriptions/tool-skill descriptions). 이름이 갈라지면 harness-evolution.md §2 의
+    # 7-component 관찰성이 데이터 층에서 무의미해진다 — 집계가 두 갈래로 쪼개진다.
+    comp=$(echo "$IN" | jq -r '.component')
+    case "$comp" in
+      prompts|descriptions|implementations|hooks|skills|agents|memory) ;;
+      *) echo "error: .component='$comp' — 7-component 정규 이름만 허용: prompts / descriptions / implementations / hooks / skills / agents / memory" >&2
+         exit 1 ;;
+    esac
     # F-H02(R8)+F-I04(R9): append 를 원자 락으로 직렬화 (병렬 append 동일 id race 차단).
     acquire_lock
     num=$(next_num "$round")
@@ -143,6 +154,39 @@ case "$cmd" in
   round)
     r="${1:-}"; [ -z "$r" ] && { echo "usage: round <round>" >&2; exit 1; }
     jq -r --arg r "$r" 'select(.round==$r) | "\(.id)\t\(.status)\t\(.predicted_delta // "-")\t\(.actual_delta // "-")"' "$LEDGER" 2>/dev/null
+    ;;
+  next-round)
+    # F-AG05: 라운드 라벨을 **main 원장만 보고** 정하면, 머지 정체로 브랜치가 쌓일 때
+    # 매 firing 이 같은 값을 다시 계산한다. 실사고(09-12) — 라운드 AF 가 3개 PR 에
+    # 중복 부여됐고 내용이 서로 달라 11건을 손으로 AI 로 재채번해야 했다(F-Y15 재발).
+    # 미머지 브랜치가 **선점한 라벨**까지 최대값에 포함한다.
+    #
+    # `git ls-remote` 만 쓴다 — gh 기반 조회는 cloud 에 gh 가 없어(F-AI03 실측) 무용이고,
+    # 채번은 조용히 틀리면 안 되는 계산이라 도구 부재에 좌우되면 안 된다.
+    RB_CMD="${LEDGER_REMOTE_BRANCH_CMD:-}"
+    if [ -n "$RB_CMD" ]; then
+      BRANCHES=$(bash "$RB_CMD" 2>/dev/null) || BRANCHES="__FAIL__"
+    else
+      BRANCHES=$(git ls-remote --heads origin 'refs/heads/chore/audit-round-*' 2>/dev/null \
+                   | sed 's|.*refs/heads/||') || BRANCHES="__FAIL__"
+    fi
+    if [ "$BRANCHES" = "__FAIL__" ]; then
+      echo "next-round: 원격 브랜치 조회 실패 — 원장 기준으로만 채번한다(선점 라벨 미확인)" >&2
+      BRANCHES=""
+    fi
+    LAST_ROUND=$(jq -r 'select(.round != null) | .round' "$LEDGER" 2>/dev/null | tail -1)
+    # 브랜치명에서 라벨 후보를 뽑는다. 실제로 존재한 변형: 소문자(`...-ad`), 접미사
+    # (`...-AF-pending-relabel-AH` ← 재라벨 대기라 AH 도 선점된 것). 통째로 대문자화하면
+    # PENDING/RELABEL 까지 라벨로 오독하므로 **1~3글자 세그먼트만** 취한다.
+    BR_LABELS=$(printf '%s' "$BRANCHES" | sed 's|chore/audit-round-||' | tr '-' '\n' \
+                  | grep -E '^[A-Za-z]{1,3}$' | tr 'a-z' 'A-Z')
+    CANDS=$(printf '%s\n%s\n' "$LAST_ROUND" "$BR_LABELS" | grep -E '^[A-Z]+$')
+    NEXT=$(printf '%s\n' "$CANDS" | awk '
+      function val(s,   i,n) { n=0; for(i=1;i<=length(s);i++) n = n*26 + index("ABCDEFGHIJKLMNOPQRSTUVWXYZ", substr(s,i,1)); return n }
+      function lbl(n,   s,r) { s=""; while(n>0) { r=n%26; if(r==0){ r=26; n-=26 } s=substr("ABCDEFGHIJKLMNOPQRSTUVWXYZ",r,1) s; n=int(n/26) } return s }
+      { v=val($0); if (v>m) m=v }
+      END { print lbl(m+1) }')
+    echo "$NEXT"
     ;;
   next-num)
     r="${1:-}"; [ -z "$r" ] && { echo "usage: next-num <round>" >&2; exit 1; }
@@ -244,6 +288,19 @@ case "$cmd" in
     release_lock
     echo "$id → fixed"
     ;;
+  stale)
+    # F-AJ01: Phase 1 VERIFY 는 `status=fixed` 만 본다(pending-verify). **open 은 재검토
+    # 경로가 없다** — 한 번 등록되면 누가 집지 않는 한 영원히 open 이다. 실측(09-12):
+    # open 161건 중 89건이 R~Z(한 달 이상), 최근 9라운드 발굴 78 대 소비 14 로 순증한다.
+    #
+    # **판정하지 않고 워크리스트만 낸다.** 같은 날 시도한 기계적 선별이 evidence 경로
+    # 미해석 20건을 "파일 삭제됨=폐기"로 오독할 뻔했다(실제로는 `telemetry/SKILL.md`
+    # 처럼 `core/skills/` 접두사 누락). 증거를 본 뒤에 resolve 하는 것이 순서다.
+    n="${1:-5}"
+    jq -r 'select(.status=="open") | select(.id != null) |
+           "\(.id)\t\(.round)\t\(.dimension)\t\(.component)\t\(.ts // "-")\t\(.evidence[0:110])"' \
+      "$LEDGER" 2>/dev/null | head -n "$n"
+    ;;
   pending-verify)
     # decision-observability reconcile 워크리스트: fix 가 머지(status=fixed)됐으나
     # actual_delta 미기록인 finding. /audit Phase 0 가 측정 후 resolve 로 verify/refute.
@@ -316,7 +373,7 @@ EOF_TITLES
     fi
     ;;
   *)
-    echo "usage: ledger.sh {append|resolve|correct|open|round|next-num|enqueue|mark-fixed|pending-verify|reconcile}" >&2
+    echo "usage: ledger.sh {append|resolve|correct|open|round|next-num|next-round|enqueue|mark-fixed|pending-verify|reconcile|stale}" >&2
     exit 2
     ;;
 esac
