@@ -134,6 +134,18 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/yss/.claude/scripts/gptaku-update-check.cjs\"",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   },
   "statusLine": {

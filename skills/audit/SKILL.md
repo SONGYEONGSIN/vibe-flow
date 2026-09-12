@@ -49,6 +49,8 @@ pass/fail이 아닌 **trace**를 모은다. 병렬로:
 
 dimension마다 fresh-context agent를 **병렬**로 띄운다. 기본 4 + 필요 시 7-component 확장:
 
+> **cloud firing 은 매 밤 2개만 돈다** (F-AJ02, `cloud-prompt-template.md` 참조) — 발굴이 소비를 5.6배 앞서 원장이 순증하던 것을 밤당 부하 분산으로 맞춘다. 사람이 직접 `/audit` 를 부를 때는 4개 전부 돌려도 된다.
+
 | Dim | 초점 (7-component) | agent |
 |-----|-------------------|-------|
 | D1 컨텍스트 | memory + system prompts | general-purpose |
