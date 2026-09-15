@@ -18,13 +18,13 @@
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AJ)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AN)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AJ (F-AJ01~F-AJ02)** — 사람이 백로그 정리 중 등록한 2건 — 둘 다 **생산·소비 불균형**을 다룬다. **F-AJ01** `open` finding 에 재검토 경로가 없다(`pending-verify` 는 fixed 만 본다): open 161 중 89건이 R~Z(한 달 이상). fix = `ledger.sh stale` 워크리스트 + 매 firing 3건 재검토. **기계적 일괄 폐기는 하지 않는다** — 선별 시도가 evidence 경로 미해석 20건을 '파일 삭제=폐기'로 오독할 뻔했다(`telemetry/SKILL.md` 처럼 접두사 누락). **F-AJ02** 4-dimension 을 매 밤 전부 돌려 발굴 78 대 닫힘 14(12일, 순증 5.6배)였다. fix = UTC 일자 기반 로테이션으로 밤당 2개 — 커버리지는 유지(각 dimension 이틀에 한 번, 4일이면 모든 조합)하고 부하만 나눈다.
+- **최근 = 라운드 AN (F-AN01~F-AN05)** — Phase1 VERIFY 9건 전건 verified(F-R04/R05/AC01/AD09/AG05/AH05/AH06/Q07/Q12, F-Q11 재현되어 open 유지). D1/D3 신규 5건: round 브랜치 PR 미생성 경로 부재(AK/AL/AM 3야 orphan), round AM finding 5건 append 전 소실, telemetry EVENT_ALIAS_TYPES 잔여 2 토큰(F-Y04 미포함분), tool-invocation-tracker.sh Skill 분기 존재검사 누락(F-H10 미상속), onboard.sh:53 JQ_KEY 미적용.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
