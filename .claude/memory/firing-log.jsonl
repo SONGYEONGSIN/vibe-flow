@@ -8,3 +8,4 @@
 {"ts":"2026-09-15T21:05:25Z","phase":"phase1-start","detail":"VERIFY 진입 — pending 7건, reconcile gh부재로 no-op","base_sha":"65ddf04"}
 {"ts":"2026-09-15T21:06:09Z","phase":"phase1","detail":"VERIFY 완료 — pending-verify 7건 전건 verified(F-R04/R05/AC01/AD09/AG05/AH05/AH06). stale open 3건: F-Q07/F-Q12 verified(이미 코드 수정됨, ledger 미갱신), F-Q11 재현됨(미수정, open 유지). reconcile: gh 부재로 no-op","base_sha":"65ddf04"}
 {"ts":"2026-09-15T21:06:36Z","phase":"phase2-dispatch","detail":"dimension agent 2개 dispatch (D1 컨텍스트, D3 dogfooding) — UTC day-of-year 258 mod4=2 로테이션, round=AN","base_sha":"65ddf04"}
+{"ts":"2026-09-15T21:13:06Z","phase":"phase2-agents","detail":"2/2 회수, finding 후보 5건(D1:2, D3:3)","base_sha":"c6864e1"}
