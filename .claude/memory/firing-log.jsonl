@@ -15,3 +15,4 @@
 {"ts":"2026-09-15T21:21:23Z","phase":"phase5","detail":"merge-gate PR#261 → HOLD_TIER (AUTO_MERGE_TIER=off, 사람 대기). PR#259/#260 도 동일 정책상 PR-only","base_sha":"f96956f"}
 {"ts":"2026-09-15T21:21:33Z","phase":"phase6","detail":"self-update: DECISION=DRIFT_FAIL BUMP=minor NEXT_VERSION=2.6.0 (report-only, AUTO_RELEASE 미설정으로 실릴리즈 없음). Phase5 에서 머지 미발생이라 원래도 report-only","base_sha":"f96956f"}
 {"ts":"2026-09-15T21:21:53Z","phase":"phase7","detail":"graduation tick: disarmed — no-op (기본 상태 유지, tier=off)","base_sha":"f96956f"}
+{"ts":"2026-09-15T21:22:00Z","phase":"phase8","detail":"graduation tier=off (generative 아님) — Phase 8 skip","base_sha":"f96956f"}
