@@ -12,3 +12,4 @@
 {"ts":"2026-09-19T21:13:05Z","phase":"phase2-agents","detail":"2/2 회수, finding 후보 7건(D1:4, D3:3) — 전부 독립 재현 확인","base_sha":"4c4600f"}
 {"ts":"2026-09-19T21:14:13Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-AR","base_sha":"e59c002"}
 {"ts":"2026-09-19T21:14:16Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"e59c002"}
+{"ts":"2026-09-19T21:14:39Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"3657424"}
