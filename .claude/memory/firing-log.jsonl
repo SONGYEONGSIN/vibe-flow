@@ -9,3 +9,4 @@
 {"ts":"2026-09-19T21:04:45Z","phase":"phase1","detail":"VERIFY 완료 — pending-verify: verified 6(F-R04,F-R05,F-AC01,F-AG05,F-AH05,F-AH06)/보류 1(F-AD09, Phase2 계측 필요). stale-open 3건 재현시도: verified 2(F-Q07,F-Q12)/유지 1(F-Q11, 미해결 재확인). reconcile: gh 부재로 no-op(F-AH05)","base_sha":"65ddf04"}
 {"ts":"2026-09-19T21:05:27Z","phase":"phase1-start","detail":"VERIFY 진입 — pending N건, reconcile 후보 M건","base_sha":"65ddf04"}
 {"ts":"2026-09-19T21:05:37Z","phase":"phase2-dispatch","detail":"dimension agent 2개(D1,D3) dispatch — round AR","base_sha":"65ddf04"}
+{"ts":"2026-09-19T21:13:05Z","phase":"phase2-agents","detail":"2/2 회수, finding 후보 7건(D1:4, D3:3) — 전부 독립 재현 확인","base_sha":"4c4600f"}
