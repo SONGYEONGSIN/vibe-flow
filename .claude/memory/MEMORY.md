@@ -24,7 +24,7 @@
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AO (F-AO01~F-AO04)** — D2/D4 감사(day-of-year 로테이션). D2: budget-warn.sh 이벤트 스키마 불일치로 자동 경고 미발화(P1), codebase-analyzer 에이전트 수 문서 불일치(P2). D4: post-merge-verify.sh 기본 health gate 가 self-hosted drift baseline 때문에 상시 실패해 정상 커밋도 revert 판정 — 최초 armed 자율머지 시 서킷브레이커 오발화 cascade(P0). validation-tests.yml EXPECTED_SMOKE 카운트 게이트가 안전코어 스모크 파일 교체를 탐지 못함(P1). Phase1 VERIFY 9건 verified(round AO 별도 PR #262).
+- **최근 = 라운드 AO (F-AO01~F-AO04)** — 루프가 09-16 발화에서 발굴 — 로테이션 적용 후 D2/D4 몫, finding 4건.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
