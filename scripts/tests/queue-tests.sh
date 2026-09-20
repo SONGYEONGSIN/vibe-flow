@@ -367,6 +367,28 @@ st_fc2=$(bash "$QUEUE" list --all | awk -v i="$stale3" -F'\t' '$1==i{print $2}')
 unset QUEUE_STORE QUEUE_LOCK_DIR
 rm -rf "$RTMP"
 
+echo "Test Q-CORRUPT: git 충돌 마커가 store 에 있으면 침묵 대신 즉시 중단"
+# 실사고: 미해결 git 충돌 마커(<<<<<<< HEAD 등)가 auto-build-queue.jsonl 에 커밋돼
+# jq 스트림 파싱이 전체 실패했는데, list/next 가 2>/dev/null 로 오류를 삼켜 "빈 큐"로
+# 보였다. 실제로는 99건 이상의 queued task 가 여러 라운드 처리되지 않은 채 쌓여 있었는데
+# 매 firing 이 "queue empty" 로 조용히 종료해 아무도 눈치채지 못했다.
+CTMP=$(mktemp -d); CQUEUE_STORE="$CTMP/q.jsonl"; CLOCK_DIR="$CTMP/.lock"
+printf '{"id":"c1","task":"t","created_ts":"2026-01-01T00:00:00Z","status":"queued"}\n' > "$CQUEUE_STORE"
+printf '<<<<<<< HEAD\n=======\n>>>>>>> origin/main\n' >> "$CQUEUE_STORE"
+
+out_corrupt=$(QUEUE_STORE="$CQUEUE_STORE" QUEUE_LOCK_DIR="$CLOCK_DIR" bash "$QUEUE" list 2>&1)
+rc_corrupt=$?
+[ "$rc_corrupt" -ne 0 ] && { echo "  ✓ QC.1 손상 store 에서 list 가 exit≠0"; PASS=$((PASS+1)); } \
+  || { echo "  ✗ QC.2 손상 store 인데 list 가 exit 0(침묵 실패)"; FAIL=$((FAIL+1)); }
+echo "$out_corrupt" | grep -q '파싱 실패' && { echo "  ✓ QC.3 손상 사유 표면화"; PASS=$((PASS+1)); } \
+  || { echo "  ✗ QC.4 손상 사유 미표면화 — 여전히 조용히 삼킴"; FAIL=$((FAIL+1)); }
+
+out_corrupt_next=$(QUEUE_STORE="$CQUEUE_STORE" QUEUE_LOCK_DIR="$CLOCK_DIR" bash "$QUEUE" next 2>&1)
+[ $? -ne 0 ] && { echo "  ✓ QC.5 손상 store 에서 next 도 exit≠0"; PASS=$((PASS+1)); } \
+  || { echo "  ✗ QC.6 손상 store 인데 next 가 exit 0"; FAIL=$((FAIL+1)); }
+
+rm -rf "$CTMP"
+
 echo ""
 echo "─────────────────────────────────────────"
 echo "PASS: $PASS   FAIL: $FAIL"
