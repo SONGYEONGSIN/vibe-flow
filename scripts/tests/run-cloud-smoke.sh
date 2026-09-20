@@ -147,6 +147,39 @@ else
 fi
 teardown
 
+# ── Test C5 (F-AQ03): QUEUE_STORE 파싱 실패(git 충돌 마커 등)를 '큐 비어있음'과
+# 구분 — 2026-09-18 실측: .claude/memory/auto-build-queue.jsonl 에 미해결
+# <<<<<<< HEAD 마커가 남아있는 상태에서 queue.sh next 가 jq parse error 를
+# 2>/dev/null 로 삼켜 빈 문자열을 반환했고, run-cloud.sh 는 그걸 "queue empty —
+# no task to process"(exit 0) 로 오보했다. 실제로는 258개 유효 entry 가 있었다.
+echo "Test C5: QUEUE_STORE 파싱 실패는 'queue empty' 가 아니다 (F-AQ03)"
+setup_fixture
+printf '%s\n<<<<<<< HEAD\n%s\n=======\n%s\n>>>>>>> origin/main\n' \
+  '{"id":"before","task":"x","created_ts":"2026-01-01T00:00:00Z","status":"queued"}' \
+  '{"id":"ours","task":"x","created_ts":"2026-01-02T00:00:00Z","status":"queued"}' \
+  '{"id":"theirs","task":"x","created_ts":"2026-01-03T00:00:00Z","status":"queued"}' > "$QUEUE_STORE"
+
+bash "$RUN_CLOUD" >/dev/null 2>&1
+EC=$?
+OUT=$(bash "$RUN_CLOUD" 2>&1 || true)
+assert_exit "C5.1 파싱 실패 시 exit != 0 (0 이면 F-AQ03 재발)" 1 "$EC"
+if echo "$OUT" | grep -q "queue empty"; then
+  echo "  ✗ C5.2 stderr 에 'queue empty' 있으면 안 됨(파싱 실패를 empty 로 오독): '$OUT'"
+  FAIL=$((FAIL + 1))
+else
+  echo "  ✓ C5.2 stderr 에 'queue empty' 없음"
+  PASS=$((PASS + 1))
+fi
+NEXT_EC_OUT=$(bash "$QUEUE" next 2>&1); NEXT_EC=$?
+if [ "$NEXT_EC" -ne 0 ]; then
+  echo "  ✓ C5.3 queue.sh next exit != 0 on parse error"
+  PASS=$((PASS + 1))
+else
+  echo "  ✗ C5.3 queue.sh next exit 0 on parse error (F-AQ03 재발)"
+  FAIL=$((FAIL + 1))
+fi
+teardown
+
 # ── 결과 ───────────────────────────────────────────────────
 echo ""
 echo "─────────────────────────────────────────"

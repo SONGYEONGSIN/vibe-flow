@@ -89,3 +89,4 @@
 - **라운드 AO (F-AO01~F-AO04)** — 루프가 09-16 발화에서 발굴 — 로테이션 적용 후 D2/D4 몫, finding 4건.
 - **라운드 AP (F-AP01~F-AP04)** — 루프가 09-17 발화에서 발굴 — 로테이션 몫, finding 4건. VERIFY 6건 동반.
 - **라운드 AQ (F-AQ01~F-AQ02)** — 루프가 09-18 발화에서 발굴 — VERIFY 9건 + 신규 2건. 로테이션 후 발굴 최소치.
+- **라운드 AN (F-AN01~F-AN07)** — 09-15 발화 5건 + **F-AN07 은 09-20 firing 이 뒤늦게 추가**한 재발 기록이다(그래서 원장 마지막 append 가 AN). 루프가 `F-AN06`(큐 JSONL 충돌 마커)의 **재발**을 발견하고, 이전 fix 가 인스턴스만 지우고 원인을 안 건드렸다고 진단했다 — 원인은 `.gitattributes` 부재로 append-only JSONL 이 일반 텍스트 3-way 머지 대상이 된 것. fix: `.claude/memory/*.jsonl merge=union`. 덤으로 `queue.sh` 가 파싱 실패를 삼켜 "queue empty" 라 보고하는 동안 90+ 작업이 방치된 걸 찾아 integrity guard 추가. 이후 라운드는 AO/AP/AQ 참조.
