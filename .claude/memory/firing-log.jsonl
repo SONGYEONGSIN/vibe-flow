@@ -24,3 +24,4 @@
 {"ts":"2026-09-20T10:02:21Z","phase":"phase6","detail":"SELF-UPDATE skip — Phase 5 머지 미발생","base_sha":"8be5c5e"}
 {"ts":"2026-09-20T10:02:30Z","phase":"phase7","detail":"GRADUATION tick clean — disarmed, no-op (tier=off 유지)","base_sha":"8be5c5e"}
 {"ts":"2026-09-20T10:02:32Z","phase":"phase8","detail":"GENERATIVE skip — tier=off (generative 미개방)","base_sha":"8be5c5e"}
+{"ts":"2026-09-20T10:02:35Z","phase":"done","detail":"AHE 폐루프 완주 — PR #266(VERIFY+AUDIT) #269(IMPROVE fix) open, #267 closed(dup of #264)","base_sha":"8be5c5e"}
