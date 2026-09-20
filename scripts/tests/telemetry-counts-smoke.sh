@@ -99,6 +99,8 @@ grep -q 'NOISE_TYPES=' "$SKILL" && ok "SKILL.md noise 필터 존재" || ng "SKIL
 grep -q 'group_by(key)' "$SKILL" && ok "SKILL.md 재키잉 집계 (F-M05)" || ng "SKILL.md 가 group_by(.type) 단독 — per-skill dead write (F-M05)"
 grep -q 'EVENT_ALIAS_TYPES' "$SKILL" && ok "SKILL.md 스킬 유니버스 동적 유도 (F-M06)" || ng "SKILL.md SKILL_TYPES 하드코딩 잔존 (F-M06)"
 grep -q '27 스킬' "$SKILL" && ng "SKILL.md '27 스킬' 하드코딩 카탈로그 주석 잔존 (F-M06)" || ok "하드코딩 카탈로그 주석 제거 (F-M06)"
+# F-R07: 스킬 유니버스가 core/skills 만이 아니라 extensions/*/skills 도 포함하는지
+grep -q 'EXT_SKILL_TYPES=' "$SKILL" && ok "SKILL.md 스킬 유니버스에 extensions 트리 합류 (F-R07)" || ng "SKILL.md 유니버스가 core/skills 단독 — extensions/*/skills 12개 누락 (F-R07)"
 
 # ── F-Q08 (audit round Q): cloud-executed 스킬(auto-build) 개선후보 오판 가드 ──
 # cloud session 은 events.jsonl(gitignored)이 로컬과 미동기라 로컬 0건이 미사용이
