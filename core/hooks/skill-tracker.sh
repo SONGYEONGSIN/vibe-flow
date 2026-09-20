@@ -37,9 +37,15 @@ esac
 
 # F-H10 (audit R8): 실재하는 skill 만 기록 — 형식은 valid 하나 존재하지 않는 슬래시명
 # (/goal 등 빌트인, 오타)이 phantom 으로 telemetry 오염되던 문제. 형식 검증은 오타를 못 거름.
+# F-R07 (audit R): extensions/*/skills/<name> (design-sync 등 12개)가 .claude/skills 나
+# core/skills 어디에도 없어 전부 phantom 취급되던 것을 3번째 경로로 흡수.
 if [ ! -d "${PROJECT_ROOT}/.claude/skills/${SKILL_NAME}" ] \
    && [ ! -d "${PROJECT_ROOT}/core/skills/${SKILL_NAME}" ]; then
-  exit 0
+  EXT_FOUND=0
+  for d in "${PROJECT_ROOT}"/extensions/*/skills/"${SKILL_NAME}"; do
+    [ -d "$d" ] && EXT_FOUND=1
+  done
+  [ "$EXT_FOUND" -eq 0 ] && exit 0
 fi
 
 EVENTS_FILE="${PROJECT_ROOT}/.claude/events.jsonl"
