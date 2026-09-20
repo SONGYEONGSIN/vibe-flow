@@ -71,6 +71,17 @@ nfc() {
   fi
 }
 
+# ── 무결성 가드 ──
+# 실사고: git 충돌 마커(<<<<<<< HEAD 등)가 store 에 그대로 커밋돼 jq 스트림 파싱이
+# 전체 실패했고, list/next 둘 다 2>/dev/null 로 오류를 삼켜 "큐 빈 상태"로 보였다.
+# 그 결과 실제로는 99건 이상 쌓인 queued task 가 여러 라운드 동안 전혀 처리되지
+# 않았는데도 매 firing 이 "queue empty" 로 정상 종료해 아무도 눈치채지 못했다.
+# 침묵 대신 즉시 중단한다 — 손상은 사람이 봐야 한다.
+if [ -s "$QUEUE_STORE" ] && ! jq -s empty "$QUEUE_STORE" 2>/dev/null; then
+  echo "queue: ${QUEUE_STORE} 파싱 실패 — 손상(예: 미해결 git 충돌 마커) 의심. list/next 를 침묵 실패시키는 대신 즉시 중단한다. 수동 확인 필요." >&2
+  exit 3
+fi
+
 # ── 명령 분기 ──
 case "$CMD" in
 
