@@ -18,13 +18,13 @@
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AQ)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AN)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AQ (F-AQ01~F-AQ02)** — 루프가 09-18 발화에서 발굴 — VERIFY 9건 + 신규 2건. 로테이션 후 발굴 최소치.
+- **최근 = 라운드 AN (F-AN01~F-AN07)** — 09-15 발화 5건 + **F-AN07 은 09-20 firing 이 뒤늦게 추가**한 재발 기록이다(그래서 원장 마지막 append 가 AN). 루프가 `F-AN06`(큐 JSONL 충돌 마커)의 **재발**을 발견하고, 이전 fix 가 인스턴스만 지우고 원인을 안 건드렸다고 진단했다 — 원인은 `.gitattributes` 부재로 append-only JSONL 이 일반 텍스트 3-way 머지 대상이 된 것. fix: `.claude/memory/*.jsonl merge=union`. 덤으로 `queue.sh` 가 파싱 실패를 삼켜 "queue empty" 라 보고하는 동안 90+ 작업이 방치된 걸 찾아 integrity guard 추가. 이후 라운드는 AO/AP/AQ 참조.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
