@@ -24,7 +24,7 @@
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AN (F-AN01~F-AN06)** — 루프가 09-15 발화에서 발굴. 로테이션(F-AJ02) 적용 후 첫 라운드들 중 하나 — finding 6건.
+- **최근 = 라운드 AN (F-AN01~F-AN07)** — 로테이션(F-AJ02) 적용 후 라운드 — finding 7건. F-AN06: main 에 미해결 git 충돌 마커가 커밋돼 queue.sh 파싱이 전체 실패, 90+ 건 큐 잠재(#260 이 마커 제거). F-AN07: 그 클래스 결함이 #259 병합으로 재발 — .gitattributes union merge 로 구조적 해소.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
