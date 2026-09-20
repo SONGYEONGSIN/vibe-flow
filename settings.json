@@ -164,7 +164,9 @@
     "reprompt@repick-prompt": true,
     "page-commission@repick-design": true,
     "insane-search@gptaku-plugins": true,
-    "insane-design@gptaku-plugins": true
+    "insane-design@gptaku-plugins": true,
+    "example-skills@anthropic-agent-skills": true,
+    "document-skills@anthropic-agent-skills": true
   },
   "extraKnownMarketplaces": {
     "vibe-flow": {
@@ -189,6 +191,12 @@
       "source": {
         "source": "git",
         "url": "https://github.com/fivetaku/gptaku_plugins.git"
+      }
+    },
+    "anthropic-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/skills"
       }
     }
   },

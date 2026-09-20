@@ -1,7 +1,7 @@
 - [DB 마이그레이션 적용 방법](db-migration-apply.md) — Supabase CLI 없음; DATABASE_URL(풀러) + `pg --no-save` 인라인으로 적용 후 RLS 검증
 - [경위서 양식 뷰어 기능](incident-report-form-viewer.md) — ★실운영 + 발송경로 3연속 수정 완료(2026-08-14 #976 담당자·결재라인 발송시점 확정+보관본=메일PDF·docx 제거 / #977 대장 F열 HYPERLINK 형태+미기입 노출)
 - [SmileEDI 자동화](smileedi-automation.md) — 스크래핑+조건부메일 이식(Phase1/2 머지 완료), 운영 잔여(Vercel env·GH Secrets·cron-job.org·비번 로테이션·Q2 업로드인증)
-- [서비스 마감(closing) 자동화](closing-automation.md) — ★실운영 가동으로 확인(2026-07-15): scrape.py+PC 폴러+평일 09:00 스케줄(#841~#843)까지 완료. 본문의 "Phase2 미착수"는 낡음
+- [서비스 마감(closing) 자동화](closing-automation.md) — ★실운영. 2026-09-12 갱신+이력 켜짐(#1187): 첫 실행이 529/933 서비스·1,135칸 드리프트를 잡았고 이후 12~15건으로 조용(시각 오탐 없음)
 - [버튼 호버 검정 규칙](button-hover-black-rule.md) — `hover:bg-ink hover:text-cream`. ★design.md 문서화 + 테스트 강제(#1053, 20곳 정리). 카드·행은 예외
 - [표준 모달 셸](modal-shell-standard.md) — 모든 모달은 `components/common/ModalShell` 사용(검정 헤더+boxed ×+푸터 슬롯), 인라인 모달 마크업 금지
 - [기본 목록+인스펙터 표준 디자인](standard-list-inspector-design.md) — 신규/전환 메뉴는 ListPattern+controlsRow(px-7 pt-3)+ScopeChips+표준 Section View. 커스텀 UI 금지

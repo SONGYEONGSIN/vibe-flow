@@ -1,0 +1,23 @@
+{
+  "skill_name": "web-presentation",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "2026년 한국 AI 스타트업 투자 현황을 웹 프레젠테이션으로 만들어줘. 주요 투자 라운드, 분야별 투자액, 상위 기업 5개 정도 포함해서 8장 내외로.",
+      "expected_output": "8장 내외의 HTML 슬라이드. 커버, 통계 요약, 분야별 카드, 상위 기업 표, 전망 슬라이드 포함. 키보드/터치 네비게이션 작동.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "우리 팀 신입사원 온보딩 가이드를 웹 슬라이드로 만들어줘. 회사 소개, 조직 구조, 첫 주 일정, 필수 도구 안내, FAQ 포함해서 밝고 친근한 느낌으로.",
+      "expected_output": "밝은/따뜻한 색상 톤의 HTML 프레젠테이션. 조직 구조 카드, 일정 타임라인, 도구 목록, FAQ 등 다양한 컴포넌트 활용. 친근한 어조.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Create a web presentation about climate change impact on global food security. Include key statistics, regional analysis, timeline of major events, and policy recommendations. Make it professional with dark theme elements. Around 7-9 slides.",
+      "expected_output": "7-9 slide HTML presentation in English. Professional dark theme, stats grid, regional comparison cards/table, timeline, policy recommendation bullets. All navigation working.",
+      "files": []
+    }
+  ]
+}
