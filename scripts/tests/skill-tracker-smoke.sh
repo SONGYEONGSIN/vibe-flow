@@ -115,11 +115,20 @@ run_hook "/brainstorm 주제"
 assert_skill "실재 skill 정상 기록" "brainstorm"
 teardown
 
-# Case 8: F-K20 — 비 git cwd 에서도 stdin 을 drain 해야 함.
+# Case 8 (F-R07): extensions/*/skills/<name> 트리도 실재 검사 대상 — core/.claude
+# 어느 쪽에도 없지만 extensions 하위에만 있는 skill(예: discuss)이 정상 기록되는지.
+echo "=== Case 8: /discuss (extensions/*/skills/ 전용) → 정상 기록 (F-R07) ==="
+setup
+mkdir -p "$TMP/extensions/deep-collaboration/skills/discuss"
+run_hook "/discuss 주제"
+assert_skill "extensions 트리 skill 정상 기록" "discuss"
+teardown
+
+# Case 9: F-K20 — 비 git cwd 에서도 stdin 을 drain 해야 함.
 # stdin 미소비 조기 종료 시 writer(Claude Code)가 EPIPE
 # ("UserPromptSubmit hook error: Failed to write to socket") —
 # pipe buffer(64KB) 초과 payload 로 결정적으로 재현.
-echo "=== Case 8: 비 git cwd + 대형 stdin → writer SIGPIPE 없음 (F-K20) ==="
+echo "=== Case 9: 비 git cwd + 대형 stdin → writer SIGPIPE 없음 (F-K20) ==="
 NOGIT=$(mktemp -d)
 cd "$NOGIT"
 printf 'x%.0s' $(seq 1 120000) | jq -Rs '{prompt: .}' | bash "$SCRIPT" >/dev/null 2>&1
