@@ -21,3 +21,4 @@
 {"ts":"2026-09-20T09:21:44Z","phase":"cycle-complete","detail":"AHE 폐루프 완주(Phase0-7, Phase8 skip=tier미달) — PR: #262(merged) #263(open,CI) #268(open,신규). 세션 09-16 시작 09-20 재개완주","base_sha":"1f7e97f"}
 {"ts":"2026-09-20T10:02:12Z","phase":"phase4","detail":"IMPROVE PR #269(queue.sh 파싱실패 마스킹 fix, F-AS01) 생성 완료. 중복 PR #267 은 close(#264 로 이미 병합됨 확인)","base_sha":"8be5c5e"}
 {"ts":"2026-09-20T10:02:15Z","phase":"phase5","detail":"MERGE-GATE PR #269 — DECISION=HOLD_NO_FILES(gh 부재로 변경파일 조회 불가, fail-closed) — 머지 안 함, PR 사람 대기","base_sha":"8be5c5e"}
+{"ts":"2026-09-20T10:02:21Z","phase":"phase6","detail":"SELF-UPDATE skip — Phase 5 머지 미발생","base_sha":"8be5c5e"}
