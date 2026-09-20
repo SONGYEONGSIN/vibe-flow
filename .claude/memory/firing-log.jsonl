@@ -26,3 +26,4 @@
 {"ts":"2026-09-20T10:02:32Z","phase":"phase8","detail":"GENERATIVE skip — tier=off (generative 미개방)","base_sha":"8be5c5e"}
 {"ts":"2026-09-20T10:02:35Z","phase":"done","detail":"AHE 폐루프 완주 — PR #266(VERIFY+AUDIT) #269(IMPROVE fix) open, #267 closed(dup of #264)","base_sha":"8be5c5e"}
 {"ts":"2026-09-20T21:01:47Z","phase":"phase0","detail":"health baseline 기록: ci_pass_rate=null ledger_health=0.405","base_sha":"5998ddf"}
+{"ts":"2026-09-20T21:04:41Z","phase":"phase1-start","detail":"VERIFY 진입 — pending 7건, reconcile 후보 확인 예정","base_sha":"61c2c01"}
