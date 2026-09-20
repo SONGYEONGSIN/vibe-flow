@@ -1,0 +1,7 @@
+# F-AN06/F-AO05: .claude/memory/*.jsonl 는 append-only 로그다 — 서로 다른 브랜치가
+# 각자 새 줄만 추가하는 병합은 실제로는 충돌이 아니라 단순 합집합인데, git 의 기본
+# text merge 는 이를 conflict marker(<<<<<<< HEAD 등)로 남긴다. 이 마커가 그대로
+# 커밋된 사고가 두 번 재발했다(#249 최초 도입, #260 에서 제거했지만 #259 가 다시
+# 도입) — 마커 제거는 증상만 지웠을 뿐 재발을 막지 못했다. union 병합 드라이버로
+# 이 클래스의 충돌 자체를 구조적으로 없앤다.
+.claude/memory/*.jsonl merge=union
