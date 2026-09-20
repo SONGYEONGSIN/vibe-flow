@@ -22,3 +22,4 @@
 {"ts":"2026-09-20T10:02:12Z","phase":"phase4","detail":"IMPROVE PR #269(queue.sh 파싱실패 마스킹 fix, F-AS01) 생성 완료. 중복 PR #267 은 close(#264 로 이미 병합됨 확인)","base_sha":"8be5c5e"}
 {"ts":"2026-09-20T10:02:15Z","phase":"phase5","detail":"MERGE-GATE PR #269 — DECISION=HOLD_NO_FILES(gh 부재로 변경파일 조회 불가, fail-closed) — 머지 안 함, PR 사람 대기","base_sha":"8be5c5e"}
 {"ts":"2026-09-20T10:02:21Z","phase":"phase6","detail":"SELF-UPDATE skip — Phase 5 머지 미발생","base_sha":"8be5c5e"}
+{"ts":"2026-09-20T10:02:30Z","phase":"phase7","detail":"GRADUATION tick clean — disarmed, no-op (tier=off 유지)","base_sha":"8be5c5e"}
