@@ -23,3 +23,4 @@
 {"ts":"2026-09-20T10:02:15Z","phase":"phase5","detail":"MERGE-GATE PR #269 — DECISION=HOLD_NO_FILES(gh 부재로 변경파일 조회 불가, fail-closed) — 머지 안 함, PR 사람 대기","base_sha":"8be5c5e"}
 {"ts":"2026-09-20T10:02:21Z","phase":"phase6","detail":"SELF-UPDATE skip — Phase 5 머지 미발생","base_sha":"8be5c5e"}
 {"ts":"2026-09-20T10:02:30Z","phase":"phase7","detail":"GRADUATION tick clean — disarmed, no-op (tier=off 유지)","base_sha":"8be5c5e"}
+{"ts":"2026-09-20T10:02:32Z","phase":"phase8","detail":"GENERATIVE skip — tier=off (generative 미개방)","base_sha":"8be5c5e"}
