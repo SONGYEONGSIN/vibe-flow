@@ -15,3 +15,4 @@
 {"ts":"2026-09-16T21:19:52Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"0c5def3"}
 {"ts":"2026-09-16T21:20:24Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"f754108"}
 {"ts":"2026-09-20T09:21:05Z","phase":"phase3","detail":"enqueue 완료(세션 재개 2026-09-20) — F-AD03~08 6건 신규 큐잉, F-R07/F-AJ02/F-AE01 머지-원장 정합 완료","base_sha":"1f7e97f"}
+{"ts":"2026-09-20T09:21:08Z","phase":"phase4","detail":"PR #268(큐 손상 재발 fix + union-merge) 생성. 세션 중단 전 F-R07 pop→PR #261(타 firing 이 선반영) 확인 후 재조정. round AO 신규 finding PR #263 CI 진행중","base_sha":"1f7e97f"}
