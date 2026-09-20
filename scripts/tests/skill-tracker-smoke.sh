@@ -133,6 +133,14 @@ else
 fi
 cd /; rm -rf "$NOGIT"
 
+# Case 9: F-R07 — extensions/*/skills/<name> (design-sync 등) 도 실재 skill 로 인정돼야 함
+echo "=== Case 9: /design-sync (extensions/*/skills/) → 정상 기록 (F-R07) ==="
+setup
+mkdir -p "$TMP/extensions/design-system/skills/design-sync"
+run_hook "/design-sync"
+assert_skill "extensions 트리 skill 정상 기록" "design-sync"
+teardown
+
 echo
 echo "=== 결과 ==="
 echo "  통과: $PASS / 실패: $FAIL"
