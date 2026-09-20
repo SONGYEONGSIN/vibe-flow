@@ -35,3 +35,4 @@
 {"ts":"2026-09-20T21:15:36Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"6719287"}
 {"ts":"2026-09-20T21:15:57Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"f2752d9"}
 {"ts":"2026-09-20T21:23:07Z","phase":"phase4","detail":"IMPROVE 완료 — F-R07 fix(extensions skill 실재검사) + F-AT07 critical queue corruption 복구, status-update done. PR 생성 예정","base_sha":"cee1848"}
+{"ts":"2026-09-20T21:24:01Z","phase":"phase5","detail":"MERGE-GATE: PR #270 → DECISION=HOLD_TIER (tier=generative>off) — 머지 안 함, 사람 대기","base_sha":"cee1848"}
