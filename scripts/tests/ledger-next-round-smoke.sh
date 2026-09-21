@@ -67,6 +67,19 @@ echo "$out" | grep -q 'AD' && ok "NR6.1 폴백으로 AD 산출" || ng "NR6.2 폴
 echo "$out" | grep -qi '조회' && ok "NR6.3 조회 실패 사유 표면화" \
   || ng "NR6.4 조용한 폴백 — 선점 라벨을 못 본 채 채번했는지 알 수 없다"
 
+echo "Test NR7: 옛 라운드에 뒤늦게 append 돼도 최대값을 쓴다 (F-AU01)"
+# 실사고(09-20): F-AN07 처럼 이미 지난 라운드에 나중에 append 되면 원장의 **마지막**
+# .round 는 AN 이 된다. 그때 AS 브랜치가 머지+삭제돼 ls-remote 에도 없으면 두 정보원이
+# 동시에 AS 를 못 봐, 이미 쓴 라벨이 재발급된다. 루프가 실측으로 잡았다(next-round → 'AS').
+mkledger AN AO AP AQ AS
+# 마지막 줄을 옛 라운드(AN)로 — 뒤늦은 append 재현
+add_old() { printf '{"round":"AN","id":"F-AN07","component":"skills","dimension":"D1","evidence":"e","root_cause":"r","fix":"f","predicted_delta":"+0.1","status":"open","actual_delta":null,"ts":"2026-01-01T00:00:00Z"}\n' >> "$L"; }
+add_old
+stub 'true'   # 머지되어 브랜치가 전부 삭제된 상태
+got=$(run)
+[ "$got" = "AT" ] && ok "NR7.1 마지막이 AN 이어도 최대 AS 기준 → AT" \
+  || ng "NR7.2 '$got' (want AT) — tail -1 이 옛 라운드를 집어 이미 쓴 라벨이 재발급된다"
+
 echo ""
 echo "─────────────────────────────────────────"
 echo "PASS: $PASS   FAIL: $FAIL"
