@@ -255,9 +255,6 @@
 {"op":"status_update","id":"20260807T211210Z-361d","new_status":"done","ts":"2026-09-09T21:22:46Z"}
 {"op":"status_update","id":"20260807T211210Z-c30d","new_status":"running","ts":"2026-09-15T21:18:04Z"}
 {"op":"status_update","id":"20260807T211210Z-c30d","new_status":"done","ts":"2026-09-15T21:21:04Z"}
-<<<<<<< HEAD
-=======
->>>>>>> origin/main
 {"op":"status_update","id":"20260807T211210Z-361d","new_status":"aborted","ts":"2026-09-15T21:04:06Z"}
 {"op":"status_update","id":"20260807T211210Z-6101","new_status":"aborted","ts":"2026-09-15T21:04:18Z"}
 {"op":"status_update","id":"20260911T211747Z-c17e","new_status":"aborted","ts":"2026-09-15T21:05:19Z"}
