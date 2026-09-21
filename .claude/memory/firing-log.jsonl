@@ -4,3 +4,29 @@
 {"ts":"2026-08-18T21:09:17Z","phase":"phase2","detail":"AUDIT 완료 — D1~D4 4건 신규 finding 확보, ledger append 시작","base_sha":"78fc34f"}
 {"ts":"2026-08-18T21:09:58Z","phase":"phase3","detail":"ENQUEUE 시작 — F-Z01~Z04 append 완료","base_sha":"d886fa0"}
 {"ts":"2026-08-18T21:10:06Z","phase":"phase4","detail":"IMPROVE 시작 — run-cloud.sh 호출","base_sha":"2216f28"}
+{"ts":"2026-09-16T21:01:58Z","phase":"phase0","detail":"health baseline 기록: ci_pass_rate=null ledger_health=0.430","base_sha":"65ddf04"}
+{"ts":"2026-09-16T21:04:49Z","phase":"phase1-start","detail":"VERIFY 진입 — pending 7건, reconcile 후보 확인불가(gh 부재, no-op)","base_sha":"3c9b8d6"}
+{"ts":"2026-09-16T21:04:53Z","phase":"phase1","detail":"VERIFY 완료 — verified 9(F-R04,F-R05,F-AC01,F-AD09,F-AG05,F-AH05,F-AH06,F-Q07,F-Q12) / refuted 0 / 보류 1(F-Q11 재현됨, open 유지). reconcile: gh 부재로 no-op","base_sha":"6e34ceb"}
+{"ts":"2026-09-16T21:05:04Z","phase":"phase1-start","detail":"AUDIT 진입 — round=AO, DIMS=D2 D4 (day-of-year 259 % 4 = 3)","base_sha":"ee0dbb6"}
+{"ts":"2026-09-16T21:05:21Z","phase":"phase2-dispatch","detail":"dimension agent 2개 dispatch (D2,D4), round=AO","base_sha":"cd24289"}
+{"ts":"2026-09-16T21:16:08Z","phase":"phase2-agents","detail":"2/2 회수, finding 후보 4건(D2:2 유효+1 기각(TaskOutput 실재 확인됨), D4:2)","base_sha":"627243a"}
+{"ts":"2026-09-16T21:18:59Z","phase":"phase2-append","detail":"ledger append 4건 완료(F-AO01~F-AO04). 부수: evolution-guard.sh Bash-vector 오탐 1회 실측(F-AI11 기지 재현) — 파일 경유 append 로 우회","base_sha":"4939088"}
+{"ts":"2026-09-16T21:19:49Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-AO","base_sha":"d5327a4"}
+{"ts":"2026-09-16T21:19:52Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"0c5def3"}
+{"ts":"2026-09-16T21:20:24Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"f754108"}
+{"ts":"2026-09-20T09:21:05Z","phase":"phase3","detail":"enqueue 완료(세션 재개 2026-09-20) — F-AD03~08 6건 신규 큐잉, F-R07/F-AJ02/F-AE01 머지-원장 정합 완료","base_sha":"1f7e97f"}
+{"ts":"2026-09-20T09:21:08Z","phase":"phase4","detail":"PR #268(큐 손상 재발 fix + union-merge) 생성. 세션 중단 전 F-R07 pop→PR #261(타 firing 이 선반영) 확인 후 재조정. round AO 신규 finding PR #263 CI 진행중","base_sha":"1f7e97f"}
+{"ts":"2026-09-20T09:21:21Z","phase":"phase5","detail":"merge-gate PR#268 → DECISION=HOLD_TIER (tier=off, 사람 대기) — 직접 머지 없음. PR-only 유지","base_sha":"1f7e97f"}
+{"ts":"2026-09-20T09:21:41Z","phase":"phase7","detail":"graduation disarmed — tick no-op (기대대로). tier=off 유지","base_sha":"1f7e97f"}
+{"ts":"2026-09-20T09:21:44Z","phase":"cycle-complete","detail":"AHE 폐루프 완주(Phase0-7, Phase8 skip=tier미달) — PR: #262(merged) #263(open,CI) #268(open,신규). 세션 09-16 시작 09-20 재개완주","base_sha":"1f7e97f"}
+{"ts":"2026-09-20T10:02:12Z","phase":"phase4","detail":"IMPROVE PR #269(queue.sh 파싱실패 마스킹 fix, F-AS01) 생성 완료. 중복 PR #267 은 close(#264 로 이미 병합됨 확인)","base_sha":"8be5c5e"}
+{"ts":"2026-09-20T10:02:15Z","phase":"phase5","detail":"MERGE-GATE PR #269 — DECISION=HOLD_NO_FILES(gh 부재로 변경파일 조회 불가, fail-closed) — 머지 안 함, PR 사람 대기","base_sha":"8be5c5e"}
+{"ts":"2026-09-20T10:02:21Z","phase":"phase6","detail":"SELF-UPDATE skip — Phase 5 머지 미발생","base_sha":"8be5c5e"}
+{"ts":"2026-09-20T10:02:30Z","phase":"phase7","detail":"GRADUATION tick clean — disarmed, no-op (tier=off 유지)","base_sha":"8be5c5e"}
+{"ts":"2026-09-20T10:02:32Z","phase":"phase8","detail":"GENERATIVE skip — tier=off (generative 미개방)","base_sha":"8be5c5e"}
+{"ts":"2026-09-20T10:02:35Z","phase":"done","detail":"AHE 폐루프 완주 — PR #266(VERIFY+AUDIT) #269(IMPROVE fix) open, #267 closed(dup of #264)","base_sha":"8be5c5e"}
+{"ts":"2026-09-20T21:01:47Z","phase":"phase0","detail":"health baseline 기록: ci_pass_rate=null ledger_health=0.405","base_sha":"5998ddf"}
+{"ts":"2026-09-20T21:04:41Z","phase":"phase1-start","detail":"VERIFY 진입 — pending 7건, reconcile 후보 확인 예정","base_sha":"61c2c01"}
+{"ts":"2026-09-20T21:05:35Z","phase":"phase1","detail":"VERIFY 완료 — verified 8 / refuted 1(F-AG05, next-round 충돌 재현 — 신규 SAFETY-GATE finding 으로 Phase2 에 기록 예정) / stale 3건 중 2건 verified(F-Q07,F-Q12)+1건 여전히 open(F-Q11) / reconcile: gh 부재 no-op(F-AH05 설계대로)","base_sha":"02d65ae"}
+{"ts":"2026-09-20T21:06:23Z","phase":"phase2-dispatch","detail":"dimension agent 2개 dispatch (D2 architecture-reviewer, D4 general-purpose meta-검증), round=AT(수동 확정 — next-round 버그로 AS 재반환 회피, F-AG05 refuted 참고)","base_sha":"efe251e"}
+{"ts":"2026-09-20T21:11:02Z","phase":"phase2-agents","detail":"D2 완료(1건: cloud-init.sh agents 미러 누락, SAFETY-GATE) — D4 대기 중","base_sha":"b4d81ff"}
