@@ -104,9 +104,9 @@ EVENT_ALIAS_TYPES=(
 )
 SKILL_UNIVERSE_DIR="core/skills"
 [ -d "$SKILL_UNIVERSE_DIR" ] || SKILL_UNIVERSE_DIR=".claude/skills"
-# F-R07: extensions/*/skills/<name> 트리는 core/.claude 와 별도 위치라 유니버스에서
-# 누락돼 있었다 — skill-tracker.sh 의 존재검사(쓰기측)도 동형으로 확장됨.
-EXT_SKILL_TYPES=($(find extensions -mindepth 3 -maxdepth 3 -type d -path '*/skills/*' 2>/dev/null | sed 's|.*/||' | LC_ALL=C sort))
+# F-R07 (audit R): extensions/*/skills/<name> (design-sync 등 12개)가 core/skills 트리
+# 밖이라 유니버스에서 누락돼 있었다 — skill-tracker.sh 존재검사와 동형으로 합집합화.
+EXT_SKILL_TYPES=($(find extensions -mindepth 3 -maxdepth 3 -type d -path 'extensions/*/skills/*' 2>/dev/null | sed 's|.*/||' | LC_ALL=C sort))
 SKILL_TYPES=($(find "$SKILL_UNIVERSE_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sed 's|.*/||' | LC_ALL=C sort) "${EXT_SKILL_TYPES[@]}" "${EVENT_ALIAS_TYPES[@]}")
 
 type_to_label() {

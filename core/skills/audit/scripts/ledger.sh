@@ -174,7 +174,11 @@ case "$cmd" in
       echo "next-round: 원격 브랜치 조회 실패 — 원장 기준으로만 채번한다(선점 라벨 미확인)" >&2
       BRANCHES=""
     fi
-    LAST_ROUND=$(jq -r 'select(.round != null) | .round' "$LEDGER" 2>/dev/null | tail -1)
+    # F-AU01: **마지막 append 가 아니라 전체 최대값**을 쓴다. 옛 라운드에 뒤늦게 append
+    # 되면(F-AN07 실사고) tail -1 이 그 옛 라벨을 주고, 그 사이 최신 라운드의 브랜치가
+    # 머지+삭제돼 ls-remote 에도 없으면 두 정보원이 동시에 실효를 잃어 **이미 쓴 라벨이
+    # 재발급**된다. 루프가 실측으로 잡았다(next-round → 'AS', 이미 #266 으로 머지된 라벨).
+    LAST_ROUND=$(jq -r 'select(.round != null) | .round' "$LEDGER" 2>/dev/null | sort -u | grep -E '^[A-Z]+$')
     # 브랜치명에서 라벨 후보를 뽑는다. 실제로 존재한 변형: 소문자(`...-ad`), 접미사
     # (`...-AF-pending-relabel-AH` ← 재라벨 대기라 AH 도 선점된 것). 통째로 대문자화하면
     # PENDING/RELABEL 까지 라벨로 오독하므로 **1~3글자 세그먼트만** 취한다.

@@ -30,7 +30,16 @@ export QUEUE_LOCK_DIR="${QUEUE_LOCK_DIR:-$PROJECT_ROOT/.claude/.queue.lock}"
 DRYRUN="${AUTO_BUILD_QUEUE_DRYRUN:-0}"
 
 # ── queue 첫 entry pop ─────────────────────────────────────
+# F-AQ03: queue.sh next 가 실패(파싱 에러 등)해도 stdout 은 비어 있을 수 있다 —
+# 종료 코드로 "진짜 empty"(exit 0)와 "읽기 실패"(exit != 0)를 구분해야 후자를
+# empty 로 오독해 조용히 exit 0 하지 않는다.
 ID=$(bash "$QUEUE_SH" next)
+NEXT_RC=$?
+
+if [ "$NEXT_RC" -ne 0 ]; then
+  echo "run-cloud: queue.sh next 실패(exit $NEXT_RC) — 큐가 비어있는 게 아니라 읽기/파싱이 깨졌다. 큐 파일 상태를 확인하라" >&2
+  exit 1
+fi
 
 if [ -z "$ID" ]; then
   echo "run-cloud: queue empty — no task to process" >&2

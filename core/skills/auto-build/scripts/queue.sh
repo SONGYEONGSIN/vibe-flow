@@ -71,6 +71,17 @@ nfc() {
   fi
 }
 
+# ── 무결성 가드 ──
+# 실사고: git 충돌 마커(<<<<<<< HEAD 등)가 store 에 그대로 커밋돼 jq 스트림 파싱이
+# 전체 실패했고, list/next 둘 다 2>/dev/null 로 오류를 삼켜 "큐 빈 상태"로 보였다.
+# 그 결과 실제로는 99건 이상 쌓인 queued task 가 여러 라운드 동안 전혀 처리되지
+# 않았는데도 매 firing 이 "queue empty" 로 정상 종료해 아무도 눈치채지 못했다.
+# 침묵 대신 즉시 중단한다 — 손상은 사람이 봐야 한다.
+if [ -s "$QUEUE_STORE" ] && ! jq -s empty "$QUEUE_STORE" 2>/dev/null; then
+  echo "queue: ${QUEUE_STORE} 파싱 실패 — 손상(예: 미해결 git 충돌 마커) 의심. list/next 를 침묵 실패시키는 대신 즉시 중단한다. 수동 확인 필요." >&2
+  exit 3
+fi
+
 # ── 명령 분기 ──
 case "$CMD" in
 
@@ -142,6 +153,13 @@ case "$CMD" in
   next)
     # status=queued 첫 entry id 출력 + status_update running 라인 append
     acquire_lock
+    # F-AQ03: jq stderr 를 /dev/null 로 버리면 QUEUE_STORE 파싱 실패(예: 미해결
+    # git 충돌 마커 잔존)도 "큐 비어있음"과 동일하게 빈 ID 로 보인다 — 호출측
+    # (run-cloud.sh) 이 둘을 구분 못해 실제로는 파싱이 깨진 것을 "empty" 로 오독한다.
+    # 실측(2026-09-18): #260 머지 전 상태에서 .claude/memory/auto-build-queue.jsonl 에
+    # <<<<<<< HEAD 등 미해결 마커가 있는 채로 next 를 호출하면 jq 가 exit 5(parse error)로
+    # 죽는데, 이 2>/dev/null 이 그 에러를 삼켜 이전엔 종료 코드까지 무시됐다.
+    JQ_ERR="$(mktemp)"
     ID=$(jq -rs '
       reduce .[] as $l ({};
         if ($l | has("op")) and $l.op == "status_update" then
@@ -155,7 +173,16 @@ case "$CMD" in
       | sort_by(.created_ts)
       | map(select(.status == "queued"))
       | if length > 0 then .[0].id else "" end
-    ' "$QUEUE_STORE" 2>/dev/null)
+    ' "$QUEUE_STORE" 2>"$JQ_ERR")
+    JQ_RC=$?
+
+    if [ "$JQ_RC" -ne 0 ]; then
+      echo "queue next: $QUEUE_STORE 파싱 실패(jq exit $JQ_RC) — 이것은 '큐 비어있음'이 아니다: $(cat "$JQ_ERR" 2>/dev/null)" >&2
+      rm -f "$JQ_ERR"
+      release_lock
+      exit 1
+    fi
+    rm -f "$JQ_ERR"
 
     if [ -n "$ID" ]; then
       jq -nc --arg id "$ID" --arg ts "$(iso_ts)" \
