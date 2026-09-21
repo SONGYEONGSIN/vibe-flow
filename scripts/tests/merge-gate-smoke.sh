@@ -67,6 +67,22 @@ d2=$(MERGE_GATE_FILES="README.md" MERGE_GATE_CI="green" AUTO_MERGE_TIER="" bash 
 [ "$d2" = "HOLD_TIER" ] && { echo "  ✓ M6.2 tripped(breaker) → HOLD(off)"; PASS=$((PASS+1)); } || { echo "  ✗ M6.2 (got $d2)"; FAIL=$((FAIL+1)); }
 rm -f "$GRADUATION_STATE"
 
+echo "Test M-U: CI '조회 불가' 를 '미완료' 와 구분 (F-AT01)"
+# cloud 에 gh 가 없다(F-AI03 실측). 그러면 CI 상태를 알 방법이 없는데 현재는 그것을
+# HOLD_CI_PENDING(=곧 끝날 것)과 같은 판정으로 낸다. **둘은 다르다** — pending 은
+# 기다리면 풀리고, 조회 불가는 영원히 안 풀린다. armed 상태에서 "곧 머지되겠지" 로
+# 오해하면 자동화가 도는 줄 알고 방치된다(F-AH05 와 같은 계열의 혼동).
+out_u=$(MERGE_GATE_FILES="core/rules/git.md" AUTO_MERGE_TIER="structural" \
+        MERGE_GATE_GH_BIN="/nonexistent-gh" PR_NUMBER=999 bash "$GATE" 2>/dev/null)
+got_u=$(printf '%s' "$out_u" | sed -n 's/^DECISION=//p')
+if [ "$got_u" = "HOLD_CI_UNAVAILABLE" ]; then
+  echo "  ✓ M-U.1 조회 불가 → HOLD_CI_UNAVAILABLE"; PASS=$((PASS+1))
+else
+  echo "  ✗ M-U.2 DECISION=$got_u — 조회 불가가 '미완료' 로 뭉개진다"; FAIL=$((FAIL+1))
+fi
+# 명시적 pending 은 그대로 (과차단 아님)
+chk "M-U.3 명시 pending 은 HOLD_CI_PENDING 유지" "HOLD_CI_PENDING" "core/rules/git.md" "pending" "structural"
+
 echo ""
 echo "─────────────────────────────────────────"
 echo "PASS: $PASS   FAIL: $FAIL"

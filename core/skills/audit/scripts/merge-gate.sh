@@ -82,19 +82,28 @@ if [ "$GRAD_LEVEL" -eq 0 ] || [ "$PR_LEVEL" -gt "$GRAD_LEVEL" ]; then
 fi
 
 # ── 3. CI 상태 ──
+# F-AT01: CI 상태는 **git 으로 알 수 없다** — 체크 상태는 API 전용이다. 변경 파일은
+# `git diff origin/main...HEAD` 로 대체되지만(위) CI 는 대체 경로가 없다. 그런데
+# cloud 세션에는 gh 가 없다(F-AI03 실측). 그 경우를 "미완료" 로 내면 **기다리면 풀릴
+# 것처럼 보이지만 영원히 안 풀린다** — armed 상태에서 "곧 머지되겠지" 로 오해하면
+# 자동화가 도는 줄 알고 방치된다. 조회 불가는 별도 판정으로 낸다(F-AH05 와 동형).
+GH_BIN="${MERGE_GATE_GH_BIN:-gh}"
+CI_SOURCE="unknown"
 if [ -n "${MERGE_GATE_CI:-}" ]; then
-  CI="$MERGE_GATE_CI"
-elif [ -n "$PR" ] && command -v gh >/dev/null 2>&1; then
-  states=$(gh pr checks "$PR" --json state -q '.[].state' 2>/dev/null)
+  CI="$MERGE_GATE_CI"; CI_SOURCE="env"
+elif [ -n "$PR" ] && command -v "$GH_BIN" >/dev/null 2>&1; then
+  CI_SOURCE="api"
+  states=$("$GH_BIN" pr checks "$PR" --json state -q '.[].state' 2>/dev/null)
   if echo "$states" | grep -qiE 'FAILURE|ERROR|CANCELLED|TIMED_OUT'; then CI="failed"
   elif echo "$states" | grep -qiE 'PENDING|IN_PROGRESS|QUEUED|EXPECTED'; then CI="pending"
   elif [ -n "$states" ]; then CI="green"; else CI="pending"; fi
 else
-  CI="pending"
+  CI="unavailable"
 fi
 case "$CI" in
   green) : ;;
   failed) emit "HOLD_CI_FAILED" "CI 실패 — 자율머지 대기" ;;
+  unavailable) emit "HOLD_CI_UNAVAILABLE" "CI 상태 조회 불가(gh 부재) — 대기해도 풀리지 않는다. 자율머지를 쓰려면 API 접근이 필요하다(F-AT01)" ;;
   *) emit "HOLD_CI_PENDING" "CI 미완료($CI) — 자율머지 대기" ;;
 esac
 
