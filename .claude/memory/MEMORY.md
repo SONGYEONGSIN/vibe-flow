@@ -18,13 +18,13 @@
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AS)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AT)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AS (F-AS01~F-AS01)** — 09-20 firing 의 Phase 4 현장 발굴 — **`next-round` 로 채번했고 동시 진행 중인 다른 라운드 브랜치와 충돌 없음을 루프가 직접 확인했다**(F-AG05 실사용 증거). **F-AS01**: `queue.sh next` 가 jq 파싱 실패를 `2>/dev/null` + 종료코드 무시로 삼켜, 유효 entry 258건이 있는데도 `run-cloud.sh` 가 "queue empty"(exit 0)로 오보했다. `#260` 은 마커 텍스트만 고쳤고 마스킹 로직은 남아 09-20 에도 재현됐다. fix: 파싱 실패 시 명시 에러 + exit 1(진짜 빈 큐 exit 0 과 구분), run-cloud 가 종료코드를 확인.
+- **최근 = 라운드 AT (F-AT01~F-AT01)** — 사람이 `arm` 선행조건을 따지다 등록. **F-AT01** — `merge-gate` 가 CI '조회 불가'(gh 부재)를 '미완료'와 같은 `HOLD_CI_PENDING` 으로 낸다. 변경 파일은 git 폴백이 있으나 **CI 상태는 API 전용이라 대체 경로가 없다**. pending 은 기다리면 풀리고 조회 불가는 영원히 안 풀리는데 구별이 안 되면, armed 상태에서 자동화가 도는 줄 알고 방치된다(F-AH05 와 동형). fix: `HOLD_CI_UNAVAILABLE` 신설. **결론: cloud 에 API 접근이 없는 한 arm 은 무의미하다** — 켜도 매번 HOLD 다.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
