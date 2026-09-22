@@ -44,3 +44,4 @@
 {"ts":"2026-09-22T10:13:39Z","phase":"abort","detail":"Phase4 IMPROVE 불가 — main .claude/memory/auto-build-queue.jsonl 손상(exit 3, F-AV07 3차 재발)으로 reclaim/enqueue 전건 실패. PR #274(F-AV08)가 동일 수정 이미 진행 중 — 중복 회피 위해 직접 수정 안 함. 이번 firing 산출물(round AW: VERIFY 9건 + stale-3 2건 + 신규 finding 5건, F-AW04 SAFETY-GATE 포함)은 chore/audit-round-AW 브랜치 PR 로 대체 제출. 다음 firing 은 #274 머지 후 재개 가능","base_sha":"50e9d8b"}
 {"ts":"2026-09-22T10:14:39Z","phase":"phase7","detail":"graduation tick clean — disarmed 이므로 no-op (tier=off 유지)","base_sha":"50e9d8b"}
 {"ts":"2026-09-22T10:14:42Z","phase":"cycle-complete","detail":"PR #275 생성(round AW). Phase3/4 는 큐 손상(F-AV07 3차 재발, PR #274 대기)으로 블록 — 다음 firing 이어받음. Phase8 skip(tier!=generative)","base_sha":"50e9d8b"}
+{"ts":"2026-09-22T21:14:36Z","phase":"phase0","detail":"health baseline 기록: ci_pass_rate=null ledger_health=0.394","base_sha":"ceab844"}
