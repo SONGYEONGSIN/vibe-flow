@@ -18,13 +18,13 @@
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AV)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AW)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AV (F-AV01~F-AV07)** — 루프가 09-20 발화에서 발굴(원래 AT 라벨 — 사람이 같은 날 `round="AT"` 를 하드코딩해 충돌시켜 AV 로 재채번). 주제 **"hook 이 입력을 못 읽으면 조용히 통과시킨다"** — **F-AV03/04/05** `command-guard`·`evolution-guard`·`smart-guard` 세 hook 이 `TOOL_NAME=$(echo "$INPUT" | jq -r ...)` 로 파싱하는데 실패 시 빈 값이 되어 게이트를 통과시킨다(F-AH05/F-AT01 과 같은 "조회 불가를 통과로" 계열, 이번엔 안전 hook 3종 동시). **F-AV01** `next-round` 가 머지+삭제된 라운드를 못 봐 이미 쓴 라벨을 재발급(→ F-AU01 로 fix). **F-AV07** main 의 큐 JSONL 216-245행에 미해결 충돌 마커 잔존. **F-AV06** CI 워크플로 2종의 notify 경로. **F-AV02** cloud-init 헤더와 실제 동작 불일치.
+- **최근 = 라운드 AW (F-AW01~F-AW05)** — 주제: 밤당 2-dim 로테이션(F-AJ02) 도입 후 방치된 회귀 — audit/SKILL.md Phase5 4-dim 점수표가 R17/R(08-05) 이후 24+ 라운드 미생성(F-AW01), MEMORY.md Active Phase 가 v2.3.2/round M(67일 전)에 화석화(F-AW02), DIMS 로테이션 mod-4 표가 {D1,D4}/{D2,D3} 두 pair 를 영구 커버 못하면서 '모든 조합' 이라 주장(F-AW03). 추가로 auto-build-safety.sh 에 F-AV03/04/05 와 동일한 jq fail-open 클래스 버그 발견 — cloud 세션 유일 실효 destructive-op 방어선(F-AW04, SAFETY-GATE). marketplace.json 공개 설명의 audit 점수(4.53/5)가 실제 최신치(R17/R D2 3.5)와 2개월+ 괴리(F-AW05).
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
