@@ -40,3 +40,4 @@
 {"ts":"2026-09-22T10:12:10Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-AW","base_sha":"2566629"}
 {"ts":"2026-09-22T10:12:16Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"2566629"}
 {"ts":"2026-09-22T10:12:33Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"092342e"}
+{"ts":"2026-09-22T10:13:15Z","phase":"phase3","detail":"enqueue 0건 — main .claude/memory/auto-build-queue.jsonl 손상(conflict marker, F-AV07 재발)으로 전건 실패. 안전코어 대상은 정상 skip. PR #274(F-AV08)가 이미 이 손상 수정 중, 중복 작업 회피 위해 직접 수정 안 함","base_sha":"50e9d8b"}
