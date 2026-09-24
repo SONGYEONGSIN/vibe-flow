@@ -36,3 +36,4 @@
 {"ts":"2026-09-24T21:16:55Z","phase":"phase2-dispatch","detail":"dimension agent 2개 dispatch (D2,D4 — UTC 일자 267%4=3 로테이션)","base_sha":"895ea42"}
 {"ts":"2026-09-24T21:23:21Z","phase":"phase2-agents","detail":"2/2 회수, finding 후보 5건(D2 3 / D4 2)","base_sha":"72e08db"}
 {"ts":"2026-09-24T21:23:23Z","phase":"phase2-append","detail":"ledger append 2건 완료(F-AY01,F-AY02) — 나머지 3건은 기존 open finding(F-V02,F-R08)과 중복 또는 F-Q11 과 중복되어 병합·스킵","base_sha":"2450ba6"}
+{"ts":"2026-09-24T21:23:26Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-AY (VERIFY+AUDIT 2 commits)","base_sha":"1a6a7c7"}
