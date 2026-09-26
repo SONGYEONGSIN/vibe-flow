@@ -39,3 +39,4 @@
 {"ts":"2026-09-26T21:32:01Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-AZ (15502fc)","base_sha":"15502fc"}
 {"ts":"2026-09-26T21:32:04Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"15502fc"}
 {"ts":"2026-09-26T21:32:26Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"e60c822"}
+{"ts":"2026-09-26T21:38:48Z","phase":"phase5","detail":"merge-gate: PR #277(F-R08 fix)/PR #278(round AZ) 둘 다 HOLD_TIER(AUTO_MERGE_TIER=off, 기본 PR-only) — 사람 대기. Phase6 skip(머지 없음). Phase7 graduation tick clean — disarmed no-op. Phase8 skip(tier≠generative). 1 firing 완료","base_sha":"ceab844"}
