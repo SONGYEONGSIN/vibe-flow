@@ -188,6 +188,9 @@ if [ -f "$AGENTS_JSON" ]; then
     AGENTS_BEFORE=$FAIL
     # tr -d '\r': Windows jq.exe는 CRLF 출력 → 파일명이 'name\r'로 깨져 존재검사 오탐. CI(LF) 무해.
     JSON_AGENTS=$(jq -r '.agents[]' "$AGENTS_JSON" 2>/dev/null | tr -d '\r')
+    # F-R08 (audit round R): section A/B/C 와 동형 — .agents 0건이 wc -l 셈법상
+    # "1/1 match" 로 렌더되던 vacuous pass 차단.
+    [ -z "$JSON_AGENTS" ] && err "agents.json .agents 0건 — 커버리지 0 ≠ 통과"
     for agent in $JSON_AGENTS; do
       if [ ! -f "core/agents/${agent}.md" ]; then
         err "agents.json에 '${agent}' 있으나 core/agents/${agent}.md 없음"
