@@ -35,3 +35,4 @@
 {"ts":"2026-09-27T21:18:59Z","phase":"phase1","detail":"VERIFY 완료 — verified 9(F-R04,F-R05,F-AH05,F-AH06,F-AD09,F-AC01,F-AG05,F-Q07,F-Q12) / refuted 0 / 보류(재현) 1(F-Q11) / reconcile no-op(gh 부재)","base_sha":"ceab844"}
 {"ts":"2026-09-27T21:19:26Z","phase":"phase2-dispatch","detail":"dimension agent 2개 dispatch (D1 컨텍스트, D3 dogfooding) — UTC일자 270%4=2 로테이션","base_sha":"ceab844"}
 {"ts":"2026-09-27T21:32:51Z","phase":"phase2-agents","detail":"2/2 회수, finding 후보 3건 (D1x1, D3x2) [지연기록 — 최초 시도 시 firing-log.sh 가 dirty worktree 로 FETCH_HEAD checkout 실패→HEAD fallback 하며 유실, F-BA04]","base_sha":"1c34034"}
+{"ts":"2026-09-27T21:32:54Z","phase":"phase2-append","detail":"ledger append 3건 완료 (F-BA01~F-BA03) [지연기록, F-BA04]","base_sha":"0665444"}
