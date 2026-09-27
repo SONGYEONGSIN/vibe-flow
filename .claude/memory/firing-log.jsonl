@@ -40,3 +40,4 @@
 {"ts":"2026-09-27T21:33:44Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"3e3c5e5"}
 {"ts":"2026-09-27T21:34:09Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"95a6ab8"}
 {"ts":"2026-09-27T21:42:39Z","phase":"phase4","detail":"IMPROVE 완료 — F-R08 fix 적용+push+mark-fixed, queue task 20260807T211211Z-2290 done","base_sha":"ade6389"}
+{"ts":"2026-09-27T21:43:53Z","phase":"phase5","detail":"merge-gate PR#279 → HOLD_TIER (tier=structural>graduated=off) — 사람 대기, 머지 안 함","base_sha":"ade6389"}
