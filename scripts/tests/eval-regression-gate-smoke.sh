@@ -70,7 +70,11 @@ echo "=== F-L09(B): agents 0건은 'valid (0 files)' 가 아니라 실패여야 
 C3="$(new_case c3-zero-agents)"
 find "$C3/core/agents" -name '*.md' -delete
 rm -f "$C3"/extensions/*/agents/*.md 2>/dev/null
-printf '{"agents": []}\n' > "$C3/core/agents.json"   # section D 간섭 제거 — B 의 자체 가드만 측정
+# F-R08: section D(agents.json↔files)의 vacuous-pass 를 고치기 전엔 {"agents": []} 로
+# D 를 무해화해 B 만 측정했다. 고친 뒤엔 그 트릭 자체가 D 의 새 가드를 다시 켜(빈 배열도
+# 실패) B 의 "0건" 진단과 문구가 겹쳐 어느 섹션이 실패했는지 흐려진다. pristine 의 실
+# agents.json(실제 10개 이름)을 그대로 두면 D 는 "없음" 이라는 별개 문구로 실패해
+# B 의 "agents.md 0건" grep 과 겹치지 않는다 — 합성 입력 대신 실파일 상태로 간섭 제거.
 out3="$(cd "$C3" && bash scripts/eval-regression-check.sh 2>&1)"
 echo "$out3" | grep -q "All agents.md frontmatter valid (0 files)" \
   && ng '"valid (0 files)" 를 성공으로 렌더 (vacuous pass)' \
