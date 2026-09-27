@@ -37,3 +37,4 @@
 {"ts":"2026-09-27T21:32:51Z","phase":"phase2-agents","detail":"2/2 회수, finding 후보 3건 (D1x1, D3x2) [지연기록 — 최초 시도 시 firing-log.sh 가 dirty worktree 로 FETCH_HEAD checkout 실패→HEAD fallback 하며 유실, F-BA04]","base_sha":"1c34034"}
 {"ts":"2026-09-27T21:32:54Z","phase":"phase2-append","detail":"ledger append 3건 완료 (F-BA01~F-BA03) [지연기록, F-BA04]","base_sha":"0665444"}
 {"ts":"2026-09-27T21:33:41Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-BA (3e3c5e5)","base_sha":"3e3c5e5"}
+{"ts":"2026-09-27T21:33:44Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"3e3c5e5"}
