@@ -41,3 +41,4 @@
 {"ts":"2026-09-28T21:29:40Z","phase":"phase4","detail":"IMPROVE — queue.sh reclaim 시도 중 auto-build-queue.jsonl 미해결 git 충돌 마커 발견(전체 큐 차단 상태) → 그 자체를 이번 사이클 fix 로 처리, PR #280 생성. F-AH06 도 실측으로 verified","base_sha":"b9afaa1"}
 {"ts":"2026-09-28T21:29:57Z","phase":"phase5","detail":"MERGE-GATE PR#280 — DECISION=HOLD_TIER(tier=docs>graduated=off) — 사람 대기, 자동머지 없음","base_sha":"b9afaa1"}
 {"ts":"2026-09-28T21:30:08Z","phase":"phase6","detail":"SELF-UPDATE — DECISION=NO_CHANGES (Phase5 에서 머지 없었음, v2.6.0 이후 태그 대상 커밋 없음)","base_sha":"ceab844"}
+{"ts":"2026-09-28T21:30:24Z","phase":"phase7","detail":"GRADUATION tick clean — disarmed(기본) no-op, tier=off 유지","base_sha":"ceab844"}
