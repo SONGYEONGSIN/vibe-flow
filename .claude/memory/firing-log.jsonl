@@ -39,3 +39,4 @@
 {"ts":"2026-09-28T21:27:04Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"9237b36"}
 {"ts":"2026-09-28T21:27:33Z","phase":"phase3","detail":"ENQUEUE — 신규 0건(다수 skip=안전코어 언급 과매칭 가능성, warn=원인 미상 다건) — 기존 backlog 155건 queued 로 Phase4 진행","base_sha":"9237b36"}
 {"ts":"2026-09-28T21:29:40Z","phase":"phase4","detail":"IMPROVE — queue.sh reclaim 시도 중 auto-build-queue.jsonl 미해결 git 충돌 마커 발견(전체 큐 차단 상태) → 그 자체를 이번 사이클 fix 로 처리, PR #280 생성. F-AH06 도 실측으로 verified","base_sha":"b9afaa1"}
+{"ts":"2026-09-28T21:29:57Z","phase":"phase5","detail":"MERGE-GATE PR#280 — DECISION=HOLD_TIER(tier=docs>graduated=off) — 사람 대기, 자동머지 없음","base_sha":"b9afaa1"}
