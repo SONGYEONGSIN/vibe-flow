@@ -37,3 +37,4 @@
 {"ts":"2026-09-29T21:26:56Z","phase":"phase2-agents","detail":"2/2 회수 — D1 0건(1건 후보 있었으나 F-AQ01 과 중복 확인돼 제외), D2 finding 후보 1건","base_sha":"4071fb1"}
 {"ts":"2026-09-29T21:27:22Z","phase":"phase2-append","detail":"ledger append 1건 완료 (F-BC01)","base_sha":"72df51a"}
 {"ts":"2026-09-29T21:27:25Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-BC","base_sha":"72df51a"}
+{"ts":"2026-09-29T21:27:36Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"72df51a"}
