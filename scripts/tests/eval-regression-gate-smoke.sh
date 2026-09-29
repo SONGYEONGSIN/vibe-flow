@@ -70,7 +70,11 @@ echo "=== F-L09(B): agents 0건은 'valid (0 files)' 가 아니라 실패여야 
 C3="$(new_case c3-zero-agents)"
 find "$C3/core/agents" -name '*.md' -delete
 rm -f "$C3"/extensions/*/agents/*.md 2>/dev/null
-printf '{"agents": []}\n' > "$C3/core/agents.json"   # section D 간섭 제거 — B 의 자체 가드만 측정
+# F-R08 이전엔 빈 배열이 section D 를 vacuous 하게 "1/1 match" 로 침묵시켜 B 단독 측정이
+# 됐다. F-R08 이후 D 는 .agents 0건 자체를 실패로 진단하므로 이 fixture 에서 D 도 함께
+# 정당하게 실패한다 — 그러나 아래 두 assertion 은 문자열(agents.md/0건) 기반이라 D 가
+# 추가로 실패해도 B 자신의 진단 유무 판정에는 영향이 없다(간섭 제거는 더 이상 불필요).
+printf '{"agents": []}\n' > "$C3/core/agents.json"
 out3="$(cd "$C3" && bash scripts/eval-regression-check.sh 2>&1)"
 echo "$out3" | grep -q "All agents.md frontmatter valid (0 files)" \
   && ng '"valid (0 files)" 를 성공으로 렌더 (vacuous pass)' \
@@ -78,6 +82,17 @@ echo "$out3" | grep -q "All agents.md frontmatter valid (0 files)" \
 echo "$out3" | grep -q "✗.*agents.*0건" \
   && ok "agents 0건 실패 진단 존재" \
   || ng "agents 0건이 커버리지-0 진단을 남기지 않음"
+
+echo "=== F-R08: agents.json .agents 0건은 wc -l 부작용으로 '1/1 match' 가 아니라 실패여야 ==="
+C4="$(new_case c4-empty-agents-json)"
+printf '{"agents": []}\n' > "$C4/core/agents.json"   # 실제 core/agents/*.md 파일은 그대로 둔다 — section D 단독 재현
+out4="$(cd "$C4" && bash scripts/eval-regression-check.sh 2>&1)"
+echo "$out4" | grep -q "agents.json ↔ files: 1/1 match" \
+  && ng "agents.json .agents 0건인데 '1/1 match' 로 vacuous 통과 (echo \"\"|wc -l 부작용)" \
+  || ok "agents.json .agents 0건을 vacuous match 로 렌더하지 않음"
+echo "$out4" | grep -q "✗.*agents.json.*0건" \
+  && ok "agents.json 0건 실패 진단 존재" \
+  || ng "agents.json 0건이 커버리지-0 진단을 남기지 않음"
 
 echo ""
 echo "=== 결과 ==="

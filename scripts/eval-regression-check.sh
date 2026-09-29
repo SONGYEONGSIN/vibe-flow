@@ -188,12 +188,18 @@ if [ -f "$AGENTS_JSON" ]; then
     AGENTS_BEFORE=$FAIL
     # tr -d '\r': Windows jq.exe는 CRLF 출력 → 파일명이 'name\r'로 깨져 존재검사 오탐. CI(LF) 무해.
     JSON_AGENTS=$(jq -r '.agents[]' "$AGENTS_JSON" 2>/dev/null | tr -d '\r')
-    for agent in $JSON_AGENTS; do
-      if [ ! -f "core/agents/${agent}.md" ]; then
-        err "agents.json에 '${agent}' 있으나 core/agents/${agent}.md 없음"
-      fi
-    done
-    [ "$FAIL" = "$AGENTS_BEFORE" ] && ok "agents.json ↔ files: $(echo "$JSON_AGENTS" | wc -l | tr -d ' ')/$(echo "$JSON_AGENTS" | wc -l | tr -d ' ') match"
+    # F-R08: JSON_AGENTS 가 빈 값이면 for 는 무회전으로 통과하고, wc -l 은 빈 문자열도
+    # 1줄로 세어 "0/0" 대신 "1/1 match" 를 vacuous 하게 보고한다 — 커버리지 0 ≠ 통과.
+    if [ -z "$JSON_AGENTS" ]; then
+      err "agents.json .agents 0건 — 커버리지 0 ≠ 통과"
+    else
+      for agent in $JSON_AGENTS; do
+        if [ ! -f "core/agents/${agent}.md" ]; then
+          err "agents.json에 '${agent}' 있으나 core/agents/${agent}.md 없음"
+        fi
+      done
+      [ "$FAIL" = "$AGENTS_BEFORE" ] && ok "agents.json ↔ files: $(echo "$JSON_AGENTS" | wc -l | tr -d ' ')/$(echo "$JSON_AGENTS" | wc -l | tr -d ' ') match"
+    fi
   else
     err "core/agents.json: 유효 JSON 아님"
   fi
