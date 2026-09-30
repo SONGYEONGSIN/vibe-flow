@@ -34,3 +34,4 @@
 {"ts":"2026-09-30T21:17:02Z","phase":"phase1","detail":"VERIFY 완료 — verified 9 / refuted 0 / stale 재검토 3건(F-Q07,F-Q12 verified, F-Q11 재현확인 open 유지)","base_sha":"ceab844"}
 {"ts":"2026-09-30T21:17:25Z","phase":"phase1-start","detail":"VERIFY 진입 — pending 7건, reconcile 후보 0건","base_sha":"ceab844"}
 {"ts":"2026-09-30T21:17:34Z","phase":"phase1","detail":"VERIFY 완료 — verified 9 / refuted 0 / stale 3건(F-Q07,F-Q12 verified, F-Q11 open 유지) / reconcile 0건","base_sha":"ceab844"}
+{"ts":"2026-09-30T21:17:50Z","phase":"phase2-dispatch","detail":"dimension agent 2개 dispatch (D3, D4 — round BD)","base_sha":"ceab844"}
