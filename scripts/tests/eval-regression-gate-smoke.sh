@@ -79,6 +79,17 @@ echo "$out3" | grep -q "✗.*agents.*0건" \
   && ok "agents 0건 실패 진단 존재" \
   || ng "agents 0건이 커버리지-0 진단을 남기지 않음"
 
+echo "=== F-R08: agents.json .agents 0건은 wc -l 사후계산으로 '1/1 match' 가 아니라 실패여야 ==="
+C4="$(new_case c4-zero-agents-json)"
+printf '{"agents": []}\n' > "$C4/core/agents.json"
+out4="$(cd "$C4" && bash scripts/eval-regression-check.sh 2>&1)"
+echo "$out4" | grep -q "1/1 match" \
+  && ng '빈 .agents 를 echo ""|wc -l=1 로 "1/1 match" 렌더 (vacuous pass)' \
+  || ok "agents.json .agents 0건을 match 성공으로 렌더하지 않음"
+echo "$out4" | grep -q "✗.*agents.json .agents 0건" \
+  && ok "agents.json .agents 0건 실패 진단 존재" \
+  || ng "agents.json .agents 0건이 커버리지-0 진단을 남기지 않음"
+
 echo ""
 echo "=== 결과 ==="
 echo "  통과: $PASS / 실패: $FAIL"
