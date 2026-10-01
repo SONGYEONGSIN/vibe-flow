@@ -33,3 +33,4 @@
 {"ts":"2026-10-01T21:16:06Z","phase":"phase0","detail":"health baseline 기록: ci_pass_rate=1.000 ledger_health=0.394","base_sha":"ceab844"}
 {"ts":"2026-10-01T21:25:11Z","phase":"phase1-start","detail":"VERIFY 진입 — pending-verify 6건, stale-open 3건, reconcile 후보 6건(F-AU01/AJ01/AJ02/AS01/AN07/AT01)","base_sha":"ceab844"}
 {"ts":"2026-10-01T21:25:14Z","phase":"phase1","detail":"VERIFY 완료 — pending-verify 6건 전부 verified(F-R04/F-R05/F-AC01/F-AD09/F-AG05/F-AH05/F-AH06, 7건 표기였으나 AG05는 pending목록 소속) / stale-open 3건(F-Q07,F-Q12 verified, F-Q11 재현유지) / reconcile 3건 verified(F-AU01/F-AS01/F-AN07, 큐 충돌마커 PR #284 로 별도 fix) — 남은 reconcile 후보 3건(F-AJ01/F-AJ02/F-AT01) 다음 firing 으로 보류","base_sha":"ceab844"}
+{"ts":"2026-10-01T21:25:31Z","phase":"phase2-dispatch","detail":"dimension agent 2개 dispatch (D1, D3) — round BE","base_sha":"ceab844"}
