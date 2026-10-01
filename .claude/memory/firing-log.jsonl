@@ -36,3 +36,4 @@
 {"ts":"2026-10-01T21:25:31Z","phase":"phase2-dispatch","detail":"dimension agent 2개 dispatch (D1, D3) — round BE","base_sha":"ceab844"}
 {"ts":"2026-10-01T21:34:54Z","phase":"phase2-append","detail":"ledger append 7건 완료 (F-BE01~F-BE07)","base_sha":"0bd7225"}
 {"ts":"2026-10-01T21:34:57Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-BE","base_sha":"0bd7225"}
+{"ts":"2026-10-01T21:35:09Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"0bd7225"}
