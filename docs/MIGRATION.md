@@ -110,15 +110,15 @@ bash .claude/validate.sh
 ### 1. 글로벌 심볼릭 갱신
 
 ```bash
-# 기존 dead 심볼릭 제거
-for link in skills agents rules; do
+# 기존 dead 심볼릭 제거 (rules 는 setup.sh 가 프로젝트마다 .claude/rules/ 로
+# 설치하므로 전역 심볼릭 불필요 — F-R09)
+for link in skills agents; do
   [ -L "$HOME/.claude/$link" ] && rm "$HOME/.claude/$link"
 done
 
 # vibe-flow Core 가리키도록 재생성
 ln -s /Users/yss/개발/build/vibe-flow/core/skills /Users/yss/.claude/skills
 ln -s /Users/yss/개발/build/vibe-flow/core/agents /Users/yss/.claude/agents
-ln -s /Users/yss/개발/build/vibe-flow/core/rules /Users/yss/.claude/rules
 cp /Users/yss/개발/build/vibe-flow/core/agents.json /Users/yss/.claude/agents.json
 ```
 
