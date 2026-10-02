@@ -24,7 +24,7 @@
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 BF (F-BF01~F-BF05)** — VERIFY 9건 verified(F-R04,F-R05,F-AC01,F-AD09,F-AG05,F-AH05,F-AH06,F-Q07,F-Q12). AUDIT 신규 5건: D2 dimension-rotation bursty-interval 불일치/firing-log.sh checkout-fallback 무음 heartbeat 유실/orchestrator.md Agent vs Task 문법 drift, D4 capability-gate.sh dedup 레지스트리 누락/SKILL_GEN_COUNT 산출자 부재.
+- **최근 = 라운드 BF (F-BF01~F-BF06)** — VERIFY 9건 verified(F-R04,F-R05,F-AC01,F-AD09,F-AG05,F-AH05,F-AH06,F-Q07,F-Q12). AUDIT 신규 6건: D2 dimension-rotation bursty-interval/firing-log.sh checkout-fallback 무음 heartbeat 유실/orchestrator.md Agent vs Task 문법 drift, D4 capability-gate.sh dedup 레지스트리 누락/SKILL_GEN_COUNT 산출자 부재/queue.sh list·reclaim·clear fail-open 전파 누락. queue.jsonl 충돌마커 복구 + F-R08 eval-regression-check.sh agents.json vacuous-pass fix.
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
