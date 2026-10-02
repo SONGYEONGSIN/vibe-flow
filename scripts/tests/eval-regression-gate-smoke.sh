@@ -79,6 +79,17 @@ echo "$out3" | grep -q "✗.*agents.*0건" \
   && ok "agents 0건 실패 진단 존재" \
   || ng "agents 0건이 커버리지-0 진단을 남기지 않음"
 
+echo "=== F-R08: agents.json .agents 가 []면(파일은 존재) section D 가 '1/1 match' 로 통과하지 않아야 ==="
+C4="$(new_case c4-empty-agents-array)"
+printf '{"agents": []}\n' > "$C4/core/agents.json"
+out4="$(cd "$C4" && bash scripts/eval-regression-check.sh 2>&1)"
+echo "$out4" | grep -q "1/1 match" \
+  && ng "agents.json .agents 0건을 '1/1 match' 로 렌더 (vacuous pass, F-R08)" \
+  || ok "agents.json .agents 0건을 1/1 match 로 렌더하지 않음"
+echo "$out4" | grep -q "✗.*agents.json .agents 0건" \
+  && ok "agents.json .agents 0건 실패 진단 존재 (F-R08)" \
+  || ng "agents.json .agents 0건이 커버리지-0 진단을 남기지 않음"
+
 echo ""
 echo "=== 결과 ==="
 echo "  통과: $PASS / 실패: $FAIL"
