@@ -38,3 +38,4 @@
 {"ts":"2026-10-04T21:28:45Z","phase":"phase2-agents","detail":"2/2 회수, finding 후보 2건 (D3 1건 + D4 1건)","base_sha":"507e1c1"}
 {"ts":"2026-10-04T21:29:18Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-BH","base_sha":"acec4c7"}
 {"ts":"2026-10-04T21:29:27Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"acec4c7"}
+{"ts":"2026-10-04T21:29:43Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"70f09ec"}
