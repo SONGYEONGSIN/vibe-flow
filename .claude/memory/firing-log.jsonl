@@ -35,3 +35,4 @@
 {"ts":"2026-10-04T21:22:08Z","phase":"phase1","detail":"VERIFY 완료 — verified 9(F-R04,F-R05,F-AC01,F-AD09,F-AG05,F-AH05,F-AH06,F-Q07,F-Q12) / refuted 0 / 보류 1(F-Q11 재현 지속) / reconcile no-op(마지막 머지 09-21 이후 신규 머지 없음) / queue.jsonl 손상(258-260행 빈 conflict marker) 수동 복구 + 중복 큐 작업(F-R08, 이미 PR #282로 해결됨) done 처리","base_sha":"7f3707d"}
 {"ts":"2026-10-04T21:22:37Z","phase":"phase2-dispatch","detail":"dimension agent 2개 dispatch 예정 (D3 hooks/telemetry, D4 implementations/tests)","base_sha":"507e1c1"}
 {"ts":"2026-10-04T21:23:16Z","phase":"phase2-dispatch-wait","detail":"D3/D4 agent 병렬 실행 중 (worktree isolation)","base_sha":"507e1c1"}
+{"ts":"2026-10-04T21:28:45Z","phase":"phase2-agents","detail":"2/2 회수, finding 후보 2건 (D3 1건 + D4 1건)","base_sha":"507e1c1"}
