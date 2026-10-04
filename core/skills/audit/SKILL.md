@@ -58,6 +58,8 @@ dimension마다 fresh-context agent를 **병렬**로 띄운다. 기본 4 + 필�
 | D3 dogfooding | 실 사용(telemetry) + tool descriptions trigger | general-purpose |
 | D4 메타-검증 | validate.sh/sync/CI 거짓 PASS 경로 (self-hosted validate.sh 오탐은 CI로 판정, F-P04) | general-purpose |
 
+**D3 저사용 판정 주의 (F-R12)**: 저사용 판정은 dogfoodable subset 에만 적용(웹앱 전용 스킬이 이 하네스 자기-repo 에서 0회인 것은 정상 — 측정 모집단이 하네스 개발 1머신 workload 라 웹 사용자 프로젝트 대상 카탈로그와 모집단이 다르다). telemetry 는 `--source events` + `--source session` 병행.
+
 각 agent 프롬프트에 **반드시** 포함(템플릿):
 1. baseline 점수(직전 라운드 dimension 점수) + Δ 산출 요구
 2. **4-필드 finding contract 강제**: evidence(file:line+인용) / root_cause / targeted_fix(surgical 1줄) / predicted_impact(어느 component·지표 얼마)
