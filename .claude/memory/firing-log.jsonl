@@ -40,3 +40,4 @@
 {"ts":"2026-10-04T21:29:27Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"acec4c7"}
 {"ts":"2026-10-04T21:29:43Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"70f09ec"}
 {"ts":"2026-10-04T21:30:27Z","phase":"phase3","detail":"ENQUEUE 완료 — 15건 queued, 다수 안전코어 skip","base_sha":"eb86892"}
+{"ts":"2026-10-04T21:33:36Z","phase":"phase4","detail":"IMPROVE 완료 — PR #290 (F-R12), F-R09/F-R11 큐 정리(중복/전제소실)","base_sha":"ceab844"}
