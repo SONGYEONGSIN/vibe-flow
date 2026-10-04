@@ -42,3 +42,4 @@
 {"ts":"2026-10-04T21:30:27Z","phase":"phase3","detail":"ENQUEUE 완료 — 15건 queued, 다수 안전코어 skip","base_sha":"eb86892"}
 {"ts":"2026-10-04T21:33:36Z","phase":"phase4","detail":"IMPROVE 완료 — PR #290 (F-R12), F-R09/F-R11 큐 정리(중복/전제소실)","base_sha":"ceab844"}
 {"ts":"2026-10-04T21:34:11Z","phase":"phase5","detail":"MERGE-GATE PR#290 — DECISION=HOLD_TIER (AUTO_MERGE_TIER=off 기본, 사람 대기)","base_sha":"ceab844"}
+{"ts":"2026-10-04T21:34:41Z","phase":"phase7","detail":"GRADUATION tick clean — disarmed no-op (tier=off 유지)","base_sha":"ceab844"}
