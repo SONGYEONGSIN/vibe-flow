@@ -32,3 +32,4 @@
 {"ts":"2026-09-20T21:11:02Z","phase":"phase2-agents","detail":"D2 완료(1건: cloud-init.sh agents 미러 누락, SAFETY-GATE) — D4 대기 중","base_sha":"b4d81ff"}
 {"ts":"2026-10-04T21:14:57Z","phase":"phase0","detail":"health baseline 기록: ci_pass_rate=0.950 ledger_health=0.394","base_sha":"ceab844"}
 {"ts":"2026-10-04T21:22:05Z","phase":"phase1-start","detail":"VERIFY 진입 — pending 7건, stale 3건, reconcile 후보 조회","base_sha":"01df115"}
+{"ts":"2026-10-04T21:22:08Z","phase":"phase1","detail":"VERIFY 완료 — verified 9(F-R04,F-R05,F-AC01,F-AD09,F-AG05,F-AH05,F-AH06,F-Q07,F-Q12) / refuted 0 / 보류 1(F-Q11 재현 지속) / reconcile no-op(마지막 머지 09-21 이후 신규 머지 없음) / queue.jsonl 손상(258-260행 빈 conflict marker) 수동 복구 + 중복 큐 작업(F-R08, 이미 PR #282로 해결됨) done 처리","base_sha":"7f3707d"}
