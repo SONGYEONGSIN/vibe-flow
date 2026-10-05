@@ -34,3 +34,4 @@
 {"ts":"2026-10-05T21:20:52Z","phase":"phase1-start","detail":"VERIFY 진입 — pending-verify 7건, stale 3건, reconcile 후보 0건","base_sha":"f2964e1"}
 {"ts":"2026-10-05T21:20:54Z","phase":"phase1","detail":"VERIFY 완료 — verified 6(F-R05,F-AC01,F-AH05,F-AH06,F-Q07,F-Q12) / refuted 0 / 보류 1(F-R04, yq flavor 불일치로 계기 무효) / open 유지 1(F-Q11). 부가: auto-build-queue.jsonl:258-260 git merge-conflict marker 발견·제거(jq 파싱 복구, 데이터손실 0) + 막혀있던 큐 entry 2건(F-R05/F-AH06) done 확정","base_sha":"d523a19"}
 {"ts":"2026-10-05T21:22:00Z","phase":"phase2-dispatch","detail":"dimension agent 2개 dispatch (D1 컨텍스트, D3 dogfooding) — round BI 예정, UTC day-of-year 278 mod4=2","base_sha":"73b1af7"}
+{"ts":"2026-10-05T21:33:30Z","phase":"phase2-agents","detail":"2/2 회수, finding 후보 6건(D1 3건 + D3 3건)","base_sha":"18f7a82"}
