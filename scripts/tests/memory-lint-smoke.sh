@@ -65,6 +65,20 @@ printf '# stray\n' > "$TMP/orphan/stray-note.md"
 OUT6="$(bash "$LINT" "$TMP/orphan" 2>&1)"; assert_exit "orphan-leaf-exit0" "0" "$?"
 assert_out "orphan-leaf-warn" "stray-note.md" "$OUT6"
 
+echo "Test L11: 하위 디렉토리(brainstorms/) 산문의 '[[name]]' 리터럴 언급은 미해결 위키링크로 오탐 금지 (F-R15)"
+# 실측: .claude/memory/brainstorms/20260718-llm-wiki-ingest-lint-transplant.md 가 [[name]]
+# 표기법 자체를 설명하는 산문에서 리터럴 '[[name]]' 을 2회 인용하는데, 재귀 grep -rhoE 가
+# 이를 실제 미해결 위키링크로 오탐해 "name.md 부재"를 WARN 한다 — top-level 만 스캔해야 한다.
+make_clean "$TMP/subdir-prose"
+mkdir -p "$TMP/subdir-prose/brainstorms"
+printf '설계 노트: `[[name]]` 표기법은 작성 후보를 뜻한다.\n' > "$TMP/subdir-prose/brainstorms/note.md"
+OUT11="$(bash "$LINT" "$TMP/subdir-prose" 2>&1)"
+if echo "$OUT11" | grep -q 'name.*미해결\|\[\[name\]\]'; then
+  echo "  ✗ subdir-prose-false-warn (하위 디렉토리 산문의 [[name]] 리터럴이 WARN 오탐)"; FAIL=$((FAIL+1))
+else
+  echo "  ✓ subdir-prose-no-false-warn"; PASS=$((PASS+1))
+fi
+
 echo "Test L7: 디렉토리 없음 → exit 2"
 bash "$LINT" "$TMP/nodir" >/dev/null 2>&1; assert_exit "missing-dir-exit2" "2" "$?"
 
