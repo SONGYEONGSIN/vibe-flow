@@ -62,10 +62,14 @@ fi
 
 # 4. WARN — [[name]] 위키링크 미해결 (같은 디렉토리에 name.md 부재).
 #    미해결은 오류가 아니라 '나중에 쓸 것' 표시 — 작성 후보로만 보고.
+#    F-R15: 재귀 스캔(-r)은 brainstorms/ 등 하위 디렉토리 산문이 '[[name]]' 표기법
+#    자체를 리터럴로 인용하는 경우까지 미해결 링크로 오탐한다(고아-leaf 축은 이미
+#    top-level 만 본다 — 이 축의 스코프를 맞춘다). 위키링크는 같은 디렉토리 내에서만
+#    의미가 있으므로 top-level *.md 만 스캔한다.
 while IFS= read -r ref; do
   [ -z "$ref" ] && continue
   [ -e "$DIR/$ref.md" ] || warn "[[${ref}]] 미해결 — ${ref}.md 부재 (작성 후보)"
-done < <(grep -rhoE '\[\[[a-zA-Z0-9_-]+\]\]' "$DIR" --include='*.md' 2>/dev/null | sed 's/^\[\[//; s/\]\]$//' | LC_ALL=C sort -u)
+done < <(grep -hoE '\[\[[a-zA-Z0-9_-]+\]\]' "$DIR"/*.md 2>/dev/null | sed 's/^\[\[//; s/\]\]$//' | LC_ALL=C sort -u)
 
 echo ""
 if [ "$FAIL" -gt 0 ]; then
