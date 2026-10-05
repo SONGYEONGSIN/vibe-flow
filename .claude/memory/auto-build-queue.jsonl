@@ -349,3 +349,4 @@
 {"op":"status_update","id":"20260807T211211Z-c79f","new_status":"running","ts":"2026-10-05T21:37:27Z"}
 {"op":"status_update","id":"20260807T211211Z-c79f","new_status":"aborted","ts":"2026-10-05T21:37:41Z"}
 {"op":"status_update","id":"20260807T211211Z-3a80","new_status":"running","ts":"2026-10-05T21:37:41Z"}
+{"op":"status_update","id":"20260807T211211Z-3a80","new_status":"done","ts":"2026-10-05T21:40:25Z"}
