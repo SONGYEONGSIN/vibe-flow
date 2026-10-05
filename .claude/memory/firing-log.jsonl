@@ -39,3 +39,4 @@
 {"ts":"2026-10-05T21:33:46Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-BI","base_sha":"4dc8954"}
 {"ts":"2026-10-05T21:33:48Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"4dc8954"}
 {"ts":"2026-10-05T21:34:01Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"e50b448"}
+{"ts":"2026-10-05T21:42:07Z","phase":"phase5","detail":"merge-gate PR#291: DECISION=HOLD_TIER (tier=structural>graduated=off) — 사람 대기, 머지 안 함","base_sha":"08fac35"}
