@@ -37,3 +37,4 @@
 {"ts":"2026-10-06T21:31:50Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-BJ (Phase1 VERIFY + queue fix + F-BJ01, dimension agent 결과 대기 중)","base_sha":"025429e"}
 {"ts":"2026-10-06T21:40:05Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"5b7ae88"}
 {"ts":"2026-10-06T21:40:12Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료 — 라운드 BJ 반영, 8609바이트","base_sha":"5b7ae88"}
+{"ts":"2026-10-06T21:47:16Z","phase":"phase8-skip","detail":"tier=off(generative 아님) — Phase8 skip. 사이클 종료: PR #292(F-R08 fix)/#293(critical queue.jsonl hotfix)/#294(round BJ ledger) 전부 HOLD_TIER(AUTO_MERGE_TIER=off, PR-only 정상동작) — 사람 머지 대기","base_sha":"45fa735"}
