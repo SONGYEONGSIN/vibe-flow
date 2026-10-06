@@ -70,7 +70,10 @@ echo "=== F-L09(B): agents 0건은 'valid (0 files)' 가 아니라 실패여야 
 C3="$(new_case c3-zero-agents)"
 find "$C3/core/agents" -name '*.md' -delete
 rm -f "$C3"/extensions/*/agents/*.md 2>/dev/null
-printf '{"agents": []}\n' > "$C3/core/agents.json"   # section D 간섭 제거 — B 의 자체 가드만 측정
+# F-R08: section D(agents.json) 를 더 이상 빈 배열로 꺼두지 않는다 — pristine 의
+# 실 agents.json(실파일 채움)을 그대로 남겨, D 는 자신의 기존 per-entry 존재검사로
+# (지금 지운 실파일들에 대해) 개별 실패를 내도록 둔다. section D 의 신규 0건 가드는
+# JSON_AGENTS 가 비어있을 때만 발화하므로 여기선 트리거되지 않아 B 격리가 유지된다.
 out3="$(cd "$C3" && bash scripts/eval-regression-check.sh 2>&1)"
 echo "$out3" | grep -q "All agents.md frontmatter valid (0 files)" \
   && ng '"valid (0 files)" 를 성공으로 렌더 (vacuous pass)' \
@@ -78,6 +81,17 @@ echo "$out3" | grep -q "All agents.md frontmatter valid (0 files)" \
 echo "$out3" | grep -q "✗.*agents.*0건" \
   && ok "agents 0건 실패 진단 존재" \
   || ng "agents 0건이 커버리지-0 진단을 남기지 않음"
+
+echo "=== F-R08: agents.json .agents 0건은 '1/1 match' 가 아니라 실패여야 ==="
+C4="$(new_case c4-zero-agents-json)"
+printf '{"agents": []}\n' > "$C4/core/agents.json"
+out4="$(cd "$C4" && bash scripts/eval-regression-check.sh 2>&1)"
+echo "$out4" | grep -q "agents.json ↔ files: 1/1 match" \
+  && ng '"1/1 match" 를 성공으로 렌더 (echo \"\"|wc -l=1 vacuous pass)' \
+  || ok "agents.json .agents 0건을 1/1 match 로 렌더하지 않음"
+echo "$out4" | grep -q "✗.*agents\.json.*0건" \
+  && ok "agents.json .agents 0건 실패 진단 존재" \
+  || ng "agents.json .agents 0건이 커버리지-0 진단을 남기지 않음"
 
 echo ""
 echo "=== 결과 ==="
