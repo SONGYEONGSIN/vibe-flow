@@ -36,3 +36,4 @@
 {"ts":"2026-10-07T21:23:21Z","phase":"phase2-dispatch","detail":"dimension agent 2개 dispatch (D1, D2 — UTC yday 280 % 4 = 0). F-BK01(queue conflict marker 3차 재발) 선append 완료","base_sha":"ceab844"}
 {"ts":"2026-10-07T21:29:17Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"9e91bf4"}
 {"ts":"2026-10-07T21:29:22Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"770adb3"}
+{"ts":"2026-10-07T21:29:45Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료(audit-rounds.md leaf 포함)","base_sha":"f34a04e"}
