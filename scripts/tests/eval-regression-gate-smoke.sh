@@ -70,7 +70,11 @@ echo "=== F-L09(B): agents 0건은 'valid (0 files)' 가 아니라 실패여야 
 C3="$(new_case c3-zero-agents)"
 find "$C3/core/agents" -name '*.md' -delete
 rm -f "$C3"/extensions/*/agents/*.md 2>/dev/null
-printf '{"agents": []}\n' > "$C3/core/agents.json"   # section D 간섭 제거 — B 의 자체 가드만 측정
+# F-R08 (round BK) 이전엔 '{"agents": []}' 가 section D 를 vacuous-pass 시켜 "간섭 제거"
+# 수단으로 쓰였다. fix 이후 section D 도 같은 fixture 에서 올바르게 실패하므로(아래 C4),
+# 이 라인은 더 이상 D 를 "제거"하지 않고 B/D 둘 다 정당하게 실패시킨다 — 그래도 아래
+# grep 은 B 전용 문자열을 특정하므로 간섭 없이 그대로 유효하다.
+printf '{"agents": []}\n' > "$C3/core/agents.json"
 out3="$(cd "$C3" && bash scripts/eval-regression-check.sh 2>&1)"
 echo "$out3" | grep -q "All agents.md frontmatter valid (0 files)" \
   && ng '"valid (0 files)" 를 성공으로 렌더 (vacuous pass)' \
@@ -78,6 +82,17 @@ echo "$out3" | grep -q "All agents.md frontmatter valid (0 files)" \
 echo "$out3" | grep -q "✗.*agents.*0건" \
   && ok "agents 0건 실패 진단 존재" \
   || ng "agents 0건이 커버리지-0 진단을 남기지 않음"
+
+echo "=== F-R08: agents.json .agents 빈 배열은 'N/N match' 가 아니라 실패여야 (section D) ==="
+C4="$(new_case c4-empty-agents-array)"
+printf '{"agents": []}\n' > "$C4/core/agents.json"
+out4="$(cd "$C4" && bash scripts/eval-regression-check.sh 2>&1)"
+echo "$out4" | grep -q "agents.json ↔ files: 1/1 match" \
+  && ng "'.agents' 빈 배열이 '1/1 match' 로 vacuous 통과 (echo \"\"|wc -l=1)" \
+  || ok "'.agents' 빈 배열을 'N/N match' 로 vacuous 통과시키지 않음"
+echo "$out4" | grep -q "✗.*agents.json .agents 0건" \
+  && ok "agents.json .agents 0건 실패 진단 존재" \
+  || ng "agents.json .agents 0건이 커버리지-0 진단을 남기지 않음"
 
 echo ""
 echo "=== 결과 ==="
