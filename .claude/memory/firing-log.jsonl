@@ -39,3 +39,4 @@
 {"ts":"2026-10-07T21:29:45Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료(audit-rounds.md leaf 포함)","base_sha":"f34a04e"}
 {"ts":"2026-10-07T21:36:34Z","phase":"phase4","detail":"PR #295 생성 완료 (chore/audit-round-BK) — queue status-update done, Phase5 merge-gate 판정 예정","base_sha":"56355ba"}
 {"ts":"2026-10-07T21:36:56Z","phase":"phase5","detail":"merge-gate PR#295 → DECISION=HOLD_TIER (tier=structural > graduated=off). 머지하지 않음, 사람 대기","base_sha":"56355ba"}
+{"ts":"2026-10-07T21:37:22Z","phase":"phase7","detail":"graduation tick clean — disarmed no-op (tier=off). Phase 8 skip(tier≠generative). 1 firing=1 cycle=1 PR 완주: PR#295","base_sha":"56355ba"}
