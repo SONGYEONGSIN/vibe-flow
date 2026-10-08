@@ -42,3 +42,4 @@
 {"ts":"2026-10-08T21:44:03Z","phase":"phase4","detail":"IMPROVE 중단 — 큐 138건 거의 전부가 F-AD03~08 등 동일 finding 의 반복 재큐잉(최대 6중복, 09-09~10-08 사이)과 이미 open PR 에 존재하는 fix 의 중복(F-R08/#277+#282+#287+#292+#295, F-R09/#286 확인됨 — 2/2 샘플 전부 중복). 추가 샘플링 없이 6번째 이상 중복 PR 을 만드는 대신 abort — PR 적체(F-BL04)의 queue-level 증폭을 발견, 신규 PR 미생성","base_sha":"3dad154"}
 {"ts":"2026-10-08T21:44:23Z","phase":"phase6","detail":"SELF-UPDATE skip — Phase 5 머지 미발생(Phase 4 abort, 신규 PR 없음)","base_sha":"3dad154"}
 {"ts":"2026-10-08T21:44:26Z","phase":"phase7","detail":"GRADUATION tick clean — disarmed, no-op (tier=off 유지)","base_sha":"3dad154"}
+{"ts":"2026-10-08T21:44:28Z","phase":"phase8","detail":"GENERATIVE skip — tier=off","base_sha":"3dad154"}
