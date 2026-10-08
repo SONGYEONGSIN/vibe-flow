@@ -44,3 +44,4 @@
 {"ts":"2026-10-08T21:44:26Z","phase":"phase7","detail":"GRADUATION tick clean — disarmed, no-op (tier=off 유지)","base_sha":"3dad154"}
 {"ts":"2026-10-08T21:44:28Z","phase":"phase8","detail":"GENERATIVE skip — tier=off","base_sha":"3dad154"}
 {"ts":"2026-10-08T21:45:44Z","phase":"phase5","detail":"merge-gate PR#296 → DECISION=HOLD_TIER(tier=off, 사람 대기) — 직접 머지 없음. PR-only 유지","base_sha":"3dad154"}
+{"ts":"2026-10-08T21:45:46Z","phase":"done","detail":"AHE 폐루프 완주(Phase0-7, Phase8 skip=tier미달) — round BL. PR: #296(open). PR 적체 23건(F-BL04) 경보 발송 완료","base_sha":"3dad154"}
