@@ -24,7 +24,7 @@
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 BL (F-BL01~F-BL03)** — 라운드 BL — Phase1 VERIFY 11건 verified(F-AG05 정정 포함)+reconcile 3건, D3/D4 신규 finding 3건(F-BL01 auto-build-safety.sh jq fail-open SAFETY-GATE, F-BL02 merge-gate.sh gh 호출실패 미구분 SAFETY-GATE, F-BL03 telemetry SKILL_TYPES 7개 phantom-stale).
+- **최근 = 라운드 BL (F-BL01~F-BL04)** — 라운드 BL — Phase1 VERIFY 11건 verified(F-AG05 정정 포함)+reconcile 3건, D3/D4 신규 finding 4건(F-BL01 auto-build-safety.sh jq fail-open SAFETY-GATE, F-BL02 merge-gate.sh gh 호출실패 미구분 SAFETY-GATE, F-BL03 telemetry SKILL_TYPES 7개 phantom-stale, F-BL04 PR 적체 22건 갱신).
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
