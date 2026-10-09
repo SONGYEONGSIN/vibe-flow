@@ -45,3 +45,4 @@
 {"ts":"2026-10-09T21:45:54Z","phase":"phase5","detail":"MERGE-GATE PR#298 — DECISION=HOLD_TIER (AUTO_MERGE_TIER off, 사람 대기)","base_sha":"3779cca"}
 {"ts":"2026-10-09T21:46:12Z","phase":"phase6","detail":"SELF-UPDATE: NO_CHANGES (merge 없음) — health 재측정: ci_pass_rate 0.700→0.778, ledger_health 0.394→0.395, checksum 불변","base_sha":"9892d2c"}
 {"ts":"2026-10-09T21:46:19Z","phase":"phase7","detail":"GRADUATION tick clean — disarmed, no-op (tier=off 유지)","base_sha":"9323971"}
+{"ts":"2026-10-09T21:46:28Z","phase":"phase8-skip","detail":"GENERATIVE skip — tier=off (generative 아님)","base_sha":"25fb55d"}
