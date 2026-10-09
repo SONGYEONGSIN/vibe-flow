@@ -46,3 +46,4 @@
 {"ts":"2026-10-09T21:46:12Z","phase":"phase6","detail":"SELF-UPDATE: NO_CHANGES (merge 없음) — health 재측정: ci_pass_rate 0.700→0.778, ledger_health 0.394→0.395, checksum 불변","base_sha":"9892d2c"}
 {"ts":"2026-10-09T21:46:19Z","phase":"phase7","detail":"GRADUATION tick clean — disarmed, no-op (tier=off 유지)","base_sha":"9323971"}
 {"ts":"2026-10-09T21:46:28Z","phase":"phase8-skip","detail":"GENERATIVE skip — tier=off (generative 아님)","base_sha":"25fb55d"}
+{"ts":"2026-10-09T21:46:30Z","phase":"cycle-done","detail":"round BM 완주 — PR #297(VERIFY+AUDIT), #298(F-R09), #284 업데이트(F-AV07 queue corruption + F-R08, 기존 PR 이어받음)","base_sha":"6c87980"}
