@@ -40,3 +40,4 @@
 {"ts":"2026-10-09T21:29:16Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"f3b4f76"}
 {"ts":"2026-10-09T21:29:37Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료 (round BM, 8626바이트)","base_sha":"4ca15fb"}
 {"ts":"2026-10-09T21:31:12Z","phase":"phase3","detail":"ENQUEUE 진입 — round BM PR #297 생성 완료","base_sha":"3e58bc0"}
+{"ts":"2026-10-09T21:43:16Z","phase":"phase3-done","detail":"ENQUEUE 완료 — 14건 큐잉, F-AS01 mark-fixed, 중복 2건 abort (queue corruption 발견→fix PR #284 업데이트로 우회 해결)","base_sha":"7a882a7"}
