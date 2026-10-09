@@ -70,14 +70,28 @@ echo "=== F-L09(B): agents 0건은 'valid (0 files)' 가 아니라 실패여야 
 C3="$(new_case c3-zero-agents)"
 find "$C3/core/agents" -name '*.md' -delete
 rm -f "$C3"/extensions/*/agents/*.md 2>/dev/null
-printf '{"agents": []}\n' > "$C3/core/agents.json"   # section D 간섭 제거 — B 의 자체 가드만 측정
+# F-R08: section D 가 자체 커버리지-0 가드를 갖게 되면서 "{\"agents\": []}" 로 D 를
+# 조용히 우회시키는 트릭이 더는 불가능하다(그 트릭 자체가 D 의 정상 실패 경로가 됨) —
+# 의도적으로 그대로 둬서 B·D 양쪽 진단이 함께 뜨는지 확인한다(아래 C4 가 D 단독 검증).
+printf '{"agents": []}\n' > "$C3/core/agents.json"
 out3="$(cd "$C3" && bash scripts/eval-regression-check.sh 2>&1)"
 echo "$out3" | grep -q "All agents.md frontmatter valid (0 files)" \
   && ng '"valid (0 files)" 를 성공으로 렌더 (vacuous pass)' \
   || ok "agents 0건을 성공으로 렌더하지 않음"
-echo "$out3" | grep -q "✗.*agents.*0건" \
-  && ok "agents 0건 실패 진단 존재" \
-  || ng "agents 0건이 커버리지-0 진단을 남기지 않음"
+echo "$out3" | grep -q "✗ agents.md 0건" \
+  && ok "agents.md 0건 실패 진단 존재(section B)" \
+  || ng "agents.md 0건이 커버리지-0 진단을 남기지 않음(section B)"
+
+echo "=== F-R08: agents.json .agents 0건은 'N/N match' 가 아니라 실패여야 (section D) ==="
+C4="$(new_case c4-zero-agents-json)"
+printf '{"agents": []}\n' > "$C4/core/agents.json"
+out4="$(cd "$C4" && bash scripts/eval-regression-check.sh 2>&1)"
+echo "$out4" | grep -qE "agents\.json ↔ files: 1/1 match" \
+  && ng '".agents 0건" 을 "1/1 match"(vacuous pass) 로 렌더' \
+  || ok "agents.json .agents 0건을 vacuous match 로 렌더하지 않음"
+echo "$out4" | grep -q "✗ agents.json .agents 0건" \
+  && ok "agents.json .agents 0건 실패 진단 존재(section D, F-R08)" \
+  || ng "agents.json .agents 0건이 커버리지-0 진단을 남기지 않음(section D)"
 
 echo ""
 echo "=== 결과 ==="
