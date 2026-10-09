@@ -193,7 +193,14 @@ if [ -f "$AGENTS_JSON" ]; then
         err "agents.json에 '${agent}' 있으나 core/agents/${agent}.md 없음"
       fi
     done
-    [ "$FAIL" = "$AGENTS_BEFORE" ] && ok "agents.json ↔ files: $(echo "$JSON_AGENTS" | wc -l | tr -d ' ')/$(echo "$JSON_AGENTS" | wc -l | tr -d ' ') match"
+    # F-R08 (audit R29): JSON_AGENTS 가 빈 값이면 for 가 무회전해 AGENTS_BEFORE 와
+    # FAIL 이 같아지고, echo ""|wc -l 이 1 을 내 "1/1 match"(vacuous pass)로 렌더됐다.
+    # 형제 섹션(A/B/E)과 동형으로 "커버리지 0 ≠ 통과" 가드를 section D 에도 적용.
+    if [ -z "$JSON_AGENTS" ]; then
+      err "agents.json .agents 0건 — 커버리지 0 ≠ 통과"
+    elif [ "$FAIL" = "$AGENTS_BEFORE" ]; then
+      ok "agents.json ↔ files: $(echo "$JSON_AGENTS" | wc -l | tr -d ' ')/$(echo "$JSON_AGENTS" | wc -l | tr -d ' ') match"
+    fi
   else
     err "core/agents.json: 유효 JSON 아님"
   fi
@@ -285,6 +292,27 @@ if [ -f scripts/check-doc-counts.sh ]; then
 else
   err "scripts/check-doc-counts.sh 없음"
 fi
+
+# ─── H. memory JSONL 무결성 (미해결 git merge conflict marker 차단) ───
+# F-AV07 실사고: .gitattributes의 merge=union(F-AN07)은 향후 병합의 충돌 발생 자체를
+# 막지만, 과거 병합이 이미 커밋한 <<<<<<< / ======= / >>>>>>> 마커는 소급 제거하지
+# 않는다. 그 결과 auto-build-queue.jsonl에 마커가 커밋된 채로 main에 남아
+# queue.sh/run-cloud.sh의 jq 파싱이 전부 실패(또는 2>/dev/null로 조용히 빈 결과)해
+# Phase 3/4가 무산출이 됐다 — 수 라운드 동안 CI는 이를 전혀 보지 못했다(이 검사가
+# 없었기 때문). git ls-files로 추적 대상만 스캔(미추적 산출물 오탐 방지).
+JSONL_MARKER_BEFORE=$FAIL
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  JSONL_FILES=$(git ls-files '.claude/memory/*.jsonl')
+else
+  JSONL_FILES=$(find .claude/memory -maxdepth 1 -name '*.jsonl' 2>/dev/null)
+fi
+for f in $JSONL_FILES; do
+  [ -f "$f" ] || continue
+  if grep -nE '^(<{7}|={7}|>{7})( |$)' "$f" >/dev/null 2>&1; then
+    err "$f: 미해결 git merge conflict marker 발견"
+  fi
+done
+[ "$FAIL" = "$JSONL_MARKER_BEFORE" ] && ok "memory JSONL conflict-marker 무결성 (F-AV07)"
 
 # ─── 결과 ───
 echo ""
