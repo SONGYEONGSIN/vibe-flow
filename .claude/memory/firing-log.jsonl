@@ -42,3 +42,4 @@
 {"ts":"2026-10-09T21:31:12Z","phase":"phase3","detail":"ENQUEUE 진입 — round BM PR #297 생성 완료","base_sha":"3e58bc0"}
 {"ts":"2026-10-09T21:43:16Z","phase":"phase3-done","detail":"ENQUEUE 완료 — 14건 큐잉, F-AS01 mark-fixed, 중복 2건 abort (queue corruption 발견→fix PR #284 업데이트로 우회 해결)","base_sha":"7a882a7"}
 {"ts":"2026-10-09T21:45:36Z","phase":"phase4","detail":"IMPROVE 완료 — F-R09(docs/MIGRATION.md rules 심볼릭 제거) PR #298 생성","base_sha":"a2781ae"}
+{"ts":"2026-10-09T21:45:54Z","phase":"phase5","detail":"MERGE-GATE PR#298 — DECISION=HOLD_TIER (AUTO_MERGE_TIER off, 사람 대기)","base_sha":"3779cca"}
