@@ -24,7 +24,7 @@
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 BN (F-BN01~F-BN04)** — Phase1 VERIFY 10건 verified(pending-verify 7 + stale 2 + reconcile 3, F-Q11 재현확인 보류) + Phase2 AUDIT 4건(D2 훅-소비자 단절/스킬-에이전트 서술배선불일치 2건/plugin-only agent 미폴백, D4 eval-regression Section F 커버리지0 가드누락) + gh pr list GraphQL 403(Claude Code 세션 제약, reconcile 자동탐지 무효화) 발견
+- **최근 = 라운드 BN (F-BN01~F-BN06)** — Phase1 VERIFY 10건 verified + Phase2 AUDIT 6건(D2 훅-소비자단절/스킬-에이전트서술배선불일치/plugin-only agent 미폴백 3건, D4 eval-regression Section F 커버리지0 가드누락/queue.jsonl conflict-marker 4차 재발+PR백로그33+개/gh pr list GraphQL 403 reconcile 오탐 3건) + queue.jsonl 손상 복구(PR #284 와 동형, 데이터손실없음)
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
