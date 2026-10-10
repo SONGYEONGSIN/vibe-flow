@@ -42,3 +42,4 @@
 {"ts":"2026-10-10T21:40:36Z","phase":"phase4","detail":"IMPROVE — 큐 front 4연속 중복(F-R08→PR#292, F-R09→PR#298, F-R12→PR#290, F-R15→PR#291) abort, F-R11 refuted(premise stale). 신규 fix PR 없음 — round BN 자체가 이번 firing 산출물","base_sha":"8399710"}
 {"ts":"2026-10-10T21:41:28Z","phase":"phase5","detail":"merge-gate PR#299 → HOLD_TIER(tier=docs > graduated=off) — 사람 대기, 직접 머지 안 함","base_sha":"8399710"}
 {"ts":"2026-10-10T21:41:42Z","phase":"phase6","detail":"self-update DECISION=DRIFT_FAIL NEXT_VERSION=2.6.1 — merge 없었으므로 무관, report-only","base_sha":"8399710"}
+{"ts":"2026-10-10T21:41:55Z","phase":"phase7","detail":"graduation tick clean — disarmed, no-op. Phase8 GENERATIVE 진입 안 함(tier != generative)","base_sha":"8399710"}
