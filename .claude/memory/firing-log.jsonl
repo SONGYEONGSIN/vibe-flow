@@ -38,3 +38,4 @@
 {"ts":"2026-10-10T21:32:02Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-BN (commit 2454278)","base_sha":"2454278"}
 {"ts":"2026-10-10T21:32:04Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"2454278"}
 {"ts":"2026-10-10T21:32:25Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"33cbf8e"}
+{"ts":"2026-10-10T21:36:20Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료 — F-BN01~F-BN06, 중간에 queue.jsonl conflict-marker 복구(PR #284 중복) 발견","base_sha":"3b9b6d0"}
