@@ -32,3 +32,4 @@
 {"ts":"2026-09-20T21:11:02Z","phase":"phase2-agents","detail":"D2 완료(1건: cloud-init.sh agents 미러 누락, SAFETY-GATE) — D4 대기 중","base_sha":"b4d81ff"}
 {"ts":"2026-10-10T21:15:06Z","phase":"phase0","detail":"health baseline 기록: ci_pass_rate=0.800 ledger_health=0.394","base_sha":"ceab844"}
 {"ts":"2026-10-10T21:22:28Z","phase":"phase1-start","detail":"VERIFY 진입 — pending 7건, reconcile 후보(gh GraphQL 403 으로 자동탐지 불가, git log 수동확인) 3건 확인 + stale open 3건","base_sha":"bad2e91"}
+{"ts":"2026-10-10T21:22:30Z","phase":"phase1","detail":"VERIFY 완료 — verified 10 / refuted 0 / 보류 1(F-Q11, health-history.jsonl 미존재 재현) — gh pr list GraphQL 403 발견, 새 finding 후보로 surface 예정","base_sha":"d555257"}
