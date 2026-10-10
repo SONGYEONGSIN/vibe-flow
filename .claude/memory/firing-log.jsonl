@@ -43,3 +43,4 @@
 {"ts":"2026-10-10T21:41:28Z","phase":"phase5","detail":"merge-gate PR#299 → HOLD_TIER(tier=docs > graduated=off) — 사람 대기, 직접 머지 안 함","base_sha":"8399710"}
 {"ts":"2026-10-10T21:41:42Z","phase":"phase6","detail":"self-update DECISION=DRIFT_FAIL NEXT_VERSION=2.6.1 — merge 없었으므로 무관, report-only","base_sha":"8399710"}
 {"ts":"2026-10-10T21:41:55Z","phase":"phase7","detail":"graduation tick clean — disarmed, no-op. Phase8 GENERATIVE 진입 안 함(tier != generative)","base_sha":"8399710"}
+{"ts":"2026-10-10T21:42:04Z","phase":"done","detail":"round BN 완주 — PR #299 생성, merge-gate HOLD_TIER(사람 대기). 1 firing=1 cycle=1 PR 준수","base_sha":"8399710"}
