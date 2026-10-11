@@ -1,6 +1,6 @@
 ---
 name: web-design-guidelines
-description: UI 코드 완성 후 접근성, 성능, UX 규칙 준수 여부를 검사하는 감사 도구. 100+ 규칙 기반으로 file:line 형식의 위반 보고서 생성. "UI 검증", "접근성 검사", "코드 감사", "audit", "review my UI", "check accessibility" 요청 시 사용.
+description: UI 코드 완성 후 접근성, 성능, UX 규칙 준수 여부를 검사하는 감사 도구. 100+ 규칙 기반으로 file:line 형식의 위반 보고서 생성. "UI 검증", "접근성 검사", "코드 감사", "UI audit", "review my UI", "check accessibility" 요청 시 사용.
 ---
 
 # Web Design Guidelines Audit

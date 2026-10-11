@@ -1,6 +1,6 @@
 ---
 name: site-auditor
-description: This skill should be used for comprehensive site auditing that combines performance, design, SEO, backend safety, and security checks in one run. Use when the user requests "전체 점검", "사이트 검증", "배포 전 종합 점검", "audit", or wants to run all checks before deployment.
+description: This skill should be used for comprehensive site auditing that combines performance, design, SEO, backend safety, and security checks in one run. Use when the user requests "전체 점검", "사이트 검증", "배포 전 종합 점검", "site audit", or wants to run all checks before deployment.
 user-invocable: true
 ---
 
