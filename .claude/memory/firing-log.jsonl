@@ -34,3 +34,4 @@
 {"ts":"2026-10-11T21:19:26Z","phase":"phase1-start","detail":"VERIFY 진입 — pending 7건, stale 3건, reconcile 후보 0건","base_sha":"12315b9"}
 {"ts":"2026-10-11T21:19:28Z","phase":"phase1","detail":"VERIFY 완료 — verified 9 / refuted 0 / 보류(미해결 유지) 1(F-Q11)","base_sha":"202cc22"}
 {"ts":"2026-10-11T21:20:58Z","phase":"phase2-dispatch","detail":"dimension agent 2개 dispatch (D1,D2) — round BO","base_sha":"1511640"}
+{"ts":"2026-10-11T21:29:40Z","phase":"phase2-append","detail":"ledger append 3건 완료(F-BO01~F-BO03) + VERIFY 9건 resolve + queue.jsonl 충돌마커 복구","base_sha":"d3cc502"}
