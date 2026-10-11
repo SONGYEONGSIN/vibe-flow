@@ -40,3 +40,4 @@
 {"ts":"2026-10-11T21:31:35Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료 — round BO, 8808바이트","base_sha":"213573f"}
 {"ts":"2026-10-11T21:40:23Z","phase":"phase5","detail":"merge-gate PR#300 → HOLD_TIER (generative>off) — PR-only 유지, 사람 대기","base_sha":"870d9d0"}
 {"ts":"2026-10-11T21:40:37Z","phase":"phase6-skip","detail":"Phase5 가 AUTO_MERGE 아님(HOLD_TIER) — 머지 미발생, self-update.sh 판정 스킵","base_sha":"870d9d0"}
+{"ts":"2026-10-11T21:41:16Z","phase":"phase7","detail":"graduation tick clean — disarmed, no-op (tier=off 유지)","base_sha":"870d9d0"}
