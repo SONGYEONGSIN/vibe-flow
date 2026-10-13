@@ -36,3 +36,4 @@
 {"ts":"2026-10-13T21:18:21Z","phase":"phase2-dispatch","detail":"dimension agent 2개 dispatch (D1, D3) — round BQ","base_sha":"2d879f2"}
 {"ts":"2026-10-13T21:26:19Z","phase":"phase2-agents","detail":"2/2 회수, finding 후보 3건","base_sha":"5d13f92"}
 {"ts":"2026-10-13T21:26:56Z","phase":"phase2-append","detail":"ledger append 3건 완료","base_sha":"a0a08a2"}
+{"ts":"2026-10-13T21:26:59Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-BQ","base_sha":"a0a08a2"}
