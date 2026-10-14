@@ -38,3 +38,4 @@
 {"ts":"2026-10-14T21:37:21Z","phase":"phase2-append","detail":"ledger append 7건 완료(F-BR01~F-BR07)","base_sha":"132b2fa"}
 {"ts":"2026-10-14T21:37:23Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-BR","base_sha":"132b2fa"}
 {"ts":"2026-10-14T21:37:25Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"132b2fa"}
+{"ts":"2026-10-14T21:37:43Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"e0e06c9"}
