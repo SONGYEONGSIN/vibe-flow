@@ -70,7 +70,13 @@ echo "=== F-L09(B): agents 0건은 'valid (0 files)' 가 아니라 실패여야 
 C3="$(new_case c3-zero-agents)"
 find "$C3/core/agents" -name '*.md' -delete
 rm -f "$C3"/extensions/*/agents/*.md 2>/dev/null
-printf '{"agents": []}\n' > "$C3/core/agents.json"   # section D 간섭 제거 — B 의 자체 가드만 측정
+# F-R08: agents.json 을 []로 비워 section D 를 "간섭 제거"하던 과거 방식은 section D 가
+# 자체 커버리지-0 가드를 갖기 전까지만 유효했다 — 이제 실제 agent 파일이 0건인 채로
+# agents.json 도 0건인 이 fixture는 D 입장에서도 "진짜로 커버리지 0"이라 D 역시 정당하게
+# 실패해야 한다(간섭이 아니라 올바른 신규 동작). 그래서 agents.json 은 pristine 그대로
+# 두지 않고 "실제로 파일이 0건"이라는 사실과 일치하게 []로 유지하되, B 와 D 양쪽
+# 커버리지-0 가드가 모두 발현되는지 둘 다 단언한다(F-R08 fix).
+printf '{"agents": []}\n' > "$C3/core/agents.json"
 out3="$(cd "$C3" && bash scripts/eval-regression-check.sh 2>&1)"
 echo "$out3" | grep -q "All agents.md frontmatter valid (0 files)" \
   && ng '"valid (0 files)" 를 성공으로 렌더 (vacuous pass)' \
@@ -78,6 +84,9 @@ echo "$out3" | grep -q "All agents.md frontmatter valid (0 files)" \
 echo "$out3" | grep -q "✗.*agents.*0건" \
   && ok "agents 0건 실패 진단 존재" \
   || ng "agents 0건이 커버리지-0 진단을 남기지 않음"
+echo "$out3" | grep -q "agents.json .agents 0건" \
+  && ok "F-R08: agents.json .agents 0건도 별도로 진단됨 (section D 커버리지-0 가드)" \
+  || ng "F-R08: agents.json 쪽 커버리지-0 가드가 발현되지 않음"
 
 echo ""
 echo "=== 결과 ==="
