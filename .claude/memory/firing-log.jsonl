@@ -42,3 +42,4 @@
 {"ts":"2026-10-14T21:43:46Z","phase":"phase4","detail":"IMPROVE 완료 — task 20260807T211211Z-2290(F-R08) 처리, PR #302 생성(gh pr create 도 GraphQL 403 으로 실패 — mcp__github__ 로 대체, F-BR02/03 과 동일 사유), status-update done","base_sha":"d1430e8"}
 {"ts":"2026-10-14T21:43:59Z","phase":"phase5","detail":"merge-gate PR#302 → DECISION=HOLD_TIER (tier=off, 사람 대기) — 직접 머지 없음. PR-only 유지","base_sha":"d1430e8"}
 {"ts":"2026-10-14T21:44:07Z","phase":"phase6","detail":"SELF-UPDATE skip — Phase 5 머지 미발생","base_sha":"d1430e8"}
+{"ts":"2026-10-14T21:44:17Z","phase":"phase7","detail":"GRADUATION tick clean — disarmed, no-op (tier=off 유지)","base_sha":"d1430e8"}
