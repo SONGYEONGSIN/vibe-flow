@@ -42,3 +42,4 @@
 {"ts":"2026-10-16T21:33:30Z","phase":"phase3","detail":"ENQUEUE 0건 — auto-build-queue.jsonl 이 258-260행 미해결 git 충돌마커로 파싱 불가(global corruption guard exit 3). 동일 corruption 에 대한 fix PR #293(hotfix/queue-jsonl-conflict-marker)이 이미 open 상태로 존재 — 중복 PR 생성 회피, 머지 대기. Phase4 IMPROVE 이번 firing 은 abort","base_sha":"ceab844"}
 {"ts":"2026-10-16T21:35:11Z","phase":"phase4","detail":"IMPROVE abort — 큐 손상(기존 PR #293 대기)으로 산출 0","base_sha":"ceab844"}
 {"ts":"2026-10-16T21:35:14Z","phase":"phase5","detail":"merge-gate PR #305 → DECISION=HOLD_TIER (tier=off 기본값, PR-only 유지, 사람 대기)","base_sha":"ceab844"}
+{"ts":"2026-10-16T21:35:16Z","phase":"phase6","detail":"SELF-UPDATE skip — 이번 firing 머지 없음","base_sha":"ceab844"}
