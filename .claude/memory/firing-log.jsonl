@@ -44,3 +44,4 @@
 {"ts":"2026-10-16T21:35:14Z","phase":"phase5","detail":"merge-gate PR #305 → DECISION=HOLD_TIER (tier=off 기본값, PR-only 유지, 사람 대기)","base_sha":"ceab844"}
 {"ts":"2026-10-16T21:35:16Z","phase":"phase6","detail":"SELF-UPDATE skip — 이번 firing 머지 없음","base_sha":"ceab844"}
 {"ts":"2026-10-16T21:35:18Z","phase":"phase7","detail":"GRADUATION tick clean — disarmed(기본) no-op, tier=off 유지","base_sha":"ceab844"}
+{"ts":"2026-10-16T21:35:20Z","phase":"done","detail":"cycle 완료 — PR #305 생성(round BT: VERIFY 9건+mark-fixed 3건+AUDIT 3건), Phase3/4 abort(큐 손상, PR #293 대기), confidence 충분(voting 불필요, 전건 직접 재현 검증)","base_sha":"ceab844"}
