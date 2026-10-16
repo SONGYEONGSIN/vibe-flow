@@ -32,3 +32,4 @@
 {"ts":"2026-09-20T21:11:02Z","phase":"phase2-agents","detail":"D2 완료(1건: cloud-init.sh agents 미러 누락, SAFETY-GATE) — D4 대기 중","base_sha":"b4d81ff"}
 {"ts":"2026-10-16T21:15:00Z","phase":"phase0","detail":"health baseline 기록: ci_pass_rate=0.600 ledger_health=0.394","base_sha":"ceab844"}
 {"ts":"2026-10-16T21:23:27Z","phase":"phase1-start","detail":"VERIFY 진입 — pending-verify 7건, stale-3 3건, reconcile 후보 다수(머지 PR 목록 28건 중 F-AN01~05/F-AE01/F-R07/F-AJ01~02 등 title 매치 9+건)","base_sha":"b38142c"}
+{"ts":"2026-10-16T21:23:29Z","phase":"phase1","detail":"VERIFY 완료 — verified 9(F-R04,F-R05,F-AC01,F-AD09,F-AG05,F-AH05,F-AH06,F-Q07,F-Q12) / 보류 1(F-Q11 재현확인, 미해결) / mark-fixed 3(F-AU01,F-AT01,F-AS01, reconcile 교차확인). reconcile 명령 자체는 gh pr list 가 GraphQL 403 으로 실패했는데 에러를 삼켜 '머지 PR 0건' 으로 오보 — MCP list_pull_requests 로 우회 확인(F-AH05 와 동형 결함, Phase2 finding 후보로 기록). 잔여 reconcile 후보 9+건은 다음 firing 으로 이월","base_sha":"30ed0cc"}
