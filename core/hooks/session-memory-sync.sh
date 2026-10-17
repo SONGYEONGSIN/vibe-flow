@@ -26,6 +26,29 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
 [ -z "$PROJECT_ROOT" ] && exit 0
 cd "$PROJECT_ROOT" || exit 0
 
+# F-BU01: .claude/events.jsonl 는 gitignore 돼(.gitignore:34) ephemeral cloud checkout
+# 마다 비워진다 — telemetry/retrospective 가 전제하는 "장기 누적 추세" 가 cloud 세션에선
+# 근 0 에서 재출발한다. git-tracked 로그(.claude/memory/events-history.jsonl)로 신규 줄만
+# append(rate-limit 과 무관하게 매 Stop 마다) + 최근 HIST_CAP 줄로 회전해 세션 경계를
+# 넘겨 누적시킨다. SYNCED_MARK 는 세션-로컬 커서라 커밋 대상이 아님(.gitignore 로 제외).
+EVENTS_FILE_FOR_HIST="${PROJECT_ROOT}/.claude/events.jsonl"
+HIST_FILE="${PROJECT_ROOT}/.claude/memory/events-history.jsonl"
+SYNCED_MARK="${PROJECT_ROOT}/.claude/.events-history-synced-lines"
+HIST_CAP=5000
+if [ -f "$EVENTS_FILE_FOR_HIST" ]; then
+  TOTAL_EVT=$(wc -l < "$EVENTS_FILE_FOR_HIST" 2>/dev/null | tr -d ' ')
+  SYNCED_EVT=$(cat "$SYNCED_MARK" 2>/dev/null || echo 0)
+  case "$SYNCED_EVT" in ''|*[!0-9]*) SYNCED_EVT=0 ;; esac
+  case "$TOTAL_EVT" in ''|*[!0-9]*) TOTAL_EVT=0 ;; esac
+  if [ "$TOTAL_EVT" -gt "$SYNCED_EVT" ]; then
+    mkdir -p "$(dirname "$HIST_FILE")"
+    tail -n "+$((SYNCED_EVT + 1))" "$EVENTS_FILE_FOR_HIST" >> "$HIST_FILE" 2>/dev/null || true
+    TMP_HIST=$(mktemp)
+    tail -n "$HIST_CAP" "$HIST_FILE" > "$TMP_HIST" 2>/dev/null && mv "$TMP_HIST" "$HIST_FILE" || rm -f "$TMP_HIST"
+    echo "$TOTAL_EVT" > "$SYNCED_MARK"
+  fi
+fi
+
 SYNC_SCRIPT="${PROJECT_ROOT}/sync-memory.sh"
 # bash로 호출하므로 -x 대신 -f 만 검사 (sync-memory.sh가 chmod +x 안 된 환경 대응)
 [ -f "$SYNC_SCRIPT" ] || exit 0

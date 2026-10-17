@@ -18,13 +18,13 @@
 
 현재는 **신규 기능 개발보다 내부 감사(audit) 기반 self-improvement 루프**가 주 흐름.
 
-## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round AV)
+## 내부 감사 (Active — `/audit` 스킬로 운영, 최근 Round BU)
 
 4 dimension(D1 컨텍스트 / D2 아키텍처 / D3 dogfooding / D4 메타-검증) fresh-context agent 병렬 위임. **R8부터 `/audit` 스킬**(AHE evaluate→analyze→improve, 4-필드 finding, decision-observability ledger)로 운영. **round 별 finding/predicted_delta/actual_delta 의 정본은 `.claude/memory/audit-ledger.jsonl`** — `ledger.sh round <라벨>` / `pending-verify` 로 조회한다 (F-K08: 존재하지 않는 user-level 파일을 정본으로 가리키던 참조 제거).
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 AV (F-AV01~F-AV07)** — 루프가 09-20 발화에서 발굴(원래 AT 라벨 — 사람이 같은 날 `round="AT"` 를 하드코딩해 충돌시켜 AV 로 재채번). 주제 **"hook 이 입력을 못 읽으면 조용히 통과시킨다"** — **F-AV03/04/05** `command-guard`·`evolution-guard`·`smart-guard` 세 hook 이 `TOOL_NAME=$(echo "$INPUT" | jq -r ...)` 로 파싱하는데 실패 시 빈 값이 되어 게이트를 통과시킨다(F-AH05/F-AT01 과 같은 "조회 불가를 통과로" 계열, 이번엔 안전 hook 3종 동시). **F-AV01** `next-round` 가 머지+삭제된 라운드를 못 봐 이미 쓴 라벨을 재발급(→ F-AU01 로 fix). **F-AV07** main 의 큐 JSONL 216-245행에 미해결 충돌 마커 잔존. **F-AV06** CI 워크플로 2종의 notify 경로. **F-AV02** cloud-init 헤더와 실제 동작 불일치.
+- **최근 = 라운드 BU (F-BU01~F-BU03)** — Phase1 VERIFY: pending-verify 7건 전건 verified, stale-3 2건 verified(F-Q07/F-Q12)+1건 open 유지(F-Q11), reconcile 10건 중 9건 mark-fixed+verified(F-AU01/F-AT01/F-AS01/F-AN07/F-R07/F-AJ02/F-AJ01/F-AE01/F-Z08, F-AA03 는 실제 미구현 확인돼 open 유지). Phase2 AUDIT(D1+D3): D1 신규 없음(기존 open 4건 재확인), D3 신규 2건(F-BU01 telemetry gitignore, F-BU02 ledger in-place mutation 충돌 safety-gate). 큐 충돌마커 복구(F-AV07 류 재발) + F-BU03(동일 finding 중복 fix-PR 생산 구조결함 — F-R08 6건/F-R09 2건 실측) 발견. Phase4: F-R08/F-R09/F-AJ02 큐 작업 중복 확인 후 abort, F-BU01(telemetry 영속화) 구현 — session-memory-sync.sh 에 events-history.jsonl append 로직 추가 + 스모크 5건. 발견: gh pr list/issue list 가 cloud sandbox 에서 GraphQL 403 상시 실패(gh api REST 는 정상). PR 백로그 20+건(AY~BT, 9/24~ 누적 미머지) 확인
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
