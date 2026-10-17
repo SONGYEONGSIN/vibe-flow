@@ -37,3 +37,4 @@
 {"ts":"2026-10-17T21:16:29Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-BU","base_sha":"00d7d7a"}
 {"ts":"2026-10-17T21:16:31Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"00d7d7a"}
 {"ts":"2026-10-17T21:16:45Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"5fbd315"}
+{"ts":"2026-10-17T21:27:16Z","phase":"phase4","detail":"IMPROVE 완료 — F-R08/F-R09/F-AJ02 중복 abort, F-BU01 구현(events-history 영속화, 스모크 5/5). PR #306 생성","base_sha":"eb41f7b"}
