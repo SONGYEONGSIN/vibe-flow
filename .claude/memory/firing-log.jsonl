@@ -40,3 +40,4 @@
 {"ts":"2026-10-17T21:27:16Z","phase":"phase4","detail":"IMPROVE 완료 — F-R08/F-R09/F-AJ02 중복 abort, F-BU01 구현(events-history 영속화, 스모크 5/5). PR #306 생성","base_sha":"eb41f7b"}
 {"ts":"2026-10-17T21:27:19Z","phase":"phase5","detail":"MERGE-GATE: DECISION=HOLD_TIER (tier=off, 사람 대기) — PR-only 확인","base_sha":"eb41f7b"}
 {"ts":"2026-10-17T21:27:21Z","phase":"phase7","detail":"GRADUATION: disarmed — tick no-op","base_sha":"eb41f7b"}
+{"ts":"2026-10-17T21:27:24Z","phase":"cycle-done","detail":"round BU 완주 — PR #306","base_sha":"eb41f7b"}
