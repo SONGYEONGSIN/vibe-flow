@@ -51,6 +51,7 @@ sync-memory.conf
 *.swo
 .superpowers/
 .claude/.last-memory-sync
+.claude/.events-history-synced-lines
 .claude/agent-memory/
 .claude/memory-sync.log
 .claude/memory/auto-build-runs.jsonl
