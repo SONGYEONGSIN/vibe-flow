@@ -76,3 +76,6 @@ sync-memory.conf
 .worktreeinclude
 CLAUDE.md
 playwright.config.ts
+
+# 다른 에이전트 툴(Codex 등)이 생성하는 로컬 스킬 미러 — 원본은 core/skills (F-AQ01)
+.agents/
