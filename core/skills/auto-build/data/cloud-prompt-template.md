@@ -37,6 +37,17 @@ bash core/skills/auto-build/scripts/firing-log.sh abort "<사유>"
 ```
 heartbeat 는 `auto-build/firing-<UTC일자>` 브랜치에 fast-forward 로만 쌓인다(main 은 보호돼 push 불가, force 는 auto-build-safety 가 차단). 실패해도 사이클을 죽이지 않는다 — 관찰 보조지 게이트가 아니다.
 
+이어서 **미머지 라운드 백로그를 확인한다** — 이전 라운드가 아직 main 에 착지하지 않았으면 이번 firing 은 돌지 않는다:
+```bash
+bash core/skills/audit/scripts/round-backlog-guard.sh || {
+  bash core/skills/auto-build/scripts/firing-log.sh abort "백로그 보류 — 미머지 라운드가 현재 main 위에 있음"
+  exit 0
+}
+```
+- `HOLD_BACKLOG`(exit 1): **Phase 1 이후 전부 건너뛰고 종료한다.** 이유: 루프의 상태(ledger·queue·graduation)는 main 에만 있고 main 은 사람 머지로만 움직인다. 09-21~10-17 머지가 멈춘 동안 매 firing 이 같은 base 에서 라운드를 새로 돌려 PR 22개가 쌓였다 — 같은 VERIFY 반복, queue 충돌마커 매일 재수복, 같은 fix(F-R08) 4중 PR. 같은 main 에서 다시 도는 라운드는 중복만 만든다.
+- 보류를 풀려면 사람이 그 라운드 PR 을 **머지**하거나, 버릴 거면 PR close 와 함께 **브랜치를 삭제**한다(브랜치가 남아 있으면 계속 보류된다).
+- `UNAVAILABLE`(exit 0): 원격 조회 실패 — 판정 못 한 채 진행한다. `phase0` heartbeat detail 에 그 사실을 남긴다.
+
 ### Phase 1 — VERIFY (지난 라운드 반증)
 ```bash
 bash core/skills/audit/scripts/ledger.sh pending-verify
