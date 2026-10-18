@@ -45,3 +45,4 @@
 {"ts":"2026-10-18T21:08:19Z","phase":"phase0-backlog","detail":"round-backlog-guard PROCEED — main(04b1ea9) 위 미머지 라운드 없음 (주의: 앞선 phase0 heartbeat 호출 시 firing-log.sh 가 detached HEAD 를 'HEAD' literal 로 캡처해 PREV 복귀 실패 — 수동으로 origin/main 복귀함. firing-log.sh PREV-restore 버그는 Phase2 finding 으로 올림)","base_sha":"04b1ea9"}
 {"ts":"2026-10-18T21:25:43Z","phase":"phase2-agents","detail":"2/2 회수, finding 후보 4건 (D2 2, D4 2)","base_sha":"a76a917"}
 {"ts":"2026-10-18T21:25:53Z","phase":"phase2-append","detail":"ledger append 5건 완료(F-BU01~F-BU05) + 자체발견 1건(F-BU05=gh GraphQL403)","base_sha":"a76a917"}
+{"ts":"2026-10-18T21:25:55Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-BU (VERIFY+AUDIT 3 commits)","base_sha":"a76a917"}
