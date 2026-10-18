@@ -49,3 +49,4 @@
 {"ts":"2026-10-18T21:25:57Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"a76a917"}
 {"ts":"2026-10-18T21:25:59Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료 (memory-index.sh add-round BU), check-doc-counts 통과","base_sha":"a76a917"}
 {"ts":"2026-10-18T21:28:08Z","phase":"phase3","detail":"enqueue 17건 완료 + round BU PR #309 생성(gh pr create 도 GraphQL403 — mcp__github__create_pull_request 로 우회, F-BU05 범위 확장)","base_sha":"a25b46a"}
+{"ts":"2026-10-18T21:31:27Z","phase":"phase4","detail":"IMPROVE 완료 — 큐 4건 pop(3 stale abort: F-R08/F-R09/F-R11, 1 done: F-R12), PR #310 생성(fix/audit-d3-dogfoodable-scope-f-r12)","base_sha":"1333144"}
