@@ -40,3 +40,4 @@
 {"ts":"2026-09-24T21:23:42Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"3630460"}
 {"ts":"2026-09-24T21:23:46Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료 (memory-index.sh add-round AY), check-doc-counts 통과","base_sha":"adf5561"}
 {"ts":"2026-09-24T21:24:31Z","phase":"phase3","detail":"enqueue 0건 신규(전량 이미 enqueued 이거나 skip) — 다수 'enqueue failed for F-X' warn 이상 관찰(예: F-AD03/F-AJ02, status=open enqueued_task=null 인데 실패). 다음 audit 라운드 D4 후보로 남김, 이번 firing 은 범위 밖","base_sha":"981c2f5"}
+{"ts":"2026-10-18T09:12:56Z","phase":"abort","detail":"2026-09-24 firing 이 24일간 휴면 후 재개 — round AY PR #276 은 사람이 'round #306 으로 대체' 사유로 close(미머지), 동일 queue.jsonl 충돌마커 fix 는 이미 PR #280(af6cce3)으로 머지됨. 이 firing 의 1-cycle 범위는 전량 최신 상태에 추월됨 — Phase4 IMPROVE/Phase5~8 은 이 stale 세션에서 진행하지 않고 종료. 다음 정기 firing 이 현재 main 기준으로 새 라운드를 이어받는다.","base_sha":"161a77b"}
