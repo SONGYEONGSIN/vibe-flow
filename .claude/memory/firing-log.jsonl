@@ -51,3 +51,4 @@
 {"ts":"2026-10-18T21:28:08Z","phase":"phase3","detail":"enqueue 17건 완료 + round BU PR #309 생성(gh pr create 도 GraphQL403 — mcp__github__create_pull_request 로 우회, F-BU05 범위 확장)","base_sha":"a25b46a"}
 {"ts":"2026-10-18T21:31:27Z","phase":"phase4","detail":"IMPROVE 완료 — 큐 4건 pop(3 stale abort: F-R08/F-R09/F-R11, 1 done: F-R12), PR #310 생성(fix/audit-d3-dogfoodable-scope-f-r12)","base_sha":"1333144"}
 {"ts":"2026-10-18T21:34:10Z","phase":"phase5","detail":"merge-gate PR#310 → HOLD_TIER(generative, 사람대기) — 과분류 발견(F-BU06 등록). PR#309/#310 모두 머지 없음, PR-only 유지","base_sha":"3e18d87"}
+{"ts":"2026-10-18T21:34:13Z","phase":"phase6","detail":"self-update DRIFT_FAIL(일시적, plain sync-drift 실행 후 --check 재확인시 clean) — 머지 없었으므로 release 대상 아님, report-only","base_sha":"3e18d87"}
