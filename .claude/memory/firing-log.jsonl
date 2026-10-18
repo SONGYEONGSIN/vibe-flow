@@ -47,3 +47,4 @@
 {"ts":"2026-10-18T21:25:53Z","phase":"phase2-append","detail":"ledger append 5건 완료(F-BU01~F-BU05) + 자체발견 1건(F-BU05=gh GraphQL403)","base_sha":"a76a917"}
 {"ts":"2026-10-18T21:25:55Z","phase":"phase2-commit","detail":"라운드 브랜치 push 완료: chore/audit-round-BU (VERIFY+AUDIT 3 commits)","base_sha":"a76a917"}
 {"ts":"2026-10-18T21:25:57Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"a76a917"}
+{"ts":"2026-10-18T21:25:59Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료 (memory-index.sh add-round BU), check-doc-counts 통과","base_sha":"a76a917"}
