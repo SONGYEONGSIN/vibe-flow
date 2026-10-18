@@ -116,7 +116,14 @@ for link in skills agents; do
 done
 
 # vibe-flow Core 가리키도록 재생성
-ln -s /Users/yss/개발/build/vibe-flow/core/skills /Users/yss/.claude/skills
+# skills 는 디렉토리 통째가 아니라 스킬별로 링크한다 — 통째 링크면 전역 설치 도구
+# (npx skills, claude.ai 스킬 동기화)가 ~/.claude/skills 에 쓰는 외부 스킬이 전부
+# repo core/skills/ 에 untracked 로 쌓인다(2026-10-18 실측 24건, validate.sh 실패 유발).
+# core/skills 에 새 스킬을 추가하면 이 루프를 다시 실행한다(멱등).
+mkdir -p /Users/yss/.claude/skills
+for d in /Users/yss/개발/build/vibe-flow/core/skills/*/; do
+  ln -sfn "${d%/}" /Users/yss/.claude/skills/
+done
 ln -s /Users/yss/개발/build/vibe-flow/core/agents /Users/yss/.claude/agents
 # rules 는 전역 심볼릭 불필요 — setup.sh 가 core/rules/*.md 를 프로젝트마다
 # .claude/rules/ 로 이미 설치한다(skills/agents 는 전역 심볼릭이 유일 설치 경로라

@@ -162,7 +162,8 @@ export CLAUDE_TDD_ENFORCE=warn
 
 ### Q. 글로벌에 설치하면 모든 프로젝트에 적용?
 
-`~/.claude/skills`/`agents`/`rules`로 심볼릭 링크하면 글로벌 활성.
+`~/.claude/skills/` 에 스킬별 심볼릭 링크 + `~/.claude/agents` 심볼릭 링크하면 글로벌 활성 (절차: `docs/MIGRATION.md` "글로벌 심볼릭 갱신").
+rules 는 전역 링크하지 않는다 — setup.sh 가 프로젝트 `.claude/rules/` 로 설치하므로 이중 주입된다(F-R09).
 hook 자동화는 프로젝트별 setup.sh로만 활성 (settings.local.json 필요).
 
 ### Q. 다른 사람과 메모리 공유?
