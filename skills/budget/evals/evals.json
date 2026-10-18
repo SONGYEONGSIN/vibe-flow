@@ -1,0 +1,136 @@
+{
+  "skill": "budget",
+  "version": "1.1.0",
+  "cases": [
+    {
+      "id": "empty-budget",
+      "description": "events 없음 — 모든 0/N 출력",
+      "setup": {
+        "files": {
+          ".claude/budget.json": "default",
+          ".claude/events.jsonl": null
+        }
+      },
+      "input": "/budget",
+      "expected": {
+        "shows_section": "💰 vibe-flow Budget",
+        "all_zero": true,
+        "no_warning": true
+      }
+    },
+    {
+      "id": "80pct-daily-pair",
+      "description": "/pair 4회 today (한도 5) → ⚠ 표시",
+      "setup": {
+        "files": {
+          ".claude/budget.json": "default",
+          ".claude/events_today_pair_session": 4
+        }
+      },
+      "input": "/budget",
+      "expected": {
+        "shows_pair_count": "4/5",
+        "shows_warn_single": "⚠"
+      }
+    },
+    {
+      "id": "100pct-daily-retro",
+      "description": "/retrospective 1회 today (한도 1) → ⚠⚠ 표시",
+      "setup": {
+        "files": {
+          ".claude/budget.json": "default",
+          ".claude/events_today_retrospective": 1
+        }
+      },
+      "input": "/budget",
+      "expected": {
+        "shows_retro_count": "1/1",
+        "shows_warn_double": "⚠⚠"
+      }
+    },
+    {
+      "id": "set-command",
+      "description": "/budget set pair 10 30 — budget.json 갱신 검증",
+      "setup": {
+        "files": {
+          ".claude/budget.json": "default"
+        }
+      },
+      "input": "/budget set pair 10 30",
+      "expected": {
+        "updates_budget_json": true,
+        "new_limits_pair_session": {"daily": 10, "weekly": 30},
+        "shows_message": "✓ pair: daily=10, weekly=30 갱신됨"
+      }
+    },
+    {
+      "id": "json-output",
+      "description": "/budget --json — 유효 JSON 출력",
+      "setup": {
+        "files": {
+          ".claude/budget.json": "default",
+          ".claude/events_today_pair_session": 2
+        }
+      },
+      "input": "/budget --json",
+      "expected": {
+        "valid_json": true,
+        "has_keys": ["limits", "usage"],
+        "usage_pair_today": 2
+      }
+    },
+    {
+      "id": "tokens-no-session-logs",
+      "description": "/budget --tokens — Claude Code session-logs 없을 때 안내 메시지 + exit 0",
+      "setup": {
+        "files": {
+          "${HOME}/.claude/projects/<empty>": true
+        }
+      },
+      "input": "/budget --tokens",
+      "expected": {
+        "shows_message": "session-logs",
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "tokens-basic-aggregation",
+      "description": "/budget --tokens — assistant 메시지 모델별 합산 + USD 계산",
+      "setup": {
+        "files": {
+          "${HOME}/.claude/projects/test-proj/sess.jsonl": [
+            "{\"type\":\"assistant\",\"cwd\":\"<project_cwd>\",\"timestamp\":\"<-2d>\",\"message\":{\"model\":\"claude-opus-4-7\",\"usage\":{\"input_tokens\":1000,\"output_tokens\":500,\"cache_read_input_tokens\":2000,\"cache_creation_input_tokens\":1000}}}"
+          ]
+        }
+      },
+      "input": "/budget --tokens --period 7",
+      "expected": {
+        "shows_model": "claude-opus-4-7",
+        "shows_usd_column": true,
+        "filters_synthetic_models": true
+      }
+    },
+    {
+      "id": "tokens-period-option",
+      "description": "/budget --tokens --period 90 — 90일 기간",
+      "setup": {},
+      "input": "/budget --tokens --period 90",
+      "expected": {
+        "period_days": 90
+      }
+    },
+    {
+      "id": "tokens-nfc-normalization",
+      "description": "macOS 한글 경로 NFD/NFC 정규화 — git rev-parse 결과를 NFC 변환 후 cwd 매칭",
+      "setup": {
+        "files": {
+          "<vibe-flow project with korean path>": "/Users/x/개발/proj"
+        }
+      },
+      "input": "/budget --tokens",
+      "expected": {
+        "matches_log_cwd_after_nfc_normalize": true
+      }
+    }
+  ]
+}
