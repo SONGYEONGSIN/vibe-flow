@@ -1,0 +1,58 @@
+{
+  "skill_name": "receive-review",
+  "description": "receive-review 스킬의 항목 분리·검증·의사결정·응답 작성 품질 평가",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "PR 리뷰 코멘트: '이 함수 너무 길어요 (architecture). user.email이 null일 때 throw 안 하나요? (correctness). 그리고 변수명 data는 모호한 것 같아요 (style).' /receive-review로 처리하라.",
+      "expectations": [
+        { "description": "3개 항목으로 분리한다 (한 덩어리로 처리하지 않음)", "type": "must_pass" },
+        { "description": "각 항목을 카테고리(architecture/bug/style)로 분류한다", "type": "must_pass" },
+        { "description": "각 항목별로 검증 단계를 명시한다 (코드 읽기/테스트 시도/rules 매핑)", "type": "must_pass" },
+        { "description": "각 항목에 accept/reject/clarify 결정을 내린다", "type": "must_pass" },
+        { "description": "reject한 항목에 정중한 근거 응답을 작성한다 (silent ignore 금지)", "type": "must_pass" },
+        { "description": ".claude/memory/reviews/에 결과 저장 + events.jsonl에 review_received 이벤트 기록", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "리뷰어가 '함수 길이 200줄 — 분할 필요'라고 했고 측정 가능한 근거 없음. /receive-review를 실행하라.",
+      "expectations": [
+        { "description": "performative agreement 안 함 — '네 맞습니다' 후 검증 없이 implement 금지", "type": "must_pass" },
+        { "description": "rules/conventions.md에 함수 길이 명시가 있는지 확인", "type": "must_pass" },
+        { "description": "rules에 명시 없으면 preference로 분류 — 비용/이득 분석 후 결정", "type": "must_pass" },
+        { "description": "분할 시 영향 범위(테스트 변경, 다른 호출자) 추정", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "리뷰어가 '이 SQL injection 가능해 보이는데요'라고 했다. /receive-review로 처리하라.",
+      "expectations": [
+        { "description": "Security 카테고리로 분류", "type": "must_pass" },
+        { "description": "코드 읽고 재현 시도 또는 security 에이전트 호출 위임", "type": "must_pass" },
+        { "description": "위험 확인되면 즉시 accept + 후속 /commit", "type": "must_pass" },
+        { "description": "영향 없음 입증 가능하면 reject + 입증 근거(parameterized query 등) 응답", "type": "must_pass" },
+        { "description": "default 보수적 — 모호하면 accept 또는 clarify (security는 fail-closed)", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "리뷰어가 '이번 PR과 무관하게, 전체 코드베이스 리팩토링이 필요해 보입니다' 라고 했다. 이번 PR은 5파일 버그 수정.",
+      "expectations": [
+        { "description": "scope creep으로 분류 — 무관한 제안", "type": "must_pass" },
+        { "description": "이번 PR scope 밖임을 명시하고 별도 이슈로 제안", "type": "must_pass" },
+        { "description": "이번 PR에는 accept하지 않는다 (PR 비대화 방지)", "type": "must_pass" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "동일한 리뷰어가 매번 '주석을 더 추가하세요'라고 한다 — 이번이 4번째 같은 피드백.",
+      "expectations": [
+        { "description": "반복 패턴 인식 — 동일 피드백 3회+ 인식", "type": "must_pass" },
+        { "description": "/learn save pattern으로 규칙화 후보 제안", "type": "must_pass" },
+        { "description": "rules/conventions.md에 '주석 작성 기준'을 명시하면 미래 마찰 감소", "type": "should_pass" },
+        { "description": "현재 PR에서는 accept 후 후속 단계로 규칙화 권장", "type": "should_pass" }
+      ]
+    }
+  ]
+}

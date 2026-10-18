@@ -1,0 +1,1 @@
+- [VSR sttn-auto on static subtitles](vsr-sttn-auto-static-text.md) — sttn-auto alone keeps letters; pre-erase every shot (Telea/LaMa/vertical fill by background)
