@@ -193,7 +193,14 @@ if [ -f "$AGENTS_JSON" ]; then
         err "agents.json에 '${agent}' 있으나 core/agents/${agent}.md 없음"
       fi
     done
-    [ "$FAIL" = "$AGENTS_BEFORE" ] && ok "agents.json ↔ files: $(echo "$JSON_AGENTS" | wc -l | tr -d ' ')/$(echo "$JSON_AGENTS" | wc -l | tr -d ' ') match"
+    # F-R08 (audit R17/round AD→BJ): JSON_AGENTS 가 빈 값이면 for 가 무회전하고
+    # echo ""|wc -l=1 이라 "1/1 match" 가 vacuous 하게 렌더됐다 — F-K10/F-L09 가
+    # section C/A/B 에 적용한 "커버리지 0 ≠ 통과" 가드를 section D 에도 동형 적용.
+    if [ -z "$JSON_AGENTS" ]; then
+      err "agents.json .agents 0건 — 커버리지 0 ≠ 통과"
+    elif [ "$FAIL" = "$AGENTS_BEFORE" ]; then
+      ok "agents.json ↔ files: $(echo "$JSON_AGENTS" | wc -l | tr -d ' ')/$(echo "$JSON_AGENTS" | wc -l | tr -d ' ') match"
+    fi
   else
     err "core/agents.json: 유효 JSON 아님"
   fi
