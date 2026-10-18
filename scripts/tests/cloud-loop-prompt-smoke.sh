@@ -22,6 +22,10 @@ if [ -f "$PROMPT" ]; then echo "  ✓ L1.1 cloud-prompt-template.md 존재"; PAS
 echo "Test L2: 5 phase 배선"
 have "L2.1 bootstrap cloud-init" "cloud-init.sh"
 have "L2.2 HEALTH baseline"      "health-metric.sh"
+# 09-21~10-17: 사람 머지 정체 중 같은 base 에서 라운드 PR 22개 중복 생성. Phase 1 이전에
+# 미머지 라운드를 확인해 보류해야 한다 — 스크립트 실존 + 프롬프트 배선 둘 다.
+exe  "L2.2a round-backlog-guard 실존" "core/skills/audit/scripts/round-backlog-guard.sh"
+have "L2.2b Phase0 round-backlog-guard 배선" "round-backlog-guard.sh"
 have "L2.3 VERIFY pending-verify" "ledger.sh pending-verify"
 # F-T09/F-V07: `git push --dry-run` 은 ref 를 갱신하지 않아 remote 의 pre-receive
 # (브랜치 보호)가 돌지 않는다 — 보호 유무와 무관하게 항상 accept 로 보인다. 루프가
