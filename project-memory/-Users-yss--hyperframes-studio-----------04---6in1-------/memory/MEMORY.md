@@ -1,2 +1,0 @@
-- [Reel 04 scene sources](reel04-scene-sources.md) — which original frames each assets/clean clip came from; skipped Chinese-card stretch
-- [VSR pipeline gotchas](vsr-pipeline-gotchas.md) — CPU mode under parallel runs, color drift/tag fix, zsh/ffmpeg loop traps

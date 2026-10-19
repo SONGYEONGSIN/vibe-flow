@@ -1,1 +1,0 @@
-- [팀즈만 쓴다](teams-only-source.md) — 대학 자료는 팀즈에서 받는다, 로컬 Desktop 경로 안 씀

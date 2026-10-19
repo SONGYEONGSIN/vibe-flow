@@ -1,1 +1,0 @@
-- [Cover follows reference docs](cover-follows-reference-docs.md) — every Reel cover: curiosity first (hide the answer), docs rules (white / yellow+dark outline, emoji per line, hook collection, no product-alone background, 3 options, no [광고] on cover)
