@@ -1,0 +1,2 @@
+- [맘픽 reels workflow](mompick-reels-workflow.md) — who the user is, where scripts/recordings live, answer in Korean
+- [VSR sttn-auto portrait fix](vsr-sttn-auto-portrait-padding.md) — pad 720x1280 frames to 1440 wide or subtitles stay

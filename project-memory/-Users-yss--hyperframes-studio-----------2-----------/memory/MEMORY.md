@@ -1,0 +1,4 @@
+- [Cover follows reference docs](cover-follows-reference-docs.md) — reel cover copy/layout rules from video-references/docs hook notes
+- [맘픽 reel posting set workflow](mompick-reel-workflow.md) — Coupang main photo → caption(5 hashtags), pinned comment, Infork DM in docs format
+- [Reply in Korean](reply-in-korean.md) — every reply in plain Korean, even short confirmations
+- [Coupang Partners API](coupang-partners-api.md) — keys in repick-cardnews/.env.local, CEA signing, product search tested
