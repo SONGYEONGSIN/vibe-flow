@@ -32,3 +32,4 @@
 {"ts":"2026-09-20T21:11:02Z","phase":"phase2-agents","detail":"D2 완료(1건: cloud-init.sh agents 미러 누락, SAFETY-GATE) — D4 대기 중","base_sha":"b4d81ff"}
 {"ts":"2026-10-29T21:06:01Z","phase":"phase0","detail":"health baseline 기록: ci_pass_rate=0.800 ledger_health=0.395","base_sha":"bdf01f7"}
 {"ts":"2026-10-29T21:06:08Z","phase":"phase0-check","detail":"test","base_sha":"5309901"}
+{"ts":"2026-10-29T21:06:22Z","phase":"abort","detail":"백로그 보류 — 미머지 라운드(chore/audit-round-BU)가 현재 main(bdf01f7) 위에 있음. round-backlog-guard DECISION=HOLD_BACKLOG","base_sha":"dcbba7a"}
