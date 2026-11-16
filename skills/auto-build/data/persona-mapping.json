@@ -1,0 +1,11 @@
+{
+  "_comment": "ambiguity 카테고리 → vibe-flow agent 풀 매핑. id는 core/agents/<id>.md 파일명.",
+  "_moderator": "moderator",
+  "design": ["designer", "ux-researcher", "frontend-design-specialist"],
+  "auth": ["security", "security-specialist", "api-architect"],
+  "perf": ["performance-optimizer", "qa", "developer"],
+  "architecture": ["architecture-reviewer", "api-architect", "planner"],
+  "ui": ["designer", "frontend-design-specialist", "qa"],
+  "test": ["test-writer", "qa", "validator"],
+  "docs": ["technical-writer", "planner", "retrospective"]
+}

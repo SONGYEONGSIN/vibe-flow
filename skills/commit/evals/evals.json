@@ -1,0 +1,40 @@
+{
+  "skill_name": "commit",
+  "description": "커밋 메시지 생성 품질 평가",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "src/components/auth/login-form.tsx 파일에 이메일 유효성 검사 로직을 추가한 상황이다. 이 변경에 대한 커밋 메시지를 생성해라.",
+      "expectations": [
+        { "description": "conventional commits 형식(feat/fix/...: 설명)을 따른다", "type": "must_pass" },
+        { "description": "Co-Authored-By 줄이 포함된다", "type": "must_pass" },
+        { "description": "변경 내용(이메일 유효성 검사)을 정확히 반영한다", "type": "must_pass" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "src/lib/api.ts와 src/hooks/use-auth.ts 두 파일을 수정하여 토큰 갱신 로직을 개선한 상황이다. 커밋 메시지를 생성해라.",
+      "expectations": [
+        { "description": "다중 파일 수정임을 반영한다", "type": "must_pass" },
+        { "description": "why(토큰 갱신 개선)를 what(파일 수정)보다 강조한다", "type": "should_pass" },
+        { "description": "1-2문장으로 간결하다", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "기존 API 응답 형식을 변경하여 하위 호환이 깨지는 수정을 했다. BREAKING CHANGE를 포함한 커밋 메시지를 생성해라.",
+      "expectations": [
+        { "description": "BREAKING CHANGE 또는 !를 포함한다 (예: feat!: 또는 footer에 BREAKING CHANGE)", "type": "must_pass" },
+        { "description": "어떤 호환이 깨지는지 설명한다", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "README.md의 오타를 수정한 상황이다. 커밋 메시지를 생성해라.",
+      "expectations": [
+        { "description": "docs: 접두사를 사용한다", "type": "must_pass" },
+        { "description": "불필요하게 장황하지 않다 (1줄)", "type": "should_pass" }
+      ]
+    }
+  ]
+}

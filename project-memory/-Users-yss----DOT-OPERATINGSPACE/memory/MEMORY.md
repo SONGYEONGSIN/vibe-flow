@@ -1,0 +1,1 @@
+- [대학배정 엑셀 구조](project_assignment_structure.md) — 배정리스트 12유형 + 대학원/PIMS/성적/상담앱 시트별 열 매핑

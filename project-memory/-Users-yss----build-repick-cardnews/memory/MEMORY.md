@@ -1,0 +1,2 @@
+- [브라우저가 로컬 dev 서버에 못 닿음](browser-cannot-reach-local-dev.md) — UI 검증은 curl + 사람 확인으로 설계, 빌드 출력은 리다이렉트
+- [OAuth 로컬 토큰만 사용](oauth-only-no-api-key.md) — ANTHROPIC_API_KEY 전환 제안 금지, 429는 계정 할당량 문제로만 다룬다

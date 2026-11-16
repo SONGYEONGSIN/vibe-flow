@@ -1,0 +1,23 @@
+{
+  "skill_name": "status",
+  "description": "프로젝트 상태 대시보드 출력 평가",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "git 저장소에서 미커밋 변경 5개, 최근 커밋 3개가 있고, GitHub Actions에서 CI가 통과한 상태이다. /status 를 실행해라.",
+      "expectations": [
+        { "description": "Git 상태(브랜치, 미커밋 변경 수, 최근 커밋)를 포함한다", "type": "must_pass" },
+        { "description": "CI/CD 상태를 포함한다", "type": "must_pass" },
+        { "description": "대시보드 형식(마크다운 표)으로 출력한다", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "git 저장소가 아닌 디렉토리에서 /status 를 실행해라.",
+      "expectations": [
+        { "description": "git 정보를 수집할 수 없음을 안내한다", "type": "must_pass" },
+        { "description": "에러 없이 종료하거나 사용 가능한 정보만 출력한다", "type": "should_pass" }
+      ]
+    }
+  ]
+}

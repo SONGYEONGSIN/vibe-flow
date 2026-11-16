@@ -1,0 +1,2 @@
+- [한국어로 답변](reply-in-korean.md) — 모든 답변·보고는 한국어로 작성
+- [업무 자료 스킬·문체](work-docs-style.md) — 엑셀·워드·기안은 Anthropic 스킬 적용, AI 티 안 나게, 운영부 표기

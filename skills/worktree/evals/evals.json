@@ -1,0 +1,20 @@
+{
+  "description": "worktree 스킬 평가 — git worktree 격리 작업 환경 생성/관리",
+  "cases": [
+    {
+      "input": "/worktree create feat/user-auth",
+      "expected": "git worktree add 명령 실행, 새 worktree 경로 안내",
+      "rubric": "1) worktree 생성 명령이 올바른가 2) 브랜치명이 케밥케이스인가 3) 경로가 ../project-feat-user-auth 형식인가"
+    },
+    {
+      "input": "/worktree list",
+      "expected": "git worktree list 실행, 현재 worktree 목록 출력",
+      "rubric": "1) git worktree list 명령을 실행했는가 2) 결과를 정리하여 출력했는가"
+    },
+    {
+      "input": "/worktree remove feat/user-auth",
+      "expected": "미커밋 변경 확인 후 worktree 제거",
+      "rubric": "1) 미커밋 변경 유무를 확인했는가 2) git worktree remove 명령이 올바른가 3) 정리 완료 안내를 했는가"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+- [세계의 전통 놀이 PPT](ppt-project-world-games.md) — 초4 학생 국어 숙제, 5장 구성·사진/영상 포함
+- [캐릭터 이미지는 Codex와](codex-for-character-images.md) — 꾸미기 단계에서 나라별 캐릭터를 codex exec로 생성

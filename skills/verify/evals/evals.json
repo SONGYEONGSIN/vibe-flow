@@ -1,0 +1,34 @@
+{
+  "skill_name": "verify",
+  "description": "검증 파이프라인 완전성 평가",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "TypeScript + ESLint + Vitest가 설정된 Next.js 프로젝트에서 /verify를 실행한다. 어떤 검증 단계를 실행해야 하는지 설명해라.",
+      "expectations": [
+        { "description": "TypeScript 타입 체크(tsc --noEmit)를 포함한다", "type": "must_pass" },
+        { "description": "ESLint 검사를 포함한다", "type": "must_pass" },
+        { "description": "테스트 실행(vitest/jest)을 포함한다", "type": "must_pass" },
+        { "description": "빌드 검증(next build 등)을 포함한다", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "tsc 에러가 3개 발견된 상황에서 /verify 결과를 보고해라.",
+      "expectations": [
+        { "description": "에러 개수를 정확히 보고한다", "type": "must_pass" },
+        { "description": "각 에러의 파일과 위치를 포함한다", "type": "should_pass" },
+        { "description": "전체 FAIL 판정을 내린다", "type": "must_pass" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "모든 검증 단계를 통과한 상황에서 /verify 결과를 보고해라.",
+      "expectations": [
+        { "description": "전체 PASS 판정을 내린다", "type": "must_pass" },
+        { "description": "각 단계별 결과를 요약한다", "type": "should_pass" },
+        { "description": "불필요한 경고/제안 없이 간결하다", "type": "nice_to_have" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+- [Mac idle sleep ruins long runs](mac-idle-sleep-measurements.md) — run benchmarks under caffeinate -i; check pmset log before trusting timings
+- [Subtitle removal status](subtitle-removal-status.md) — LaMa + real-pixel fill since 2026-10-02; bench numbers, known gaps, OpenCV thread gotcha
+- [Subtitle removal alternatives](subtitle-removal-alternatives.md) — real-pixel propagation beat LaMa/MiniMax/CLEAR with identical masks; recipe + pitfalls
+- [External repos checked](external-repos-checked.md) — OpenMontage/OpenCut have no subtitle removal; Agent-Reach X search needs X cookies
+- [Keep going without pausing](keep-going-without-pausing.md) — finish queued steps in the same turn; don't stop after announcing them
+- [Service launch plan](service-launch-plan.md) — user wants to launch as a service; Vmake is the bar; which models are commercially usable; Desktop bench folder
+- [UI and ASR candidates](ui-and-asr-candidates.md) — Solace UI blocks adapted into the landing (user accepted no-LICENSE risk); Phonon-2 English-only
+- [Speech captions](speech-captions.md) — Whisper large-v3 + Silero VAD in ~/tools/whisper; VAD is mandatory (music → hallucinations); bench + gaps
+- [Landing AI-tell audit](landing-ai-tell-audit.md) — taste-skill audit 2026-10-08; items 1·4·5 fixed, 2 (real images) and 3 (section rhythm) next; pre-launch gaps
+- [Dev server stale code](dev-server-stale-css.md) — dev here stops picking up edits (cause unknown); clear .next/dev/cache/turbopack + restart, or verify with build+start
