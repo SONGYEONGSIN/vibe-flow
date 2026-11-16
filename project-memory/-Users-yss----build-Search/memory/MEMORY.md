@@ -1,2 +1,0 @@
-- [Codex split pane in Orca](codex-split-pane-orca.md) — talk to Codex in the split pane next to this session, never a new tab
-- [Meta AI Festival project](meta-ai-festival-project.md) — family contest entry, deadline 2026-11-15, folder Search/meta-ai-festival

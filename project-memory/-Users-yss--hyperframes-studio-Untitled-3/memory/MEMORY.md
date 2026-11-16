@@ -1,5 +1,0 @@
-- [미소 이사 협업](miso-moving-collab.md) — this project = 미소 방문 이사 견적 Reel; brief rules, tracking link, work folder, waiting for recording
-- [Reply in Korean](reply-in-korean.md) — every reply in plain Korean, even short status lines
-- [맘픽 Reels formula](user-mompick-reels.md) — @mom._.pic persona, 5-step script formula, [나도] CTA, 5 hashtags, dislikes
-- [Work folders](video-work-folders.md) — "작업 경로는 기존대로" = ~/서진하/video-work/날짜_상품 + video-references docs
-- [Production standards](mompick-production-standards.md) — captions, cover, [광고], 땡, SFX, no BGM, voice tone; templates in 1안 project

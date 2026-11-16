@@ -1,2 +1,0 @@
-- [Architecture Tool](reference_architecture_tool.md) — Nano Banana Pro로 생성, API 키는 ~/.claude/env.local
-- [개선 워크플로우](project_improvement_workflow.md) — 내부감사 → 공식문서 → 커뮤니티 3단계 프로세스

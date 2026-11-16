@@ -1,1 +1,0 @@
-- [Reel 02 rough-cut state](reel02-rough-cut-state.md) — waiting for voice in 녹음/02*; footage is tight; subtitle-removal recipe

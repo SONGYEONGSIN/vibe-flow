@@ -1,2 +1,0 @@
-- [VSR sttn-auto keeps stickers](vsr-sttn-keeps-stickers.md) — pre-erase sticker shapes with OpenCV on every clip, then verify
-- [Reel 11 status](reel-11-status.md) — rough cut done; next fit to voice files in 녹음/ (11*)

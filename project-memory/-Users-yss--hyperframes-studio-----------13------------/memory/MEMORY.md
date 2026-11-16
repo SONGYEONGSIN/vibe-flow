@@ -1,1 +1,0 @@
-- [VSR edge subtitles](vsr-edge-subtitles.md) — sttn-auto misses edge-cut subtitles; use sttn-det with an explicit 0/255 mask

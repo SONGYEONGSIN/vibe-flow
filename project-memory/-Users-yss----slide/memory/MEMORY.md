@@ -1,6 +1,0 @@
-- [한국어로 답변](reply-in-korean.md) — 사용자 답변은 항상 한국어
-- [GitHub 레포만 기준](pre-github-backup.md) — 2026-10-22부터 slide-studio 레포 규칙만 따름, 옛 로컬 작업 무시
-- [삭제는 정확한 이름으로](delete-exact-names.md) — 넓은 glob 금지, 삭제 전 목록 확인
-- [검증은 종료 코드까지](verify-exit-code.md) — npm test는 통과 건수와 별개로 Unhandled면 exit 1, 종료 코드·Errors 줄 확인
-- [Codex 멈춤 감시](codex-stall-watch.md) — Codex 요청 후 결과 파일과 'at capacity' 등 오류를 함께 감시
-- [작업 중 레포 쓰기 금지](no-repo-writes-during-job.md) — 실제 작업 중 Codex·Claude가 레포에 쓰면 scope-violation으로 실패

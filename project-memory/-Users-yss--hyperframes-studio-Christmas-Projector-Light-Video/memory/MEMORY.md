@@ -1,5 +1,0 @@
-- [Reply in Korean](reply-in-korean.md) — always answer this user in Korean
-- [Video references folder](video-references-folder.md) — shared reference docs/videos at ~/서진하/video-references (read before new videos) + per-video work folders in ~/서진하/video-work/YYYY-MM-DD_상품명
-- [맘픽 Reels formula](user-mompick-reels.md) — user's Instagram account, persona and proven Reel formula ([나도] CTA, hidden product, mid-frame captions)
-- [Inbox sorting workflow](inbox-sorting-workflow.md) — on "정리해줘", sort ~/서진하/video-work/_받은영상 into YYYY-MM-DD_상품명 folders after watching the clips
-- [맘픽 production standards](mompick-production-standards.md) — 1안-project standards to apply to every Reel: caption stroke 10/shadow, curiosity cover 0.133s, 땡 on '나', SFX, no BGM, voice tone, 인스타정보 file
