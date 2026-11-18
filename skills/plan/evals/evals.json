@@ -1,0 +1,56 @@
+{
+  "skill_name": "plan",
+  "description": "plan 스킬의 입력 파싱·planner 호출·artifact 라이프사이클 품질 평가",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "사용자가 '/plan from-brainstorm .claude/memory/brainstorms/20260425-100000-priority-feature.md'를 호출했다. 해당 brainstorm 파일에는 의도/제약/추천/다음단계가 모두 채워져 있다. plan을 생성하라.",
+      "expectations": [
+        { "description": "brainstorm spec의 ## 의도/## 제약/## 추천 + 근거/## 다음 단계 헤더를 정확히 파싱한다", "type": "must_pass" },
+        { "description": "planner 에이전트를 호출해 영향 파일/단계 분해/리스크를 분석한다", "type": "must_pass" },
+        { "description": "사용자 합의 게이트 — 합의 전에 .claude/plans/에 파일 저장하지 않는다", "type": "must_pass" },
+        { "description": "사용자가 yes 답하면 frontmatter(plan_id, status, hard_gate, source) 포함 파일을 .claude/plans/에 저장한다", "type": "must_pass" },
+        { "description": "events.jsonl에 plan_created 이벤트 기록", "type": "should_pass" },
+        { "description": "frontmatter source 필드가 brainstorm 파일 경로를 가리킨다", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "사용자가 '/plan \"검색 + 필터 기능 추가\"' 자연어로 호출했다. brainstorm 없음. 4문항 일부만 답변된 상태. plan을 생성하라.",
+      "expectations": [
+        { "description": "의도 4문항 중 모호한 항목을 인식하고 brainstorm 먼저 권장 또는 1~2개 핵심 질문 후 진행한다", "type": "must_pass" },
+        { "description": "사용자가 그래도 진행 원할 시 planner를 직접 호출한다", "type": "should_pass" },
+        { "description": "frontmatter source 필드가 'user-direct'로 기록된다", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "사용자가 '/plan complete 20260425-100000-priority-feature:T3'를 호출했다. T3는 현재 in_progress 상태.",
+      "expectations": [
+        { "description": "해당 plan 파일의 T3 단계 상태를 done으로 변경한다", "type": "must_pass" },
+        { "description": "진행 추적 표에 한 행 추가 (시각/T3/in_progress→done)", "type": "must_pass" },
+        { "description": "events.jsonl에 plan_step_complete 이벤트 기록", "type": "must_pass" },
+        { "description": "모든 단계가 done이면 frontmatter status를 completed로 변경한다", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "사용자가 plan 진행 중 '원래 접근 방식이 막혔다 — REST API 대신 GraphQL로 가야 한다'며 plan을 변경하려 한다.",
+      "expectations": [
+        { "description": "기존 plan 파일을 silent 수정하지 않는다", "type": "must_pass" },
+        { "description": "/plan revise를 안내하거나, 기존 plan status를 abandoned로 변경 후 새 plan 생성을 제안한다", "type": "must_pass" },
+        { "description": "새 plan의 frontmatter source 필드에 'revision-of:<old_plan_id>'를 명시한다", "type": "must_pass" },
+        { "description": "이탈 사유를 노트로 기록 (다음 retrospective 분석용)", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "사용자가 '/plan'만 호출했고 작업이 1개 파일 변경 정도로 작은 것을 plan에 적어달라 한다.",
+      "expectations": [
+        { "description": "HARD-GATE 인라인(1~5 파일)에 해당함을 인식한다", "type": "must_pass" },
+        { "description": "plan 생성 자체를 권장 안 함 (인지 비용 > 이득) — 직접 구현 안내", "type": "must_pass" },
+        { "description": "사용자가 그래도 원하면 짧은 plan 생성 (단, 경고 메시지 포함)", "type": "should_pass" }
+      ]
+    }
+  ]
+}

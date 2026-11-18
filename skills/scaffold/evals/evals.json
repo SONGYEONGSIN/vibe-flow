@@ -1,0 +1,25 @@
+{
+  "skill_name": "scaffold",
+  "description": "보일러플레이트 생성 품질 평가",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/scaffold products 를 실행하여 products 도메인의 보일러플레이트를 생성해라.",
+      "expectations": [
+        { "description": "schemas.ts, types.ts, actions.ts, actions.test.ts, index.ts, page.tsx를 모두 생성한다", "type": "must_pass" },
+        { "description": "PascalCase 변환(Products)이 올바르다", "type": "must_pass" },
+        { "description": "actions.ts에 'use server' 선언이 포함된다", "type": "must_pass" },
+        { "description": "zod 스키마가 schemas.ts에 정의된다", "type": "should_pass" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/scaffold user-settings 를 실행해라. 하이픈이 포함된 도메인명을 올바르게 처리해야 한다.",
+      "expectations": [
+        { "description": "디렉토리 경로에 user-settings를 올바르게 사용한다", "type": "must_pass" },
+        { "description": "PascalCase 변환(UserSettings)이 올바르다", "type": "must_pass" },
+        { "description": "barrel export(index.ts)가 생성된다", "type": "should_pass" }
+      ]
+    }
+  ]
+}
