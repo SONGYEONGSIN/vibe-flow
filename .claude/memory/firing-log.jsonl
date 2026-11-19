@@ -45,3 +45,4 @@
 {"ts":"2026-11-19T21:23:19Z","phase":"phase5","detail":"merge-gate PR#313 → DECISION=HOLD_TIER(structural>off) — 사람 대기, 머지 없음. Phase 6 skip(머지 미발생)","base_sha":"0bfc44e"}
 {"ts":"2026-11-19T21:23:44Z","phase":"phase7","detail":"graduation tick clean — disarmed no-op(tier=off, armed=false). Phase 8 skip(tier≠generative)","base_sha":"0bfc44e"}
 {"ts":"2026-11-19T21:23:46Z","phase":"done","detail":"cycle 완료 — round BV(PR #314, F-BV01~07) + build PR #313(F-R15 fix, queue task 20260807T211211Z-3a80 done) 둘 다 HOLD/사람대기(merge-gate off, 직접 머지 없음)","base_sha":"0bfc44e"}
+{"ts":"2026-11-19T21:26:48Z","phase":"phase4","detail":"PR#314 CI RED 수정 — MEMORY.md 인덱스 desync(check-doc-counts) F-BV07 미등장 → add-round 재실행으로 해소, 재실행 자체의 leaf 오염 결함을 F-BV08 로 등록 + 수동 정리. check job PASS, smoke 진행중","base_sha":"4732d56"}
