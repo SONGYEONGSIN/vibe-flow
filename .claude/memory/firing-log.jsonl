@@ -41,3 +41,4 @@
 {"ts":"2026-11-19T21:16:54Z","phase":"phase2-memory-start","detail":"MEMORY 인덱스 편집 착수","base_sha":"9bfcc3b"}
 {"ts":"2026-11-19T21:17:01Z","phase":"phase2-memory","detail":"MEMORY 인덱스 갱신 완료","base_sha":"9b02e9a"}
 {"ts":"2026-11-19T21:19:08Z","phase":"phase3","detail":"ENQUEUE 완료 — 5건 큐 적재(F-BV01-04,06), safety-core skip 44건(기존 open) + F-BV05 1건(substring 오탐, F-BV07 로 등록)","base_sha":"601d87f"}
+{"ts":"2026-11-19T21:23:05Z","phase":"phase4","detail":"PR 생성 완료: #313(F-R15 memory-lint.sh fix, feat/sleep-...) + #314(round BV ledger PR). queue task 20260807T211211Z-3a80 done","base_sha":"0bfc44e"}
