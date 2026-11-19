@@ -24,7 +24,7 @@
 
 - hook 규칙 등 프로젝트 패턴 → **[patterns.md](patterns.md)**.
 - 라운드별 상세 서사(R1~AC, 26 라운드) → **[audit-rounds.md](audit-rounds.md)**. 4-필드 finding 원본은 `audit-ledger.jsonl`.
-- **최근 = 라운드 BV (F-BV01~F-BV06)** — 라운드 BV — VERIFY(F-R08 verified, F-R04/F-R09 pending-측정불가, stale 3건 미해소 재현) + AUDIT D2/D4 신규 6건: yq CLI 구현체 불일치(F-BV01), readme-sync.sh BSD-sed Linux 미동작(F-BV02), sync-claude-md/idea SKILL allowed-tools 죽은 권한 2건(F-BV03/04), merge-gate-smoke.sh M-U.1 PR_NUMBER 계약불일치 vacuous pass(F-BV05), memory-lint.sh anchor 붙은 dead-link 미탐(F-BV06).
+- **최근 = 라운드 BV (F-BV01~F-BV08)** — 라운드 BV — VERIFY(F-R08 verified, F-R04/F-R09 pending-측정불가, stale 3건 미해소 재현) + AUDIT D2/D4 신규 8건: yq CLI 구현체 불일치(F-BV01), readme-sync.sh BSD-sed Linux 미동작(F-BV02), sync-claude-md/idea SKILL allowed-tools 죽은 권한 2건(F-BV03/04), merge-gate-smoke.sh M-U.1 PR_NUMBER 계약불일치 vacuous pass(F-BV05), memory-lint.sh anchor 붙은 dead-link 미탐(F-BV06), ledger.sh enqueue 안전코어 skip 의 substring 오탐(F-BV07), memory-index.sh 가 같은 라운드 재실행 시 직전(좁은 범위) 요약을 leaf 에 영구 오염시키는 결함(F-BV08, 본 라운드에서 2회 실측).
 - **`F-AC05` 인과 가설 반증 (2026-08-28)** — MEMORY 인덱스를 64KB→8KB 로 줄였는데도 08-28 발화가 **같은 `phase2-memory-start` 에서 멈췄다**. 인덱스 비대는 `phase2-memory` 중단의 원인이 아니다. 바이트 cap 자체는 유효(게이트 신설·인덱스 -87%)하나, 4회 연속(AB/AC/AC재시도/AD) 같은 지점 중단의 원인은 **미규명**으로 남는다 → F-AD09.
 
 ## Brainstorm 인덱스 (최근)
