@@ -59,6 +59,13 @@ printf '[[future-topic]] 관련\n' >> "$TMP/wiki/leaf.md"
 OUT5="$(bash "$LINT" "$TMP/wiki" 2>&1)"; assert_exit "unresolved-wikilink-exit0" "0" "$?"
 assert_out "unresolved-wikilink-warn" "future-topic" "$OUT5"
 
+echo "Test L5b (F-R15): 하위 디렉토리(brainstorms/) 산문의 \`[[name]]\` 표기는 재귀 스캔 오탐 금지"
+make_clean "$TMP/subdir"
+mkdir -p "$TMP/subdir/brainstorms"
+printf '설계 노트: \`[[name]]\` 관습은 user-level 메모리에서만 쓴다.\n' > "$TMP/subdir/brainstorms/20260101-note.md"
+OUT5b="$(bash "$LINT" "$TMP/subdir" 2>&1)"; assert_exit "subdir-wikilink-prose-exit0" "0" "$?"
+echo "$OUT5b" | grep -q '\[\[name\]\] 미해결' && { echo "  ✗ subdir-wikilink-prose-no-warn (brainstorms 하위 산문이 오탐 WARN 을 냄)"; FAIL=$((FAIL+1)); } || { echo "  ✓ subdir-wikilink-prose-no-warn"; PASS=$((PASS+1)); }
+
 echo "Test L6: 고아 leaf(인덱스 미등재) → WARN 만 (exit 0 + 메시지)"
 make_clean "$TMP/orphan"
 printf '# stray\n' > "$TMP/orphan/stray-note.md"
